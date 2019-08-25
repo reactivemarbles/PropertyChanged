@@ -1,0 +1,15 @@
+{
+  "version": "1.0",
+  "publicReleaseRefSpec": [
+    "^refs/heads/master$" // we release out of master
+  ],
+  "nugetPackageVersion":{
+    "semVer": 2
+  },
+  "cloudBuild": {
+    "setVersionVariables": true,
+    "buildNumber": {
+      "enabled": false
+    }
+  }
+}
