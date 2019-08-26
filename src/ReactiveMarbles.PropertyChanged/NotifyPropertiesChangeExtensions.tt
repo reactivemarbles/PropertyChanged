@@ -1,0 +1,88 @@
+<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core.dll" #>
+<#@ assembly name="System.Collections.dll" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.Linq" #>
+<#@ output extension=".cs" #>
+// Copyright (c) 2019 Glenn Watson. All rights reserved.
+// Glenn Watson licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for full license information.
+
+using System;
+using System.ComponentModel;
+using System.Linq.Expressions;
+using System.Reactive.Linq;
+
+<#
+int maxFuncLength = 12;
+#>
+namespace ReactiveMarbles.PropertyChanged
+{
+    /// <summary>
+    /// Provides extension methods for the notify property changed extensions.
+    /// </summary>
+    public static class NotifyPropertiesChangeExtensions
+    {
+<#
+        for(int length = 2; length <= maxFuncLength; length++)
+        {
+            var templateParams = Enumerable.Range(1, length).Select(x => "TTempReturn" + x).ToList();
+            var expressionParameterNames = Enumerable.Range(1, length).Select(x => "propertyExpression" + x).ToList();
+            var observableNames = Enumerable.Range(1, length).Select(x => "obs" + x).ToList();#>
+        /// <summary>
+        /// Notifies when the specified property changes.
+        /// </summary>
+        /// <param name="objectToMonitor">The object to monitor.</param>
+<#
+               for (int i = 0; i < expressionParameterNames.Count; ++i)
+               {
+                    var expressionParameterName = expressionParameterNames[i];
+                    var expressionParameterNumber = i + 1;#>
+        /// <param name="<#= expressionParameterName #>">A expression to the value<#= expressionParameterNumber #>.</param>
+<#
+               }
+#>
+        /// <param name="conversionFunc">Parameter which converts into the end value.</param>
+        /// <typeparam name="TObj">The type of initial object.</typeparam>
+<#
+            for (int i = 0; i < templateParams.Count; ++i)
+            {
+                var templateParam = templateParams[i];
+                var templateParamNumber = i + 1;#>
+        /// <typeparam name="<#= templateParam #>">The return type of the value<#= templateParamNumber #>.</typeparam>
+<#
+            }
+#>
+        /// <typeparam name="TReturn">The return value of the observable. Generated from the conversion func.</typeparam>
+        /// <returns>An observable that signals when the properties specified in the expressions have changed.</returns>
+        /// <exception cref="ArgumentNullException">Either the property expression or the object to monitor is null.</exception>
+        /// <exception cref="ArgumentException">If there is an issue with the property expression.</exception>
+        public static IObservable<TReturn> WhenPropertiesChange<TObj, <#= string.Join(", ", templateParams) #>, TReturn>(
+            this TObj objectToMonitor,
+<#
+                for (int i = 0; i < templateParams.Count; ++i)
+                {
+                    var templateParam = templateParams[i];
+                    var templateParamNumber = i + 1;#>
+            Expression<Func<TObj, <#= templateParam #>>> propertyExpression<#= templateParamNumber #>,
+<#
+                }
+#>
+            Func<<#= string.Join(", ", templateParams) #>, TReturn> conversionFunc)
+                where TObj : class, INotifyPropertyChanged
+        {<#
+                for (int i = 0; i < templateParams.Count; ++i)
+                {
+                    var templateParam = templateParams[i];
+                    var templateParamNumber = i + 1;#>
+
+            var obs<#= templateParamNumber #> = objectToMonitor.WhenPropertyChanges(propertyExpression<#= templateParamNumber #>);
+<#              }#>
+
+            return obs1.CombineLatest(<#= string.Join(", ", observableNames.Skip(1)) #>, conversionFunc);
+        }
+<#
+        if (length != maxFuncLength) WriteLine(string.Empty);
+      }#>
+    }
+}

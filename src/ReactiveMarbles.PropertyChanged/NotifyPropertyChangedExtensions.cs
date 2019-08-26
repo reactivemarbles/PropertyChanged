@@ -72,6 +72,48 @@ namespace ReactiveMarbles.PropertyChanged
             throw new ArgumentException("Invalid expression", nameof(propertyExpression));
         }
 
+        /// <summary>
+        /// Notifies when the specified property changes.
+        /// </summary>
+        /// <param name="objectToMonitor">The object to monitor.</param>
+        /// <param name="propertyExpression1">The expression to the first value.</param>
+        /// <param name="propertyExpression2">The expression to the second value.</param>
+        /// <param name="conversionFunc">Parameter which converts into the end value.</param>
+        /// <typeparam name="TObj">The type of initial object.</typeparam>
+        /// <typeparam name="TTempReturn1">The return value of the first expression.</typeparam>
+        /// <typeparam name="TTempReturn2">The return value of the second expression.</typeparam>
+        /// <typeparam name="TReturn">The eventual return value.</typeparam>
+        /// <returns>An observable that signals when the property specified in the expression has changed.</returns>
+        /// <exception cref="ArgumentNullException">Either the property expression or the object to monitor is null.</exception>
+        /// <exception cref="ArgumentException">If there is an issue with the property expression.</exception>
+        public static IObservable<TReturn> WhenPropertiesChange<TObj, TTempReturn1, TTempReturn2, TReturn>(
+            this TObj objectToMonitor,
+            Expression<Func<TObj, TTempReturn1>> propertyExpression1,
+            Expression<Func<TObj, TTempReturn2>> propertyExpression2,
+            Func<TTempReturn1, TTempReturn2, TReturn> conversionFunc)
+            where TObj : class, INotifyPropertyChanged
+        {
+            var obs1 = WhenPropertyChanges(objectToMonitor, propertyExpression1);
+            var obs2 = WhenPropertyChanges(objectToMonitor, propertyExpression2);
+
+            return obs1.CombineLatest(obs2, conversionFunc);
+        }
+
+        public static IObservable<TReturn> WhenPropertiesChange<TObj, TTempReturn1, TTempReturn2, TTempReturn3, TReturn>(
+            this TObj objectToMonitor,
+            Expression<Func<TObj, TTempReturn1>> propertyExpression1,
+            Expression<Func<TObj, TTempReturn2>> propertyExpression2,
+            Expression<Func<TObj, TTempReturn3>> propertyExpression3,
+            Func<TTempReturn1, TTempReturn2, TTempReturn3, TReturn> conversionFunc)
+            where TObj : class, INotifyPropertyChanged
+        {
+            var obs1 = WhenPropertyChanges(objectToMonitor, propertyExpression1);
+            var obs2 = WhenPropertyChanges(objectToMonitor, propertyExpression2);
+            var obs3 = WhenPropertyChanges(objectToMonitor, propertyExpression3);
+
+            return obs1.CombineLatest(obs2, obs3, conversionFunc);
+        }
+
         private static IObservable<T> GenerateObservable<T>(INotifyPropertyChanged parent, MemberExpression memberExpression)
         {
             var memberInfo = memberExpression.Member;
