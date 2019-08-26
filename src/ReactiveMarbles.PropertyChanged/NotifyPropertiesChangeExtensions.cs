@@ -28,16 +28,16 @@ namespace ReactiveMarbles.PropertyChanged
         /// <returns>An observable that signals when the properties specified in the expressions have changed.</returns>
         /// <exception cref="ArgumentNullException">Either the property expression or the object to monitor is null.</exception>
         /// <exception cref="ArgumentException">If there is an issue with the property expression.</exception>
-        public static IObservable<TReturn> WhenPropertiesChange<TObj, TTempReturn1, TTempReturn2, TReturn>(
+        public static IObservable<TReturn> WhenPropertiesValueChanges<TObj, TTempReturn1, TTempReturn2, TReturn>(
             this TObj objectToMonitor,
             Expression<Func<TObj, TTempReturn1>> propertyExpression1,
             Expression<Func<TObj, TTempReturn2>> propertyExpression2,
             Func<TTempReturn1, TTempReturn2, TReturn> conversionFunc)
                 where TObj : class, INotifyPropertyChanged
         {
-            var obs1 = objectToMonitor.WhenPropertyChanges(propertyExpression1);
+            var obs1 = objectToMonitor.WhenPropertyValueChanges(propertyExpression1);
 
-            var obs2 = objectToMonitor.WhenPropertyChanges(propertyExpression2);
+            var obs2 = objectToMonitor.WhenPropertyValueChanges(propertyExpression2);
 
             return obs1.CombineLatest(obs2, conversionFunc);
         }
@@ -58,7 +58,7 @@ namespace ReactiveMarbles.PropertyChanged
         /// <returns>An observable that signals when the properties specified in the expressions have changed.</returns>
         /// <exception cref="ArgumentNullException">Either the property expression or the object to monitor is null.</exception>
         /// <exception cref="ArgumentException">If there is an issue with the property expression.</exception>
-        public static IObservable<TReturn> WhenPropertiesChange<TObj, TTempReturn1, TTempReturn2, TTempReturn3, TReturn>(
+        public static IObservable<TReturn> WhenPropertiesValueChanges<TObj, TTempReturn1, TTempReturn2, TTempReturn3, TReturn>(
             this TObj objectToMonitor,
             Expression<Func<TObj, TTempReturn1>> propertyExpression1,
             Expression<Func<TObj, TTempReturn2>> propertyExpression2,
@@ -66,11 +66,11 @@ namespace ReactiveMarbles.PropertyChanged
             Func<TTempReturn1, TTempReturn2, TTempReturn3, TReturn> conversionFunc)
                 where TObj : class, INotifyPropertyChanged
         {
-            var obs1 = objectToMonitor.WhenPropertyChanges(propertyExpression1);
+            var obs1 = objectToMonitor.WhenPropertyValueChanges(propertyExpression1);
 
-            var obs2 = objectToMonitor.WhenPropertyChanges(propertyExpression2);
+            var obs2 = objectToMonitor.WhenPropertyValueChanges(propertyExpression2);
 
-            var obs3 = objectToMonitor.WhenPropertyChanges(propertyExpression3);
+            var obs3 = objectToMonitor.WhenPropertyValueChanges(propertyExpression3);
 
             return obs1.CombineLatest(obs2, obs3, conversionFunc);
         }
@@ -93,7 +93,7 @@ namespace ReactiveMarbles.PropertyChanged
         /// <returns>An observable that signals when the properties specified in the expressions have changed.</returns>
         /// <exception cref="ArgumentNullException">Either the property expression or the object to monitor is null.</exception>
         /// <exception cref="ArgumentException">If there is an issue with the property expression.</exception>
-        public static IObservable<TReturn> WhenPropertiesChange<TObj, TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TReturn>(
+        public static IObservable<TReturn> WhenPropertiesValueChanges<TObj, TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TReturn>(
             this TObj objectToMonitor,
             Expression<Func<TObj, TTempReturn1>> propertyExpression1,
             Expression<Func<TObj, TTempReturn2>> propertyExpression2,
@@ -102,13 +102,13 @@ namespace ReactiveMarbles.PropertyChanged
             Func<TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TReturn> conversionFunc)
                 where TObj : class, INotifyPropertyChanged
         {
-            var obs1 = objectToMonitor.WhenPropertyChanges(propertyExpression1);
+            var obs1 = objectToMonitor.WhenPropertyValueChanges(propertyExpression1);
 
-            var obs2 = objectToMonitor.WhenPropertyChanges(propertyExpression2);
+            var obs2 = objectToMonitor.WhenPropertyValueChanges(propertyExpression2);
 
-            var obs3 = objectToMonitor.WhenPropertyChanges(propertyExpression3);
+            var obs3 = objectToMonitor.WhenPropertyValueChanges(propertyExpression3);
 
-            var obs4 = objectToMonitor.WhenPropertyChanges(propertyExpression4);
+            var obs4 = objectToMonitor.WhenPropertyValueChanges(propertyExpression4);
 
             return obs1.CombineLatest(obs2, obs3, obs4, conversionFunc);
         }
@@ -133,7 +133,7 @@ namespace ReactiveMarbles.PropertyChanged
         /// <returns>An observable that signals when the properties specified in the expressions have changed.</returns>
         /// <exception cref="ArgumentNullException">Either the property expression or the object to monitor is null.</exception>
         /// <exception cref="ArgumentException">If there is an issue with the property expression.</exception>
-        public static IObservable<TReturn> WhenPropertiesChange<TObj, TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TReturn>(
+        public static IObservable<TReturn> WhenPropertiesValueChanges<TObj, TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TReturn>(
             this TObj objectToMonitor,
             Expression<Func<TObj, TTempReturn1>> propertyExpression1,
             Expression<Func<TObj, TTempReturn2>> propertyExpression2,
@@ -143,15 +143,15 @@ namespace ReactiveMarbles.PropertyChanged
             Func<TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TReturn> conversionFunc)
                 where TObj : class, INotifyPropertyChanged
         {
-            var obs1 = objectToMonitor.WhenPropertyChanges(propertyExpression1);
+            var obs1 = objectToMonitor.WhenPropertyValueChanges(propertyExpression1);
 
-            var obs2 = objectToMonitor.WhenPropertyChanges(propertyExpression2);
+            var obs2 = objectToMonitor.WhenPropertyValueChanges(propertyExpression2);
 
-            var obs3 = objectToMonitor.WhenPropertyChanges(propertyExpression3);
+            var obs3 = objectToMonitor.WhenPropertyValueChanges(propertyExpression3);
 
-            var obs4 = objectToMonitor.WhenPropertyChanges(propertyExpression4);
+            var obs4 = objectToMonitor.WhenPropertyValueChanges(propertyExpression4);
 
-            var obs5 = objectToMonitor.WhenPropertyChanges(propertyExpression5);
+            var obs5 = objectToMonitor.WhenPropertyValueChanges(propertyExpression5);
 
             return obs1.CombineLatest(obs2, obs3, obs4, obs5, conversionFunc);
         }
@@ -178,7 +178,7 @@ namespace ReactiveMarbles.PropertyChanged
         /// <returns>An observable that signals when the properties specified in the expressions have changed.</returns>
         /// <exception cref="ArgumentNullException">Either the property expression or the object to monitor is null.</exception>
         /// <exception cref="ArgumentException">If there is an issue with the property expression.</exception>
-        public static IObservable<TReturn> WhenPropertiesChange<TObj, TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TReturn>(
+        public static IObservable<TReturn> WhenPropertiesValueChanges<TObj, TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TReturn>(
             this TObj objectToMonitor,
             Expression<Func<TObj, TTempReturn1>> propertyExpression1,
             Expression<Func<TObj, TTempReturn2>> propertyExpression2,
@@ -189,17 +189,17 @@ namespace ReactiveMarbles.PropertyChanged
             Func<TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TReturn> conversionFunc)
                 where TObj : class, INotifyPropertyChanged
         {
-            var obs1 = objectToMonitor.WhenPropertyChanges(propertyExpression1);
+            var obs1 = objectToMonitor.WhenPropertyValueChanges(propertyExpression1);
 
-            var obs2 = objectToMonitor.WhenPropertyChanges(propertyExpression2);
+            var obs2 = objectToMonitor.WhenPropertyValueChanges(propertyExpression2);
 
-            var obs3 = objectToMonitor.WhenPropertyChanges(propertyExpression3);
+            var obs3 = objectToMonitor.WhenPropertyValueChanges(propertyExpression3);
 
-            var obs4 = objectToMonitor.WhenPropertyChanges(propertyExpression4);
+            var obs4 = objectToMonitor.WhenPropertyValueChanges(propertyExpression4);
 
-            var obs5 = objectToMonitor.WhenPropertyChanges(propertyExpression5);
+            var obs5 = objectToMonitor.WhenPropertyValueChanges(propertyExpression5);
 
-            var obs6 = objectToMonitor.WhenPropertyChanges(propertyExpression6);
+            var obs6 = objectToMonitor.WhenPropertyValueChanges(propertyExpression6);
 
             return obs1.CombineLatest(obs2, obs3, obs4, obs5, obs6, conversionFunc);
         }
@@ -228,7 +228,7 @@ namespace ReactiveMarbles.PropertyChanged
         /// <returns>An observable that signals when the properties specified in the expressions have changed.</returns>
         /// <exception cref="ArgumentNullException">Either the property expression or the object to monitor is null.</exception>
         /// <exception cref="ArgumentException">If there is an issue with the property expression.</exception>
-        public static IObservable<TReturn> WhenPropertiesChange<TObj, TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TTempReturn7, TReturn>(
+        public static IObservable<TReturn> WhenPropertiesValueChanges<TObj, TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TTempReturn7, TReturn>(
             this TObj objectToMonitor,
             Expression<Func<TObj, TTempReturn1>> propertyExpression1,
             Expression<Func<TObj, TTempReturn2>> propertyExpression2,
@@ -240,19 +240,19 @@ namespace ReactiveMarbles.PropertyChanged
             Func<TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TTempReturn7, TReturn> conversionFunc)
                 where TObj : class, INotifyPropertyChanged
         {
-            var obs1 = objectToMonitor.WhenPropertyChanges(propertyExpression1);
+            var obs1 = objectToMonitor.WhenPropertyValueChanges(propertyExpression1);
 
-            var obs2 = objectToMonitor.WhenPropertyChanges(propertyExpression2);
+            var obs2 = objectToMonitor.WhenPropertyValueChanges(propertyExpression2);
 
-            var obs3 = objectToMonitor.WhenPropertyChanges(propertyExpression3);
+            var obs3 = objectToMonitor.WhenPropertyValueChanges(propertyExpression3);
 
-            var obs4 = objectToMonitor.WhenPropertyChanges(propertyExpression4);
+            var obs4 = objectToMonitor.WhenPropertyValueChanges(propertyExpression4);
 
-            var obs5 = objectToMonitor.WhenPropertyChanges(propertyExpression5);
+            var obs5 = objectToMonitor.WhenPropertyValueChanges(propertyExpression5);
 
-            var obs6 = objectToMonitor.WhenPropertyChanges(propertyExpression6);
+            var obs6 = objectToMonitor.WhenPropertyValueChanges(propertyExpression6);
 
-            var obs7 = objectToMonitor.WhenPropertyChanges(propertyExpression7);
+            var obs7 = objectToMonitor.WhenPropertyValueChanges(propertyExpression7);
 
             return obs1.CombineLatest(obs2, obs3, obs4, obs5, obs6, obs7, conversionFunc);
         }
@@ -283,7 +283,7 @@ namespace ReactiveMarbles.PropertyChanged
         /// <returns>An observable that signals when the properties specified in the expressions have changed.</returns>
         /// <exception cref="ArgumentNullException">Either the property expression or the object to monitor is null.</exception>
         /// <exception cref="ArgumentException">If there is an issue with the property expression.</exception>
-        public static IObservable<TReturn> WhenPropertiesChange<TObj, TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TTempReturn7, TTempReturn8, TReturn>(
+        public static IObservable<TReturn> WhenPropertiesValueChanges<TObj, TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TTempReturn7, TTempReturn8, TReturn>(
             this TObj objectToMonitor,
             Expression<Func<TObj, TTempReturn1>> propertyExpression1,
             Expression<Func<TObj, TTempReturn2>> propertyExpression2,
@@ -296,21 +296,21 @@ namespace ReactiveMarbles.PropertyChanged
             Func<TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TTempReturn7, TTempReturn8, TReturn> conversionFunc)
                 where TObj : class, INotifyPropertyChanged
         {
-            var obs1 = objectToMonitor.WhenPropertyChanges(propertyExpression1);
+            var obs1 = objectToMonitor.WhenPropertyValueChanges(propertyExpression1);
 
-            var obs2 = objectToMonitor.WhenPropertyChanges(propertyExpression2);
+            var obs2 = objectToMonitor.WhenPropertyValueChanges(propertyExpression2);
 
-            var obs3 = objectToMonitor.WhenPropertyChanges(propertyExpression3);
+            var obs3 = objectToMonitor.WhenPropertyValueChanges(propertyExpression3);
 
-            var obs4 = objectToMonitor.WhenPropertyChanges(propertyExpression4);
+            var obs4 = objectToMonitor.WhenPropertyValueChanges(propertyExpression4);
 
-            var obs5 = objectToMonitor.WhenPropertyChanges(propertyExpression5);
+            var obs5 = objectToMonitor.WhenPropertyValueChanges(propertyExpression5);
 
-            var obs6 = objectToMonitor.WhenPropertyChanges(propertyExpression6);
+            var obs6 = objectToMonitor.WhenPropertyValueChanges(propertyExpression6);
 
-            var obs7 = objectToMonitor.WhenPropertyChanges(propertyExpression7);
+            var obs7 = objectToMonitor.WhenPropertyValueChanges(propertyExpression7);
 
-            var obs8 = objectToMonitor.WhenPropertyChanges(propertyExpression8);
+            var obs8 = objectToMonitor.WhenPropertyValueChanges(propertyExpression8);
 
             return obs1.CombineLatest(obs2, obs3, obs4, obs5, obs6, obs7, obs8, conversionFunc);
         }
@@ -343,7 +343,7 @@ namespace ReactiveMarbles.PropertyChanged
         /// <returns>An observable that signals when the properties specified in the expressions have changed.</returns>
         /// <exception cref="ArgumentNullException">Either the property expression or the object to monitor is null.</exception>
         /// <exception cref="ArgumentException">If there is an issue with the property expression.</exception>
-        public static IObservable<TReturn> WhenPropertiesChange<TObj, TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TTempReturn7, TTempReturn8, TTempReturn9, TReturn>(
+        public static IObservable<TReturn> WhenPropertiesValueChanges<TObj, TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TTempReturn7, TTempReturn8, TTempReturn9, TReturn>(
             this TObj objectToMonitor,
             Expression<Func<TObj, TTempReturn1>> propertyExpression1,
             Expression<Func<TObj, TTempReturn2>> propertyExpression2,
@@ -357,23 +357,23 @@ namespace ReactiveMarbles.PropertyChanged
             Func<TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TTempReturn7, TTempReturn8, TTempReturn9, TReturn> conversionFunc)
                 where TObj : class, INotifyPropertyChanged
         {
-            var obs1 = objectToMonitor.WhenPropertyChanges(propertyExpression1);
+            var obs1 = objectToMonitor.WhenPropertyValueChanges(propertyExpression1);
 
-            var obs2 = objectToMonitor.WhenPropertyChanges(propertyExpression2);
+            var obs2 = objectToMonitor.WhenPropertyValueChanges(propertyExpression2);
 
-            var obs3 = objectToMonitor.WhenPropertyChanges(propertyExpression3);
+            var obs3 = objectToMonitor.WhenPropertyValueChanges(propertyExpression3);
 
-            var obs4 = objectToMonitor.WhenPropertyChanges(propertyExpression4);
+            var obs4 = objectToMonitor.WhenPropertyValueChanges(propertyExpression4);
 
-            var obs5 = objectToMonitor.WhenPropertyChanges(propertyExpression5);
+            var obs5 = objectToMonitor.WhenPropertyValueChanges(propertyExpression5);
 
-            var obs6 = objectToMonitor.WhenPropertyChanges(propertyExpression6);
+            var obs6 = objectToMonitor.WhenPropertyValueChanges(propertyExpression6);
 
-            var obs7 = objectToMonitor.WhenPropertyChanges(propertyExpression7);
+            var obs7 = objectToMonitor.WhenPropertyValueChanges(propertyExpression7);
 
-            var obs8 = objectToMonitor.WhenPropertyChanges(propertyExpression8);
+            var obs8 = objectToMonitor.WhenPropertyValueChanges(propertyExpression8);
 
-            var obs9 = objectToMonitor.WhenPropertyChanges(propertyExpression9);
+            var obs9 = objectToMonitor.WhenPropertyValueChanges(propertyExpression9);
 
             return obs1.CombineLatest(obs2, obs3, obs4, obs5, obs6, obs7, obs8, obs9, conversionFunc);
         }
@@ -408,7 +408,7 @@ namespace ReactiveMarbles.PropertyChanged
         /// <returns>An observable that signals when the properties specified in the expressions have changed.</returns>
         /// <exception cref="ArgumentNullException">Either the property expression or the object to monitor is null.</exception>
         /// <exception cref="ArgumentException">If there is an issue with the property expression.</exception>
-        public static IObservable<TReturn> WhenPropertiesChange<TObj, TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TTempReturn7, TTempReturn8, TTempReturn9, TTempReturn10, TReturn>(
+        public static IObservable<TReturn> WhenPropertiesValueChanges<TObj, TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TTempReturn7, TTempReturn8, TTempReturn9, TTempReturn10, TReturn>(
             this TObj objectToMonitor,
             Expression<Func<TObj, TTempReturn1>> propertyExpression1,
             Expression<Func<TObj, TTempReturn2>> propertyExpression2,
@@ -423,25 +423,25 @@ namespace ReactiveMarbles.PropertyChanged
             Func<TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TTempReturn7, TTempReturn8, TTempReturn9, TTempReturn10, TReturn> conversionFunc)
                 where TObj : class, INotifyPropertyChanged
         {
-            var obs1 = objectToMonitor.WhenPropertyChanges(propertyExpression1);
+            var obs1 = objectToMonitor.WhenPropertyValueChanges(propertyExpression1);
 
-            var obs2 = objectToMonitor.WhenPropertyChanges(propertyExpression2);
+            var obs2 = objectToMonitor.WhenPropertyValueChanges(propertyExpression2);
 
-            var obs3 = objectToMonitor.WhenPropertyChanges(propertyExpression3);
+            var obs3 = objectToMonitor.WhenPropertyValueChanges(propertyExpression3);
 
-            var obs4 = objectToMonitor.WhenPropertyChanges(propertyExpression4);
+            var obs4 = objectToMonitor.WhenPropertyValueChanges(propertyExpression4);
 
-            var obs5 = objectToMonitor.WhenPropertyChanges(propertyExpression5);
+            var obs5 = objectToMonitor.WhenPropertyValueChanges(propertyExpression5);
 
-            var obs6 = objectToMonitor.WhenPropertyChanges(propertyExpression6);
+            var obs6 = objectToMonitor.WhenPropertyValueChanges(propertyExpression6);
 
-            var obs7 = objectToMonitor.WhenPropertyChanges(propertyExpression7);
+            var obs7 = objectToMonitor.WhenPropertyValueChanges(propertyExpression7);
 
-            var obs8 = objectToMonitor.WhenPropertyChanges(propertyExpression8);
+            var obs8 = objectToMonitor.WhenPropertyValueChanges(propertyExpression8);
 
-            var obs9 = objectToMonitor.WhenPropertyChanges(propertyExpression9);
+            var obs9 = objectToMonitor.WhenPropertyValueChanges(propertyExpression9);
 
-            var obs10 = objectToMonitor.WhenPropertyChanges(propertyExpression10);
+            var obs10 = objectToMonitor.WhenPropertyValueChanges(propertyExpression10);
 
             return obs1.CombineLatest(obs2, obs3, obs4, obs5, obs6, obs7, obs8, obs9, obs10, conversionFunc);
         }
@@ -478,7 +478,7 @@ namespace ReactiveMarbles.PropertyChanged
         /// <returns>An observable that signals when the properties specified in the expressions have changed.</returns>
         /// <exception cref="ArgumentNullException">Either the property expression or the object to monitor is null.</exception>
         /// <exception cref="ArgumentException">If there is an issue with the property expression.</exception>
-        public static IObservable<TReturn> WhenPropertiesChange<TObj, TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TTempReturn7, TTempReturn8, TTempReturn9, TTempReturn10, TTempReturn11, TReturn>(
+        public static IObservable<TReturn> WhenPropertiesValueChanges<TObj, TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TTempReturn7, TTempReturn8, TTempReturn9, TTempReturn10, TTempReturn11, TReturn>(
             this TObj objectToMonitor,
             Expression<Func<TObj, TTempReturn1>> propertyExpression1,
             Expression<Func<TObj, TTempReturn2>> propertyExpression2,
@@ -494,27 +494,27 @@ namespace ReactiveMarbles.PropertyChanged
             Func<TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TTempReturn7, TTempReturn8, TTempReturn9, TTempReturn10, TTempReturn11, TReturn> conversionFunc)
                 where TObj : class, INotifyPropertyChanged
         {
-            var obs1 = objectToMonitor.WhenPropertyChanges(propertyExpression1);
+            var obs1 = objectToMonitor.WhenPropertyValueChanges(propertyExpression1);
 
-            var obs2 = objectToMonitor.WhenPropertyChanges(propertyExpression2);
+            var obs2 = objectToMonitor.WhenPropertyValueChanges(propertyExpression2);
 
-            var obs3 = objectToMonitor.WhenPropertyChanges(propertyExpression3);
+            var obs3 = objectToMonitor.WhenPropertyValueChanges(propertyExpression3);
 
-            var obs4 = objectToMonitor.WhenPropertyChanges(propertyExpression4);
+            var obs4 = objectToMonitor.WhenPropertyValueChanges(propertyExpression4);
 
-            var obs5 = objectToMonitor.WhenPropertyChanges(propertyExpression5);
+            var obs5 = objectToMonitor.WhenPropertyValueChanges(propertyExpression5);
 
-            var obs6 = objectToMonitor.WhenPropertyChanges(propertyExpression6);
+            var obs6 = objectToMonitor.WhenPropertyValueChanges(propertyExpression6);
 
-            var obs7 = objectToMonitor.WhenPropertyChanges(propertyExpression7);
+            var obs7 = objectToMonitor.WhenPropertyValueChanges(propertyExpression7);
 
-            var obs8 = objectToMonitor.WhenPropertyChanges(propertyExpression8);
+            var obs8 = objectToMonitor.WhenPropertyValueChanges(propertyExpression8);
 
-            var obs9 = objectToMonitor.WhenPropertyChanges(propertyExpression9);
+            var obs9 = objectToMonitor.WhenPropertyValueChanges(propertyExpression9);
 
-            var obs10 = objectToMonitor.WhenPropertyChanges(propertyExpression10);
+            var obs10 = objectToMonitor.WhenPropertyValueChanges(propertyExpression10);
 
-            var obs11 = objectToMonitor.WhenPropertyChanges(propertyExpression11);
+            var obs11 = objectToMonitor.WhenPropertyValueChanges(propertyExpression11);
 
             return obs1.CombineLatest(obs2, obs3, obs4, obs5, obs6, obs7, obs8, obs9, obs10, obs11, conversionFunc);
         }
@@ -553,7 +553,7 @@ namespace ReactiveMarbles.PropertyChanged
         /// <returns>An observable that signals when the properties specified in the expressions have changed.</returns>
         /// <exception cref="ArgumentNullException">Either the property expression or the object to monitor is null.</exception>
         /// <exception cref="ArgumentException">If there is an issue with the property expression.</exception>
-        public static IObservable<TReturn> WhenPropertiesChange<TObj, TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TTempReturn7, TTempReturn8, TTempReturn9, TTempReturn10, TTempReturn11, TTempReturn12, TReturn>(
+        public static IObservable<TReturn> WhenPropertiesValueChanges<TObj, TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TTempReturn7, TTempReturn8, TTempReturn9, TTempReturn10, TTempReturn11, TTempReturn12, TReturn>(
             this TObj objectToMonitor,
             Expression<Func<TObj, TTempReturn1>> propertyExpression1,
             Expression<Func<TObj, TTempReturn2>> propertyExpression2,
@@ -570,29 +570,29 @@ namespace ReactiveMarbles.PropertyChanged
             Func<TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TTempReturn7, TTempReturn8, TTempReturn9, TTempReturn10, TTempReturn11, TTempReturn12, TReturn> conversionFunc)
                 where TObj : class, INotifyPropertyChanged
         {
-            var obs1 = objectToMonitor.WhenPropertyChanges(propertyExpression1);
+            var obs1 = objectToMonitor.WhenPropertyValueChanges(propertyExpression1);
 
-            var obs2 = objectToMonitor.WhenPropertyChanges(propertyExpression2);
+            var obs2 = objectToMonitor.WhenPropertyValueChanges(propertyExpression2);
 
-            var obs3 = objectToMonitor.WhenPropertyChanges(propertyExpression3);
+            var obs3 = objectToMonitor.WhenPropertyValueChanges(propertyExpression3);
 
-            var obs4 = objectToMonitor.WhenPropertyChanges(propertyExpression4);
+            var obs4 = objectToMonitor.WhenPropertyValueChanges(propertyExpression4);
 
-            var obs5 = objectToMonitor.WhenPropertyChanges(propertyExpression5);
+            var obs5 = objectToMonitor.WhenPropertyValueChanges(propertyExpression5);
 
-            var obs6 = objectToMonitor.WhenPropertyChanges(propertyExpression6);
+            var obs6 = objectToMonitor.WhenPropertyValueChanges(propertyExpression6);
 
-            var obs7 = objectToMonitor.WhenPropertyChanges(propertyExpression7);
+            var obs7 = objectToMonitor.WhenPropertyValueChanges(propertyExpression7);
 
-            var obs8 = objectToMonitor.WhenPropertyChanges(propertyExpression8);
+            var obs8 = objectToMonitor.WhenPropertyValueChanges(propertyExpression8);
 
-            var obs9 = objectToMonitor.WhenPropertyChanges(propertyExpression9);
+            var obs9 = objectToMonitor.WhenPropertyValueChanges(propertyExpression9);
 
-            var obs10 = objectToMonitor.WhenPropertyChanges(propertyExpression10);
+            var obs10 = objectToMonitor.WhenPropertyValueChanges(propertyExpression10);
 
-            var obs11 = objectToMonitor.WhenPropertyChanges(propertyExpression11);
+            var obs11 = objectToMonitor.WhenPropertyValueChanges(propertyExpression11);
 
-            var obs12 = objectToMonitor.WhenPropertyChanges(propertyExpression12);
+            var obs12 = objectToMonitor.WhenPropertyValueChanges(propertyExpression12);
 
             return obs1.CombineLatest(obs2, obs3, obs4, obs5, obs6, obs7, obs8, obs9, obs10, obs11, obs12, conversionFunc);
         }

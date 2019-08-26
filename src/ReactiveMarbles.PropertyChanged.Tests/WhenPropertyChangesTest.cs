@@ -11,7 +11,7 @@ namespace ReactiveMarbles.PropertyChanged.Tests
     public class WhenPropertyChangesTest
     {
         [Fact]
-        public void NestedPropertyChangedWork()
+        public void NestedPropertyValueChangedWork()
         {
             var a = new A();
             var b = new B();
@@ -20,7 +20,7 @@ namespace ReactiveMarbles.PropertyChanged.Tests
             b.C = c;
 
             string testValue = "ignore";
-            a.WhenPropertyChanges(x => x.B.C.Test).Subscribe(x => testValue = x);
+            a.WhenPropertyValueChanges(x => x.B.C.Test).Subscribe(x => testValue = x);
             Assert.Null(testValue);
 
             c.Test = "Hello World";
@@ -33,11 +33,11 @@ namespace ReactiveMarbles.PropertyChanged.Tests
         }
 
         [Fact]
-        public void PropertyChangedWork()
+        public void PropertyValueChangedWork()
         {
             var c = new C();
             string testValue = "ignore";
-            c.WhenPropertyChanges(x => x.Test).Subscribe(x => testValue = x);
+            c.WhenPropertyValueChanges(x => x.Test).Subscribe(x => testValue = x);
 
             Assert.Null(testValue);
             c.Test = "test";
