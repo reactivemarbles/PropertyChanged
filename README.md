@@ -1,3 +1,6 @@
+[![NuGet](https://img.shields.io/nuget/v/ReactiveMarbles.PropertyChanged.svg?maxAge=2592000)](https://www.nuget.org/packages/ReactiveMarbles.PropertyChanged/)
+[![Build status](https://dev.azure.com/ReactiveMarbles/ReactiveMarbles/_apis/build/status/PropertyChanged)](https://dev.azure.com/ReactiveMarbles/ReactiveMarbles/_build?definitionId=1)
+
 # Reactive Marbles Property Changed
 
 A framework for providing an observable with the latest value of a property expression.
