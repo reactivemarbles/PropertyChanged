@@ -50,7 +50,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
             b.C = c;
 
             string testValue = "ignore";
-            a.WhenPropertyChanges(x => x.B.C.Test).Subscribe(x => testValue = x);
+            a.WhenPropertyValueChanges(x => x.B.C.Test).Subscribe(x => testValue = x);
 
             for (int i = 0; i < N; ++i)
             {

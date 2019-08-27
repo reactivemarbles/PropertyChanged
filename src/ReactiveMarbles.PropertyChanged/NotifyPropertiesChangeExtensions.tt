@@ -57,7 +57,7 @@ namespace ReactiveMarbles.PropertyChanged
         /// <returns>An observable that signals when the properties specified in the expressions have changed.</returns>
         /// <exception cref="ArgumentNullException">Either the property expression or the object to monitor is null.</exception>
         /// <exception cref="ArgumentException">If there is an issue with the property expression.</exception>
-        public static IObservable<TReturn> WhenPropertiesChange<TObj, <#= string.Join(", ", templateParams) #>, TReturn>(
+        public static IObservable<TReturn> WhenPropertiesValueChanges<TObj, <#= string.Join(", ", templateParams) #>, TReturn>(
             this TObj objectToMonitor,
 <#
                 for (int i = 0; i < templateParams.Count; ++i)
@@ -76,7 +76,7 @@ namespace ReactiveMarbles.PropertyChanged
                     var templateParam = templateParams[i];
                     var templateParamNumber = i + 1;#>
 
-            var obs<#= templateParamNumber #> = objectToMonitor.WhenPropertyChanges(propertyExpression<#= templateParamNumber #>);
+            var obs<#= templateParamNumber #> = objectToMonitor.WhenPropertyValueChanges(propertyExpression<#= templateParamNumber #>);
 <#              }#>
 
             return obs1.CombineLatest(<#= string.Join(", ", observableNames.Skip(1)) #>, conversionFunc);

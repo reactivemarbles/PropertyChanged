@@ -14,6 +14,7 @@ ProjectSection(SolutionItems) = preProject
 	analyzers.ruleset = analyzers.ruleset
 	global.json = global.json
 	stylecop.json = stylecop.json
+	..\azure-pipelines.yml = ..\azure-pipelines.yml
 EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReactiveMarbles.PropertyChanged.Benchmarks", "ReactiveMarbles.PropertyChanged.Benchmarks\ReactiveMarbles.PropertyChanged.Benchmarks.csproj", "{DFE06734-1998-4ED1-B0BB-75DC718347B9}"
