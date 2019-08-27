@@ -70,7 +70,7 @@ namespace ReactiveMarbles.PropertyChanged
             }
 
             var hostObs = fromObject.WhenPropertyValueChanges(fromProperty)
-                .Select(x => EqualityComparer<TFromProperty>.Default.Equals(x, default) ? default : conversionFunc(x));
+                .Select(conversionFunc);
 
             return OneWayBindImplementation(targetObject, hostObs, toProperty);
         }
@@ -101,12 +101,11 @@ namespace ReactiveMarbles.PropertyChanged
             where TTarget : class, INotifyPropertyChanged
         {
             var hostObs = fromObject.WhenPropertyValueChanges(fromProperty)
-                .Select(x => EqualityComparer<TFromProperty>.Default.Equals(x, default) ? default : hostToTargetConv(x))
+                .Select(hostToTargetConv)
                 .Select(x => (value: (object)x, isHost: true));
             var targetObs = targetObject.WhenPropertyValueChanges(toProperty)
                 .Skip(1) // We have the host to win first off.
-                .Select(x =>
-                    EqualityComparer<TTargetProperty>.Default.Equals(x, default) ? default : targetToHostConv(x))
+                .Select(targetToHostConv)
                 .Select(x => (value: (object)x, isHost: false));
 
             return BindImplementation(fromObject, targetObject, hostObs, targetObs, fromProperty, toProperty);
