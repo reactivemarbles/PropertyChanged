@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for full license information.
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq.Expressions;
 using System.Reactive.Linq;
@@ -33,17 +34,12 @@ namespace ReactiveMarbles.PropertyChanged
             Expression<Func<TTarget, TPropertyType>> toProperty)
             where TFrom : class, INotifyPropertyChanged
         {
-            if (!(toProperty.Body is MemberExpression memberExpression))
+            if (fromObject == null)
             {
-                throw new ArgumentException("The expression does not bind to a valid member.");
+                throw new ArgumentNullException(nameof(fromObject));
             }
 
-            var setValueAction = SetMemberFuncCache<TPropertyType>.GenerateSetCache(memberExpression.Member);
-
-            return fromObject.WhenPropertyChanges(fromProperty).Subscribe(x =>
-            {
-                setValueAction.Invoke(x.sender, x.value);
-            });
+            return OneWayBindImplementation(targetObject, fromObject.WhenPropertyValueChanges(fromProperty), toProperty);
         }
 
         /// <summary>
@@ -68,18 +64,15 @@ namespace ReactiveMarbles.PropertyChanged
             Func<TFromProperty, TTargetProperty> conversionFunc)
             where TFrom : class, INotifyPropertyChanged
         {
-            if (!(toProperty.Body is MemberExpression memberExpression))
+            if (fromObject == null)
             {
-                throw new ArgumentException("The expression does not bind to a valid member.");
+                throw new ArgumentNullException(nameof(fromObject));
             }
 
-            var setValueAction = SetMemberFuncCache<TTargetProperty>.GenerateSetCache(memberExpression.Member);
+            var hostObs = fromObject.WhenPropertyValueChanges(fromProperty)
+                .Select(x => EqualityComparer<TFromProperty>.Default.Equals(x, default) ? default : conversionFunc(x));
 
-            return fromObject.WhenPropertyChanges(fromProperty).Subscribe(x =>
-            {
-                var convertedValue = conversionFunc(x.value);
-                setValueAction.Invoke(targetObject, convertedValue);
-            });
+            return OneWayBindImplementation(targetObject, hostObs, toProperty);
         }
 
         /// <summary>
@@ -104,40 +97,19 @@ namespace ReactiveMarbles.PropertyChanged
             Expression<Func<TTarget, TTargetProperty>> toProperty,
             Func<TFromProperty, TTargetProperty> hostToTargetConv,
             Func<TTargetProperty, TFromProperty> targetToHostConv)
-                where TFrom : class, INotifyPropertyChanged
-                where TTarget : class, INotifyPropertyChanged
+            where TFrom : class, INotifyPropertyChanged
+            where TTarget : class, INotifyPropertyChanged
         {
-            if (!(toProperty.Body is MemberExpression targetMemberExpression))
-            {
-                throw new ArgumentException("The expression does not bind to a valid member.");
-            }
-
-            if (!(fromProperty.Body is MemberExpression fromMemberExpression))
-            {
-                throw new ArgumentException("The expression does not bind to a valid member.");
-            }
-
-            var setTargetFunc =
-                SetMemberFuncCache<TTargetProperty>.GenerateSetCache(targetMemberExpression.Member);
-            var setHostFunc = SetMemberFuncCache<TFromProperty>.GenerateSetCache(fromMemberExpression.Member);
-
-            var hostObs = fromObject.WhenPropertyChanges(fromProperty)
+            var hostObs = fromObject.WhenPropertyValueChanges(fromProperty)
+                .Select(x => EqualityComparer<TFromProperty>.Default.Equals(x, default) ? default : hostToTargetConv(x))
                 .Select(x => (value: (object)x, isHost: true));
-            var targetObs = targetObject.WhenPropertyChanges(toProperty)
+            var targetObs = targetObject.WhenPropertyValueChanges(toProperty)
                 .Skip(1) // We have the host to win first off.
+                .Select(x =>
+                    EqualityComparer<TTargetProperty>.Default.Equals(x, default) ? default : targetToHostConv(x))
                 .Select(x => (value: (object)x, isHost: false));
 
-            return hostObs.Merge(targetObs).Subscribe(x =>
-            {
-                if (x.isHost)
-                {
-                    setTargetFunc(targetObject, hostToTargetConv((TFromProperty)x.value));
-                }
-                else
-                {
-                    setHostFunc(fromObject, targetToHostConv((TTargetProperty)x.value));
-                }
-            });
+            return BindImplementation(fromObject, targetObject, hostObs, targetObs, fromProperty, toProperty);
         }
 
         /// <summary>
@@ -157,9 +129,41 @@ namespace ReactiveMarbles.PropertyChanged
             TTarget targetObject,
             Expression<Func<TFrom, TProperty>> fromProperty,
             Expression<Func<TTarget, TProperty>> toProperty)
-                where TFrom : class, INotifyPropertyChanged
-                where TTarget : class, INotifyPropertyChanged
+            where TFrom : class, INotifyPropertyChanged
+            where TTarget : class, INotifyPropertyChanged
         {
+            var hostObs = fromObject.WhenPropertyValueChanges(fromProperty)
+                .Select(x => (value: x, isHost: true));
+            var targetObs = targetObject.WhenPropertyValueChanges(toProperty)
+                .Skip(1) // We have the host to win first off.
+                .Select(x => (value: x, isHost: false));
+
+            return BindImplementation(fromObject, targetObject, hostObs, targetObs, fromProperty, toProperty);
+        }
+
+        private static IDisposable BindImplementation<TFrom, TTarget, TPropertyType>(
+            TFrom fromObject,
+            TTarget targetObject,
+            IObservable<(TPropertyType value, bool isHost)> hostObs,
+            IObservable<(TPropertyType value, bool isHost)> targetObs,
+            LambdaExpression fromProperty,
+            LambdaExpression toProperty)
+        {
+            if (hostObs == null)
+            {
+                throw new ArgumentNullException(nameof(hostObs));
+            }
+
+            if (toProperty == null)
+            {
+                throw new ArgumentNullException(nameof(toProperty));
+            }
+
+            if (fromProperty == null)
+            {
+                throw new ArgumentNullException(nameof(fromProperty));
+            }
+
             if (!(toProperty.Body is MemberExpression targetMemberExpression))
             {
                 throw new ArgumentException("The expression does not bind to a valid member.");
@@ -171,27 +175,50 @@ namespace ReactiveMarbles.PropertyChanged
             }
 
             var setTargetFunc =
-                SetMemberFuncCache<TProperty>.GenerateSetCache(targetMemberExpression.Member);
-            var setHostFunc = SetMemberFuncCache<TProperty>.GenerateSetCache(fromMemberExpression.Member);
-
-            var hostObs = fromObject.WhenPropertyChanges(fromProperty)
-                .Select(x => (value: x, isHost: true));
-            var targetObs = targetObject.WhenPropertyChanges(toProperty)
-                .Skip(1) // We have the host to win first off.
-                .Select(x => (value: x, isHost: false));
+                SetMemberFuncCache<TPropertyType>.GenerateSetCache(targetMemberExpression.Member);
+            var setHostFunc = SetMemberFuncCache<TPropertyType>.GenerateSetCache(fromMemberExpression.Member);
 
             return hostObs.Merge(targetObs).Subscribe(x =>
             {
                 if (x.isHost)
                 {
                     var parent = toProperty.Body.GetParentForExpression(targetObject);
-                    setTargetFunc(parent, x.value.value);
+                    setTargetFunc(parent, x.value);
                 }
                 else
                 {
                     var parent = fromProperty.Body.GetParentForExpression(fromObject);
-                    setHostFunc(parent, x.value.value);
+                    setHostFunc(parent, x.value);
                 }
+            });
+        }
+
+        private static IDisposable OneWayBindImplementation<TTarget, TPropertyType>(
+            TTarget targetObject,
+            IObservable<TPropertyType> hostObs,
+            LambdaExpression property)
+        {
+            if (hostObs == null)
+            {
+                throw new ArgumentNullException(nameof(hostObs));
+            }
+
+            if (property == null)
+            {
+                throw new ArgumentNullException(nameof(property));
+            }
+
+            if (!(property.Body is MemberExpression fromMemberExpression))
+            {
+                throw new ArgumentException("The expression does not bind to a valid member.");
+            }
+
+            var setHostFunc = SetMemberFuncCache<TPropertyType>.GenerateSetCache(fromMemberExpression.Member);
+
+            return hostObs.Subscribe(x =>
+            {
+                var parent = property.Body.GetParentForExpression(targetObject);
+                setHostFunc(parent, x);
             });
         }
     }

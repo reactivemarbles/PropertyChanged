@@ -4,7 +4,6 @@
 
 using System;
 using System.ComponentModel;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reactive.Linq;
 
@@ -94,7 +93,7 @@ namespace ReactiveMarbles.PropertyChanged
             var memberInfo = memberExpression.Member;
             var memberName = memberInfo.Name;
 
-            var func = GetMemberFuncCache<T>.GetCache(parent.GetType(), memberInfo);
+            var func = GetMemberFuncCache<INotifyPropertyChanged, T>.GetCache(memberInfo);
             return Observable.FromEvent<PropertyChangedEventHandler, (object sender, PropertyChangedEventArgs e)>(
                     handler =>
                     {

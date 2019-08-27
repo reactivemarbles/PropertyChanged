@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Linq.Expressions;
 
@@ -12,16 +11,16 @@ namespace ReactiveMarbles.PropertyChanged
 {
     internal static class ExpressionExtensions
     {
-        internal static INotifyPropertyChanged GetParentForExpression(this Expression expression, INotifyPropertyChanged startItem)
+        internal static object GetParentForExpression(this Expression expression, object startItem)
         {
             var expressionChain = expression.GetExpressionChain();
 
             var current = startItem;
             foreach (var value in expressionChain.Take(expressionChain.Count - 1))
             {
-                var valueFetcher = GetMemberFuncCache<object>.GetCache(value.Type, value.Member);
+                var valueFetcher = GetMemberFuncCache<object, object>.GetCache(value.Member);
 
-                current = (INotifyPropertyChanged)valueFetcher.Invoke(current);
+                current = valueFetcher.Invoke(current);
             }
 
             return current;

@@ -81,5 +81,27 @@ namespace ReactiveMarbles.PropertyChanged.Tests
 
             Assert.Equal("Test2", c.Test);
         }
+
+        [Fact]
+        public void TwoWayBindTestConverter()
+        {
+            var a = new A();
+            var b = new B();
+            a.B = b;
+            var c = new C();
+            c.Test = "Host Value";
+            b.C = c;
+
+            var bindToC = new C();
+            bindToC.Test = "Target value";
+
+            a.Bind(bindToC, x => x.B.C, x => x.Test, x => x.Test, y => new C() { Test = y });
+
+            Assert.Equal("Host Value", bindToC.Test);
+
+            bindToC.Test = "Test2";
+
+            Assert.Equal("Test2", a.B.C.Test);
+        }
     }
 }

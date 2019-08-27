@@ -11,16 +11,16 @@ using System.Reflection;
 
 namespace ReactiveMarbles.PropertyChanged
 {
-    internal static class GetMemberFuncCache<TReturn>
+    internal static class GetMemberFuncCache<TFrom, TReturn>
     {
 #if !UIKIT
         private static readonly
-            ConcurrentDictionary<(Type fromType, string memberName), Func<INotifyPropertyChanged, TReturn>> Cache
-                = new ConcurrentDictionary<(Type fromType, string memberName), Func<INotifyPropertyChanged, TReturn>>();
+            ConcurrentDictionary<(Type fromType, string memberName), Func<TFrom, TReturn>> Cache
+                = new ConcurrentDictionary<(Type fromType, string memberName), Func<TFrom, TReturn>>();
 #endif
 
         [SuppressMessage("Design", "CA1801: Parameter not used", Justification = "Used on some platforms")]
-        public static Func<INotifyPropertyChanged, TReturn> GetCache(Type fromType, MemberInfo memberInfo)
+        public static Func<TFrom, TReturn> GetCache(MemberInfo memberInfo)
         {
 #if UIKIT
                 switch (memberInfo)
@@ -33,11 +33,11 @@ namespace ReactiveMarbles.PropertyChanged
                         throw new ArgumentException($"Cannot handle member {memberInfo.Name}", nameof(memberInfo));
                 }
 #else
-            return Cache.GetOrAdd((fromType, memberInfo.Name), _ =>
+            return Cache.GetOrAdd((memberInfo.DeclaringType, memberInfo.Name), _ =>
             {
-                var instance = Expression.Parameter(typeof(INotifyPropertyChanged), "instance");
+                var instance = Expression.Parameter(typeof(TFrom), "instance");
 
-                var castInstance = Expression.Convert(instance, fromType);
+                var castInstance = Expression.Convert(instance, memberInfo.DeclaringType);
 
                 Expression body;
 
@@ -55,7 +55,7 @@ namespace ReactiveMarbles.PropertyChanged
 
                 var parameters = new[] { instance };
 
-                var lambdaExpression = Expression.Lambda<Func<INotifyPropertyChanged, TReturn>>(body, parameters);
+                var lambdaExpression = Expression.Lambda<Func<TFrom, TReturn>>(body, parameters);
 
                 return lambdaExpression.Compile();
             });
