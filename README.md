@@ -5,7 +5,7 @@
 
 A framework for providing an observable with the latest value of a property expression.
 
-Will use Expression trees on platforms that support it (no iOS based platforms). This provides a roughly 2x performance boost for those platforms.
+Will use Expression trees on platforms that support it (no iOS based platforms). On iOS it will just use reflection. This provides a roughly 2x performance boost for those platforms that can use expression trees.
 
 ```cs
 this.WhenPropertyChanges(x => x.Property1.Property2.Property3);
