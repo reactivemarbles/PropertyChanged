@@ -11,19 +11,30 @@ namespace ReactiveMarbles.PropertyChanged
 {
     internal static class ExpressionExtensions
     {
-        internal static object GetParentForExpression(this Expression expression, object startItem)
+        internal static object GetParentForExpression(this List<Func<object, object>> chain, object startItem)
         {
-            var expressionChain = expression.GetExpressionChain();
-
             var current = startItem;
-            foreach (var value in expressionChain.Take(expressionChain.Count - 1))
+            foreach (var valueFetcher in chain)
             {
-                var valueFetcher = GetMemberFuncCache<object, object>.GetCache(value.Member);
-
                 current = valueFetcher.Invoke(current);
             }
 
             return current;
+        }
+
+        internal static List<Func<object, object>> GetGetValueMemberChain(this Expression expression)
+        {
+            var returnValue = new List<Func<object, object>>();
+            var expressionChain = expression.GetExpressionChain();
+
+            foreach (var value in expressionChain.Take(expressionChain.Count - 1))
+            {
+                var valueFetcher = GetMemberFuncCache<object, object>.GetCache(value.Member);
+
+                returnValue.Add(valueFetcher);
+            }
+
+            return returnValue;
         }
 
         internal static List<MemberExpression> GetExpressionChain(this Expression expression)

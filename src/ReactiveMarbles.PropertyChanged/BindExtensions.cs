@@ -3,9 +3,9 @@
 // See the LICENSE file in the project root for full license information.
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq.Expressions;
+using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 
 namespace ReactiveMarbles.PropertyChanged
@@ -22,6 +22,7 @@ namespace ReactiveMarbles.PropertyChanged
         /// <param name="targetObject">The object which contains the target property.</param>
         /// <param name="fromProperty">A expression to the host property.</param>
         /// <param name="toProperty">A expression to the target property.</param>
+        /// <param name="scheduler">A scheduler for performing the binding on. Defaults to ImmediateScheduler.</param>
         /// <typeparam name="TFrom">The type of property the host is.</typeparam>
         /// <typeparam name="TPropertyType">The property types.</typeparam>
         /// <typeparam name="TTarget">The target property.</typeparam>
@@ -31,7 +32,8 @@ namespace ReactiveMarbles.PropertyChanged
             this TFrom fromObject,
             TTarget targetObject,
             Expression<Func<TFrom, TPropertyType>> fromProperty,
-            Expression<Func<TTarget, TPropertyType>> toProperty)
+            Expression<Func<TTarget, TPropertyType>> toProperty,
+            IScheduler scheduler = null)
             where TFrom : class, INotifyPropertyChanged
         {
             if (fromObject == null)
@@ -39,7 +41,7 @@ namespace ReactiveMarbles.PropertyChanged
                 throw new ArgumentNullException(nameof(fromObject));
             }
 
-            return OneWayBindImplementation(targetObject, fromObject.WhenPropertyValueChanges(fromProperty), toProperty);
+            return OneWayBindImplementation(targetObject, fromObject.WhenPropertyValueChanges(fromProperty), toProperty, scheduler);
         }
 
         /// <summary>
@@ -50,6 +52,7 @@ namespace ReactiveMarbles.PropertyChanged
         /// <param name="fromProperty">A expression to the host property.</param>
         /// <param name="toProperty">A expression to the target property.</param>
         /// <param name="conversionFunc">A converter which will convert the property from the host to the target property.</param>
+        /// <param name="scheduler">A scheduler for performing the binding on. Defaults to ImmediateScheduler.</param>
         /// <typeparam name="TFrom">The type of property the host is.</typeparam>
         /// <typeparam name="TFromProperty">The property from type.</typeparam>
         /// <typeparam name="TTarget">The target property.</typeparam>
@@ -61,7 +64,8 @@ namespace ReactiveMarbles.PropertyChanged
             TTarget targetObject,
             Expression<Func<TFrom, TFromProperty>> fromProperty,
             Expression<Func<TTarget, TTargetProperty>> toProperty,
-            Func<TFromProperty, TTargetProperty> conversionFunc)
+            Func<TFromProperty, TTargetProperty> conversionFunc,
+            IScheduler scheduler = null)
             where TFrom : class, INotifyPropertyChanged
         {
             if (fromObject == null)
@@ -72,7 +76,7 @@ namespace ReactiveMarbles.PropertyChanged
             var hostObs = fromObject.WhenPropertyValueChanges(fromProperty)
                 .Select(conversionFunc);
 
-            return OneWayBindImplementation(targetObject, hostObs, toProperty);
+            return OneWayBindImplementation(targetObject, hostObs, toProperty, scheduler);
         }
 
         /// <summary>
@@ -84,6 +88,7 @@ namespace ReactiveMarbles.PropertyChanged
         /// <param name="toProperty">A expression to the target property.</param>
         /// <param name="hostToTargetConv">A converter which will convert the property from the host to the target property.</param>
         /// <param name="targetToHostConv">A converter which will convert the property from the target to the host property.</param>
+        /// <param name="scheduler">A scheduler for performing the binding on. Defaults to ImmediateScheduler.</param>
         /// <typeparam name="TFrom">The type of property the host is.</typeparam>
         /// <typeparam name="TFromProperty">The property from type.</typeparam>
         /// <typeparam name="TTarget">The target property.</typeparam>
@@ -96,7 +101,8 @@ namespace ReactiveMarbles.PropertyChanged
             Expression<Func<TFrom, TFromProperty>> fromProperty,
             Expression<Func<TTarget, TTargetProperty>> toProperty,
             Func<TFromProperty, TTargetProperty> hostToTargetConv,
-            Func<TTargetProperty, TFromProperty> targetToHostConv)
+            Func<TTargetProperty, TFromProperty> targetToHostConv,
+            IScheduler scheduler = null)
             where TFrom : class, INotifyPropertyChanged
             where TTarget : class, INotifyPropertyChanged
         {
@@ -108,7 +114,7 @@ namespace ReactiveMarbles.PropertyChanged
                 .Select(targetToHostConv)
                 .Select(x => (value: (object)x, isHost: false));
 
-            return BindImplementation(fromObject, targetObject, hostObs, targetObs, fromProperty, toProperty);
+            return BindImplementation(fromObject, targetObject, hostObs, targetObs, fromProperty, toProperty, scheduler);
         }
 
         /// <summary>
@@ -118,6 +124,7 @@ namespace ReactiveMarbles.PropertyChanged
         /// <param name="targetObject">The object which contains the target property.</param>
         /// <param name="fromProperty">A expression to the host property.</param>
         /// <param name="toProperty">A expression to the target property.</param>
+        /// <param name="scheduler">A scheduler for performing the binding on. Defaults to ImmediateScheduler.</param>
         /// <typeparam name="TFrom">The type of property the host is.</typeparam>
         /// <typeparam name="TProperty">The property from type.</typeparam>
         /// <typeparam name="TTarget">The target property.</typeparam>
@@ -127,7 +134,8 @@ namespace ReactiveMarbles.PropertyChanged
             this TFrom fromObject,
             TTarget targetObject,
             Expression<Func<TFrom, TProperty>> fromProperty,
-            Expression<Func<TTarget, TProperty>> toProperty)
+            Expression<Func<TTarget, TProperty>> toProperty,
+            IScheduler scheduler = null)
             where TFrom : class, INotifyPropertyChanged
             where TTarget : class, INotifyPropertyChanged
         {
@@ -137,7 +145,7 @@ namespace ReactiveMarbles.PropertyChanged
                 .Skip(1) // We have the host to win first off.
                 .Select(x => (value: x, isHost: false));
 
-            return BindImplementation(fromObject, targetObject, hostObs, targetObs, fromProperty, toProperty);
+            return BindImplementation(fromObject, targetObject, hostObs, targetObs, fromProperty, toProperty, scheduler);
         }
 
         private static IDisposable BindImplementation<TFrom, TTarget, TPropertyType>(
@@ -146,7 +154,8 @@ namespace ReactiveMarbles.PropertyChanged
             IObservable<(TPropertyType value, bool isHost)> hostObs,
             IObservable<(TPropertyType value, bool isHost)> targetObs,
             LambdaExpression fromProperty,
-            LambdaExpression toProperty)
+            LambdaExpression toProperty,
+            IScheduler scheduler)
         {
             if (hostObs == null)
             {
@@ -173,20 +182,24 @@ namespace ReactiveMarbles.PropertyChanged
                 throw new ArgumentException("The expression does not bind to a valid member.");
             }
 
+            scheduler = scheduler ?? ImmediateScheduler.Instance;
+
             var setTargetFunc =
                 SetMemberFuncCache<TPropertyType>.GenerateSetCache(targetMemberExpression.Member);
             var setHostFunc = SetMemberFuncCache<TPropertyType>.GenerateSetCache(fromMemberExpression.Member);
 
-            return hostObs.Merge(targetObs).Subscribe(x =>
+            var getFetcherToPropertyChain = toProperty.Body.GetGetValueMemberChain();
+            var getFetchFromPropertyChain = fromProperty.Body.GetGetValueMemberChain();
+            return hostObs.Merge(targetObs).ObserveOn(scheduler).Subscribe(x =>
             {
                 if (x.isHost)
                 {
-                    var parent = toProperty.Body.GetParentForExpression(targetObject);
+                    var parent = getFetcherToPropertyChain.GetParentForExpression(targetObject);
                     setTargetFunc(parent, x.value);
                 }
                 else
                 {
-                    var parent = fromProperty.Body.GetParentForExpression(fromObject);
+                    var parent = getFetchFromPropertyChain.GetParentForExpression(fromObject);
                     setHostFunc(parent, x.value);
                 }
             });
@@ -195,7 +208,8 @@ namespace ReactiveMarbles.PropertyChanged
         private static IDisposable OneWayBindImplementation<TTarget, TPropertyType>(
             TTarget targetObject,
             IObservable<TPropertyType> hostObs,
-            LambdaExpression property)
+            LambdaExpression property,
+            IScheduler scheduler)
         {
             if (hostObs == null)
             {
@@ -212,11 +226,14 @@ namespace ReactiveMarbles.PropertyChanged
                 throw new ArgumentException("The expression does not bind to a valid member.");
             }
 
-            var setHostFunc = SetMemberFuncCache<TPropertyType>.GenerateSetCache(fromMemberExpression.Member);
+            scheduler = scheduler ?? ImmediateScheduler.Instance;
 
-            return hostObs.Subscribe(x =>
+            var setHostFunc = SetMemberFuncCache<TPropertyType>.GenerateSetCache(fromMemberExpression.Member);
+            var getFetcherPropertyChain = property.Body.GetGetValueMemberChain();
+
+            return hostObs.ObserveOn(scheduler).Subscribe(x =>
             {
-                var parent = property.Body.GetParentForExpression(targetObject);
+                var parent = getFetcherPropertyChain.GetParentForExpression(targetObject);
                 setHostFunc(parent, x);
             });
         }
