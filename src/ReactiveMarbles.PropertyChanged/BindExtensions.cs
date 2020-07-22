@@ -151,8 +151,8 @@ namespace ReactiveMarbles.PropertyChanged
         private static IDisposable BindImplementation<TFrom, TTarget, TPropertyType>(
             TFrom fromObject,
             TTarget targetObject,
-            IObservable<(TPropertyType value, bool isHost)> hostObs,
-            IObservable<(TPropertyType value, bool isHost)> targetObs,
+            IObservable<(TPropertyType Value, bool IsHost)> hostObs,
+            IObservable<(TPropertyType Value, bool IsHost)> targetObs,
             LambdaExpression fromProperty,
             LambdaExpression toProperty,
             IScheduler scheduler)
@@ -192,15 +192,15 @@ namespace ReactiveMarbles.PropertyChanged
             var getFetchFromPropertyChain = fromProperty.Body.GetGetValueMemberChain();
             return hostObs.Merge(targetObs).ObserveOn(scheduler).Subscribe(x =>
             {
-                if (x.isHost)
+                if (x.IsHost)
                 {
                     var parent = getFetcherToPropertyChain.GetParentForExpression(targetObject);
-                    setTargetFunc(parent, x.value);
+                    setTargetFunc(parent, x.Value);
                 }
                 else
                 {
                     var parent = getFetchFromPropertyChain.GetParentForExpression(fromObject);
-                    setHostFunc(parent, x.value);
+                    setHostFunc(parent, x.Value);
                 }
             });
         }

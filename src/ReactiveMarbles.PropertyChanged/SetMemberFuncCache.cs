@@ -14,8 +14,8 @@ namespace ReactiveMarbles.PropertyChanged
     {
 #if !UIKIT
         private static readonly
-            ConcurrentDictionary<(Type parentType, string propertyName), Action<object, TValue>> Cache
-                = new ConcurrentDictionary<(Type parentType, string propertyName), Action<object, TValue>>();
+            ConcurrentDictionary<(Type ParentType, string PropertyName), Action<object, TValue>> Cache
+                = new ConcurrentDictionary<(Type, string), Action<object, TValue>>();
 #endif
 
         [SuppressMessage("Design", "CA1801: Parameter not used", Justification = "Used on some platforms")]

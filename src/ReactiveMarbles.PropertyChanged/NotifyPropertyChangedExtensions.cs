@@ -34,7 +34,7 @@ namespace ReactiveMarbles.PropertyChanged
                 throw new ArgumentNullException(nameof(propertyExpression));
             }
 
-            return WhenPropertyChanges(objectToMonitor, propertyExpression).Select(x => x.value);
+            return WhenPropertyChanges(objectToMonitor, propertyExpression).Select(x => x.Value);
         }
 
         /// <summary>
@@ -47,7 +47,7 @@ namespace ReactiveMarbles.PropertyChanged
         /// <returns>An observable that signals when the property specified in the expression has changed.</returns>
         /// <exception cref="ArgumentNullException">Either the property expression or the object to monitor is null.</exception>
         /// <exception cref="ArgumentException">If there is an issue with the property expression.</exception>
-        public static IObservable<(object sender, TReturn value)> WhenPropertyChanges<TObj, TReturn>(
+        public static IObservable<(object Sender, TReturn Value)> WhenPropertyChanges<TObj, TReturn>(
             this TObj objectToMonitor,
             Expression<Func<TObj, TReturn>> propertyExpression)
             where TObj : class, INotifyPropertyChanged
@@ -57,7 +57,7 @@ namespace ReactiveMarbles.PropertyChanged
                 throw new ArgumentNullException(nameof(propertyExpression));
             }
 
-            IObservable<(object sender, INotifyPropertyChanged value)> currentObservable = Observable.Return(((object)null, (INotifyPropertyChanged)objectToMonitor));
+            IObservable<(object Sender, INotifyPropertyChanged Value)> currentObservable = Observable.Return(((object)null, (INotifyPropertyChanged)objectToMonitor));
 
             var expressionChain = propertyExpression.Body.GetExpressionChain();
 
@@ -72,14 +72,14 @@ namespace ReactiveMarbles.PropertyChanged
                 if (i == expressionChain.Count - 1)
                 {
                     return currentObservable
-                        .Where(parent => parent.value != null)
-                        .Select(parent => GenerateObservable<TReturn>(parent.value, memberExpression))
+                        .Where(parent => parent.Value != null)
+                        .Select(parent => GenerateObservable<TReturn>(parent.Value, memberExpression))
                         .Switch();
                 }
 
                 currentObservable = currentObservable
-                    .Where(parent => parent.value != null)
-                    .Select(parent => GenerateObservable<INotifyPropertyChanged>(parent.value, memberExpression))
+                    .Where(parent => parent.Value != null)
+                    .Select(parent => GenerateObservable<INotifyPropertyChanged>(parent.Value, memberExpression))
                     .Switch();
 
                 i++;
@@ -88,13 +88,13 @@ namespace ReactiveMarbles.PropertyChanged
             throw new ArgumentException("Invalid expression", nameof(propertyExpression));
         }
 
-        private static IObservable<(object sender, T value)> GenerateObservable<T>(INotifyPropertyChanged parent, MemberExpression memberExpression)
+        private static IObservable<(object Sender, T Value)> GenerateObservable<T>(INotifyPropertyChanged parent, MemberExpression memberExpression)
         {
             var memberInfo = memberExpression.Member;
             var memberName = memberInfo.Name;
 
             var func = GetMemberFuncCache<INotifyPropertyChanged, T>.GetCache(memberInfo);
-            return Observable.FromEvent<PropertyChangedEventHandler, (object sender, PropertyChangedEventArgs e)>(
+            return Observable.FromEvent<PropertyChangedEventHandler, (object Sender, PropertyChangedEventArgs Args)>(
                     handler =>
                     {
                         void Handler(object sender, PropertyChangedEventArgs e) => handler((sender, e));
@@ -102,8 +102,8 @@ namespace ReactiveMarbles.PropertyChanged
                     },
                     x => parent.PropertyChanged += x,
                     x => parent.PropertyChanged -= x)
-                .Where(x => x.e.PropertyName == memberName)
-                .Select(x => (x.sender, func.Invoke(parent)))
+                .Where(x => x.Args.PropertyName == memberName)
+                .Select(x => (x.Sender, func.Invoke(parent)))
                 .StartWith((parent, func.Invoke(parent)));
         }
     }

@@ -5,6 +5,8 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Jobs;
+
 using ReactiveMarbles.PropertyChanged.Benchmarks.Moqs;
 using ReactiveUI;
 
@@ -13,7 +15,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
     /// <summary>
     /// Benchmarks for the property changed.
     /// </summary>
-    [CoreJob]
+    [SimpleJob(RuntimeMoniker.NetCoreApp31)]
     [MemoryDiagnoser]
     [MarkdownExporterAttribute.GitHub]
     public class PropertyChangesBenchmarks
