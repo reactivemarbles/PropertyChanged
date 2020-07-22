@@ -1,13 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <OutputType>Exe</OutputType>
-        <TargetFramework>netcoreapp2.2</TargetFramework>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
         <IsPackable>false</IsPackable>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="BenchmarkDotNet" Version="0.11.5"/>
-        <PackageReference Include="reactiveui" Version="9.20.1"/>
+        <PackageReference Include="BenchmarkDotNet" Version="0.12.1"/>
+        <PackageReference Include="reactiveui" Version="11.4.17"/>
     </ItemGroup>
 
     <ItemGroup>
