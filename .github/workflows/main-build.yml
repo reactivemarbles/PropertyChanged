@@ -36,11 +36,11 @@ jobs:
       with:
         setAllVars: true
 
-    - name: Install dependencies
+    - name: Install Dependencies
       run: dotnet restore
       working-directory: src
 
-    - name: Add msbuild to PATH
+    - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1.0.0
 
     - name: Build
@@ -50,3 +50,7 @@ jobs:
     - name: Test
       run: dotnet test --no-restore --no-build --verbosity normal --configuration ${{ env.configuration }}
       working-directory: src
+
+    - name: Publish to GitHub Packages
+      if: ${{ github.event_name != 'pull_request' }}        
+      run: dotnet nuget push ./**/*.nupkg --skip-duplicate --no-symbols true
