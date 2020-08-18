@@ -50,7 +50,3 @@ jobs:
     - name: Test
       run: dotnet test --no-restore --no-build --verbosity normal --configuration ${{ env.configuration }}
       working-directory: src
-
-    - name: Publish to GitHub Packages
-      if: ${{ github.event_name != 'pull_request' }}        
-      run: dotnet nuget push ./**/*.nupkg --skip-duplicate --no-symbols true
