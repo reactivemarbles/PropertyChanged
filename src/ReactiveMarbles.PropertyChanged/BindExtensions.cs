@@ -6,6 +6,7 @@ using System;
 using System.ComponentModel;
 using System.Linq.Expressions;
 using System.Reactive.Concurrency;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 
 namespace ReactiveMarbles.PropertyChanged
@@ -107,12 +108,10 @@ namespace ReactiveMarbles.PropertyChanged
             where TTarget : class, INotifyPropertyChanged
         {
             var hostObs = fromObject.WhenPropertyValueChanges(fromProperty)
-                .Select(hostToTargetConv)
-                .Select(x => (value: (object)x, isHost: true));
+                .Select(hostToTargetConv);
             var targetObs = targetObject.WhenPropertyValueChanges(toProperty)
                 .Skip(1) // We have the host to win first off.
-                .Select(targetToHostConv)
-                .Select(x => (value: (object)x, isHost: false));
+                .Select(targetToHostConv);
 
             return BindImplementation(fromObject, targetObject, hostObs, targetObs, fromProperty, toProperty, scheduler);
         }
@@ -139,22 +138,20 @@ namespace ReactiveMarbles.PropertyChanged
             where TFrom : class, INotifyPropertyChanged
             where TTarget : class, INotifyPropertyChanged
         {
-            var hostObs = fromObject.WhenPropertyValueChanges(fromProperty)
-                .Select(x => (value: x, isHost: true));
+            var hostObs = fromObject.WhenPropertyValueChanges(fromProperty);
             var targetObs = targetObject.WhenPropertyValueChanges(toProperty)
-                .Skip(1) // We have the host to win first off.
-                .Select(x => (value: x, isHost: false));
+                .Skip(1); // We have the host to win first off.
 
             return BindImplementation(fromObject, targetObject, hostObs, targetObs, fromProperty, toProperty, scheduler);
         }
 
-        private static IDisposable BindImplementation<TFrom, TTarget, TPropertyType>(
+        private static IDisposable BindImplementation<TFrom, TFromProperty, TTarget, TTargetProperty>(
             TFrom fromObject,
             TTarget targetObject,
-            IObservable<(TPropertyType Value, bool IsHost)> hostObs,
-            IObservable<(TPropertyType Value, bool IsHost)> targetObs,
-            LambdaExpression fromProperty,
-            LambdaExpression toProperty,
+            IObservable<TTargetProperty> hostObs,
+            IObservable<TFromProperty> targetObs,
+            Expression<Func<TFrom, TFromProperty>> fromProperty,
+            Expression<Func<TTarget, TTargetProperty>> toProperty,
             IScheduler scheduler)
         {
             if (hostObs == null)
@@ -172,43 +169,34 @@ namespace ReactiveMarbles.PropertyChanged
                 throw new ArgumentNullException(nameof(fromProperty));
             }
 
-            if (!(toProperty.Body is MemberExpression targetMemberExpression))
+            if (!(toProperty.Body is MemberExpression))
             {
                 throw new ArgumentException("The expression does not bind to a valid member.");
             }
 
-            if (!(fromProperty.Body is MemberExpression fromMemberExpression))
+            if (!(fromProperty.Body is MemberExpression))
             {
                 throw new ArgumentException("The expression does not bind to a valid member.");
             }
 
-            scheduler = scheduler ?? ImmediateScheduler.Instance;
-
-            var setTargetFunc =
-                SetMemberFuncCache<TPropertyType>.GenerateSetCache(targetMemberExpression.Member);
-            var setHostFunc = SetMemberFuncCache<TPropertyType>.GenerateSetCache(fromMemberExpression.Member);
-
-            var getFetcherToPropertyChain = toProperty.Body.GetGetValueMemberChain();
-            var getFetchFromPropertyChain = fromProperty.Body.GetGetValueMemberChain();
-            return hostObs.Merge(targetObs).ObserveOn(scheduler).Subscribe(x =>
+            if ((scheduler ?? ImmediateScheduler.Instance) != ImmediateScheduler.Instance)
             {
-                if (x.IsHost)
-                {
-                    var parent = getFetcherToPropertyChain.GetParentForExpression(targetObject);
-                    setTargetFunc(parent, x.Value);
-                }
-                else
-                {
-                    var parent = getFetchFromPropertyChain.GetParentForExpression(fromObject);
-                    setHostFunc(parent, x.Value);
-                }
-            });
+                hostObs = hostObs.ObserveOn(scheduler);
+                targetObs = targetObs.ObserveOn(scheduler);
+            }
+
+            var setterTo = toProperty.GetSetter();
+            var setterFrom = fromProperty.GetSetter();
+
+            return new CompositeDisposable(
+                hostObs.Subscribe(x => setterTo(targetObject, x)),
+                targetObs.Subscribe(x => setterFrom(fromObject, x)));
         }
 
         private static IDisposable OneWayBindImplementation<TTarget, TPropertyType>(
             TTarget targetObject,
             IObservable<TPropertyType> hostObs,
-            LambdaExpression property,
+            Expression<Func<TTarget, TPropertyType>> property,
             IScheduler scheduler)
         {
             if (hostObs == null)
@@ -221,21 +209,18 @@ namespace ReactiveMarbles.PropertyChanged
                 throw new ArgumentNullException(nameof(property));
             }
 
-            if (!(property.Body is MemberExpression fromMemberExpression))
+            if (!(property.Body is MemberExpression))
             {
                 throw new ArgumentException("The expression does not bind to a valid member.");
             }
 
-            scheduler = scheduler ?? ImmediateScheduler.Instance;
-
-            var setHostFunc = SetMemberFuncCache<TPropertyType>.GenerateSetCache(fromMemberExpression.Member);
-            var getFetcherPropertyChain = property.Body.GetGetValueMemberChain();
-
-            return hostObs.ObserveOn(scheduler).Subscribe(x =>
+            if ((scheduler ?? ImmediateScheduler.Instance) != ImmediateScheduler.Instance)
             {
-                var parent = getFetcherPropertyChain.GetParentForExpression(targetObject);
-                setHostFunc(parent, x);
-            });
+                hostObs = hostObs.ObserveOn(scheduler);
+            }
+
+            var setter = property.GetSetter();
+            return hostObs.Subscribe(x => setter(targetObject, x));
         }
     }
 }

@@ -55,7 +55,7 @@ namespace ReactiveMarbles.PropertyChanged.Tests
 
             Assert.Null(bindToC.Test);
 
-            b.C = new C() { Test = "blah" };
+            b.C = new C { Test = "blah" };
 
             Assert.Equal("blah", bindToC.Test);
         }
@@ -66,8 +66,10 @@ namespace ReactiveMarbles.PropertyChanged.Tests
             var a = new A();
             var b = new B();
             a.B = b;
-            var c = new C();
-            c.Test = "Host Value";
+            var c = new C
+            {
+                Test = "Host Value"
+            };
             b.C = c;
 
             var bindToC = new C();
@@ -80,6 +82,15 @@ namespace ReactiveMarbles.PropertyChanged.Tests
             bindToC.Test = "Test2";
 
             Assert.Equal("Test2", c.Test);
+
+            a.B = new B
+            {
+                C = new C
+                {
+                    Test = "Test3"
+                }
+            };
+            Assert.Equal("Test3", bindToC.Test);
         }
 
         [Fact]

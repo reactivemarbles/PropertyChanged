@@ -6,11 +6,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="BenchmarkDotNet" Version="0.12.1"/>
-        <PackageReference Include="reactiveui" Version="11.5.35"/>
+        <PackageReference Include="BenchmarkDotNet" Version="0.12.1" />
+        <PackageReference Include="reactiveui" Version="11.5.35" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\ReactiveMarbles.PropertyChanged\ReactiveMarbles.PropertyChanged.csproj"/>
+        <ProjectReference Include="..\ReactiveMarbles.PropertyChanged\ReactiveMarbles.PropertyChanged.csproj" />
     </ItemGroup>
 </Project>

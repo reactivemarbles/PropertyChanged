@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for full license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -11,31 +12,8 @@ namespace ReactiveMarbles.PropertyChanged
 {
     internal static class ExpressionExtensions
     {
-        internal static object GetParentForExpression(this List<Func<object, object>> chain, object startItem)
-        {
-            var current = startItem;
-            foreach (var valueFetcher in chain)
-            {
-                current = valueFetcher.Invoke(current);
-            }
-
-            return current;
-        }
-
-        internal static List<Func<object, object>> GetGetValueMemberChain(this Expression expression)
-        {
-            var returnValue = new List<Func<object, object>>();
-            var expressionChain = expression.GetExpressionChain();
-
-            foreach (var value in expressionChain.Take(expressionChain.Count - 1))
-            {
-                var valueFetcher = GetMemberFuncCache<object, object>.GetCache(value.Member);
-
-                returnValue.Add(valueFetcher);
-            }
-
-            return returnValue;
-        }
+        private static readonly ConcurrentDictionary<string, object> _actionCache =
+            new ConcurrentDictionary<string, object>();
 
         internal static List<MemberExpression> GetExpressionChain(this Expression expression)
         {
@@ -61,5 +39,20 @@ namespace ReactiveMarbles.PropertyChanged
 
             return expressions;
         }
+
+        internal static Action<T, TProperty> GetSetter<T, TProperty>(this Expression<Func<T, TProperty>> expression)
+            => (Action<T, TProperty>)_actionCache.GetOrAdd(
+                $"{typeof(T).FullName}|{typeof(TProperty).FullName}|{expression}",
+                _ =>
+                {
+                    var instanceParameter = expression.Parameters.Single();
+                    var valueParameter = Expression.Parameter(typeof(TProperty), "value");
+
+                    return Expression.Lambda<Action<T, TProperty>>(
+                            Expression.Assign(expression.Body, valueParameter),
+                            instanceParameter,
+                            valueParameter)
+                        .Compile();
+                });
     }
 }
