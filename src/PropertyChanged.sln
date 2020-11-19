@@ -1,23 +1,31 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26124.0
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30711.63
 MinimumVisualStudioVersion = 15.0.26124.0
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReactiveMarbles.PropertyChanged", "ReactiveMarbles.PropertyChanged\ReactiveMarbles.PropertyChanged.csproj", "{15B3E9B3-869B-4692-ADBB-A57E47C7D3DA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReactiveMarbles.PropertyChanged", "ReactiveMarbles.PropertyChanged\ReactiveMarbles.PropertyChanged.csproj", "{15B3E9B3-869B-4692-ADBB-A57E47C7D3DA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReactiveMarbles.PropertyChanged.Tests", "ReactiveMarbles.PropertyChanged.Tests\ReactiveMarbles.PropertyChanged.Tests.csproj", "{211669E0-34C1-48EF-B59C-C5271F721D38}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReactiveMarbles.PropertyChanged.Tests", "ReactiveMarbles.PropertyChanged.Tests\ReactiveMarbles.PropertyChanged.Tests.csproj", "{211669E0-34C1-48EF-B59C-C5271F721D38}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{15316C41-0C07-4A56-894A-43E2E2C4296A}"
-ProjectSection(SolutionItems) = preProject
-	Directory.build.targets = Directory.build.targets
-	Directory.Build.props = Directory.Build.props
-	analyzers.ruleset = analyzers.ruleset
-	global.json = global.json
-	stylecop.json = stylecop.json
-	..\azure-pipelines.yml = ..\azure-pipelines.yml
-EndProjectSection
+	ProjectSection(SolutionItems) = preProject
+		analyzers.ruleset = analyzers.ruleset
+		..\azure-pipelines.yml = ..\azure-pipelines.yml
+		Directory.Build.props = Directory.Build.props
+		Directory.build.targets = Directory.build.targets
+		global.json = global.json
+		..\README.md = ..\README.md
+		stylecop.json = stylecop.json
+	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReactiveMarbles.PropertyChanged.Benchmarks", "ReactiveMarbles.PropertyChanged.Benchmarks\ReactiveMarbles.PropertyChanged.Benchmarks.csproj", "{DFE06734-1998-4ED1-B0BB-75DC718347B9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReactiveMarbles.PropertyChanged.Benchmarks", "ReactiveMarbles.PropertyChanged.Benchmarks\ReactiveMarbles.PropertyChanged.Benchmarks.csproj", "{DFE06734-1998-4ED1-B0BB-75DC718347B9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{E954835B-48AD-4092-87A8-D0FB0C43DB99}"
+	ProjectSection(SolutionItems) = preProject
+		..\docs\Performance.md = ..\docs\Performance.md
+		..\docs\ReactiveMarbles.PropertyChanged.Benchmarks.BindBenchmarks-report-github.md = ..\docs\ReactiveMarbles.PropertyChanged.Benchmarks.BindBenchmarks-report-github.md
+		..\docs\ReactiveMarbles.PropertyChanged.Benchmarks.PropertyChangesBenchmarks-report-github.md = ..\docs\ReactiveMarbles.PropertyChanged.Benchmarks.PropertyChangesBenchmarks-report-github.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,9 +35,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{15B3E9B3-869B-4692-ADBB-A57E47C7D3DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -68,5 +73,14 @@ Global
 		{DFE06734-1998-4ED1-B0BB-75DC718347B9}.Release|x64.Build.0 = Release|Any CPU
 		{DFE06734-1998-4ED1-B0BB-75DC718347B9}.Release|x86.ActiveCfg = Release|Any CPU
 		{DFE06734-1998-4ED1-B0BB-75DC718347B9}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{E954835B-48AD-4092-87A8-D0FB0C43DB99} = {15316C41-0C07-4A56-894A-43E2E2C4296A}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4F51EF50-49C9-48FD-AFAE-B8875793EA10}
 	EndGlobalSection
 EndGlobal
