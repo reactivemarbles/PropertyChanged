@@ -6,6 +6,7 @@ using System;
 using System.ComponentModel;
 using System.Linq.Expressions;
 using System.Reactive.Linq;
+using System.Reflection;
 
 namespace ReactiveMarbles.PropertyChanged
 {
@@ -69,17 +70,21 @@ namespace ReactiveMarbles.PropertyChanged
             var i = 0;
             foreach (var memberExpression in expressionChain)
             {
+                var memberInfo = memberExpression.Member;
+
                 if (i == expressionChain.Count - 1)
                 {
+                    var function = GetMemberFuncCache<INotifyPropertyChanged, TReturn>.GetCache(memberInfo);
                     return currentObservable
                         .Where(parent => parent.Value != null)
-                        .Select(parent => GenerateObservable<TReturn>(parent.Value, memberExpression))
+                        .Select(parent => GenerateObservable(parent.Value, memberInfo, function))
                         .Switch();
                 }
 
+                var iFunction = GetMemberFuncCache<INotifyPropertyChanged, INotifyPropertyChanged>.GetCache(memberInfo);
                 currentObservable = currentObservable
                     .Where(parent => parent.Value != null)
-                    .Select(parent => GenerateObservable<INotifyPropertyChanged>(parent.Value, memberExpression))
+                    .Select(parent => GenerateObservable(parent.Value, memberInfo, iFunction))
                     .Switch();
 
                 i++;
@@ -88,12 +93,12 @@ namespace ReactiveMarbles.PropertyChanged
             throw new ArgumentException("Invalid expression", nameof(propertyExpression));
         }
 
-        private static IObservable<(object Sender, T Value)> GenerateObservable<T>(INotifyPropertyChanged parent, MemberExpression memberExpression)
+        private static IObservable<(object Sender, T Value)> GenerateObservable<T>(
+            INotifyPropertyChanged parent,
+            MemberInfo memberInfo,
+            Func<INotifyPropertyChanged, T> getter)
         {
-            var memberInfo = memberExpression.Member;
             var memberName = memberInfo.Name;
-
-            var func = GetMemberFuncCache<INotifyPropertyChanged, T>.GetCache(memberInfo);
             return Observable.FromEvent<PropertyChangedEventHandler, (object Sender, PropertyChangedEventArgs Args)>(
                     handler =>
                     {
@@ -103,8 +108,8 @@ namespace ReactiveMarbles.PropertyChanged
                     x => parent.PropertyChanged += x,
                     x => parent.PropertyChanged -= x)
                 .Where(x => x.Args.PropertyName == memberName)
-                .Select(x => (x.Sender, func.Invoke(parent)))
-                .StartWith((parent, func.Invoke(parent)));
+                .Select(x => (x.Sender, getter(parent)))
+                .StartWith((parent, getter(parent)));
         }
     }
 }
