@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2020 ReactiveUI Association Incorporated. All rights reserved.
+﻿// Copyright (c) 2019-2020 ReactiveUI Association Incorporated. All rights reserved.
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
@@ -6,9 +6,8 @@ using System;
 using System.ComponentModel;
 using System.Linq.Expressions;
 using System.Reactive.Linq;
-using System.Reflection;
 
-namespace ReactiveMarbles.PropertyChanged
+namespace ReactiveMarbles.PropertyChanged.Benchmarks.Legacy
 {
     /// <summary>
     /// Provides extension methods for the notify property changed extensions.
@@ -64,27 +63,23 @@ namespace ReactiveMarbles.PropertyChanged
 
             if (expressionChain.Count == 0)
             {
-                throw new ArgumentException("There are no properties in the expressions", nameof(propertyExpression));
+                throw new ArgumentException("There are no fields in the expressions", nameof(propertyExpression));
             }
 
             var i = 0;
             foreach (var memberExpression in expressionChain)
             {
-                var memberInfo = memberExpression.Member;
-
                 if (i == expressionChain.Count - 1)
                 {
-                    var function = GetMemberFuncCache<INotifyPropertyChanged, TReturn>.GetCache(memberInfo);
                     return currentObservable
                         .Where(parent => parent.Value != null)
-                        .Select(parent => GenerateObservable(parent.Value, memberInfo, function))
+                        .Select(parent => GenerateObservable<TReturn>(parent.Value, memberExpression))
                         .Switch();
                 }
 
-                var iFunction = GetMemberFuncCache<INotifyPropertyChanged, INotifyPropertyChanged>.GetCache(memberInfo);
                 currentObservable = currentObservable
                     .Where(parent => parent.Value != null)
-                    .Select(parent => GenerateObservable(parent.Value, memberInfo, iFunction))
+                    .Select(parent => GenerateObservable<INotifyPropertyChanged>(parent.Value, memberExpression))
                     .Switch();
 
                 i++;
@@ -93,12 +88,12 @@ namespace ReactiveMarbles.PropertyChanged
             throw new ArgumentException("Invalid expression", nameof(propertyExpression));
         }
 
-        private static IObservable<(object Sender, T Value)> GenerateObservable<T>(
-            INotifyPropertyChanged parent,
-            MemberInfo memberInfo,
-            Func<INotifyPropertyChanged, T> getter)
+        private static IObservable<(object Sender, T Value)> GenerateObservable<T>(INotifyPropertyChanged parent, MemberExpression memberExpression)
         {
+            var memberInfo = memberExpression.Member;
             var memberName = memberInfo.Name;
+
+            var func = GetMemberFuncCache<INotifyPropertyChanged, T>.GetCache(memberInfo);
             return Observable.FromEvent<PropertyChangedEventHandler, (object Sender, PropertyChangedEventArgs Args)>(
                     handler =>
                     {
@@ -108,8 +103,8 @@ namespace ReactiveMarbles.PropertyChanged
                     x => parent.PropertyChanged += x,
                     x => parent.PropertyChanged -= x)
                 .Where(x => x.Args.PropertyName == memberName)
-                .Select(x => (x.Sender, getter(parent)))
-                .StartWith((parent, getter(parent)));
+                .Select(x => (x.Sender, func.Invoke(parent)))
+                .StartWith((parent, func.Invoke(parent)));
         }
     }
 }

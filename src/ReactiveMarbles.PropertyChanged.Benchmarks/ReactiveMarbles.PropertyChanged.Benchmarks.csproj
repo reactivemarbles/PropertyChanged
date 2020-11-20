@@ -1,16 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
-    <PropertyGroup>
-        <OutputType>Exe</OutputType>
-        <TargetFramework>netcoreapp3.1</TargetFramework>
-        <IsPackable>false</IsPackable>
-    </PropertyGroup>
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
 
-    <ItemGroup>
-        <PackageReference Include="BenchmarkDotNet" Version="0.12.1"/>
-        <PackageReference Include="reactiveui" Version="11.5.35"/>
-    </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.12.1" />
+    <PackageReference Include="reactiveui" Version="12.*" />
+  </ItemGroup>
 
-    <ItemGroup>
-        <ProjectReference Include="..\ReactiveMarbles.PropertyChanged\ReactiveMarbles.PropertyChanged.csproj"/>
-    </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ReactiveMarbles.PropertyChanged\ReactiveMarbles.PropertyChanged.csproj" />
+  </ItemGroup>
 </Project>
