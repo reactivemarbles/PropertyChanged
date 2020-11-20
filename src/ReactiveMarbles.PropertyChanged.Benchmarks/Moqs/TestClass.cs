@@ -1,5 +1,5 @@
-// Copyright (c) 2019 Glenn Watson. All rights reserved.
-// Glenn Watson licenses this file to you under the MIT license.
+// Copyright (c) 2019-2020 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System;
@@ -15,12 +15,12 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks.Moqs
 {
     public class TestClass : INotifyPropertyChanged, IViewFor<TestClass>
     {
-        private static readonly PropertyInfo _childPropertyInfo = typeof(TestClass).GetProperty("Child");
-        private static readonly PropertyInfo _valuePropertyInfo = typeof(TestClass).GetProperty("Value");
+        private static readonly PropertyInfo? _childPropertyInfo = typeof(TestClass).GetProperty("Child");
+        private static readonly PropertyInfo? _valuePropertyInfo = typeof(TestClass).GetProperty("Value");
 
         private static readonly ConcurrentDictionary<int, Expression<Func<TestClass, int>>> _getValueExpression
             = new ConcurrentDictionary<int, Expression<Func<TestClass, int>>>();
-        private TestClass _child;
+        private TestClass? _child;
         private int _value;
 
         public readonly int Height;
@@ -32,7 +32,9 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks.Moqs
             if (height > 1) Child = new TestClass(height - 1);
         }
 
-        public TestClass Child
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        public TestClass? Child
         {
             get => _child;
             set => RaiseAndSetIfChanged(ref _child, value);
@@ -52,13 +54,13 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks.Moqs
             }
 
             var height = Height;
-            var current = this;
+            TestClass? current = this;
             while (--height > depth)
             {
-                current = current.Child;
+                current = current?.Child;
             }
 
-            if (height < 1)
+            if (height < 1 && current != null)
             {
                 // We're at the bottom, so tweak the value
                 current.Value++;
@@ -66,12 +68,25 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks.Moqs
             }
 
             // Create a new child hierarchy from this depth.
-            current.Child = new TestClass(height);
+            if (current != null)
+            {
+                current.Child = new TestClass(height);
+            }
         }
 
         public static Expression<Func<TestClass, int>> GetValuePropertyExpression(int depth)
             => _getValueExpression.GetOrAdd(depth, d =>
             {
+                if (_childPropertyInfo is null)
+                {
+                    throw new InvalidOperationException(nameof(_childPropertyInfo));
+                }
+
+                if (_valuePropertyInfo is null)
+                {
+                    throw new InvalidOperationException(nameof(_valuePropertyInfo));
+                }
+
                 var parameter = Expression.Parameter(typeof(TestClass), "x");
 
                 var pe = parameter;
@@ -85,8 +100,6 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks.Moqs
 
                 return Expression.Lambda<Func<TestClass, int>>(body, parameter);
             });
-
-        public event PropertyChangedEventHandler PropertyChanged;
 
         protected void RaiseAndSetIfChanged<T>(ref T fieldValue, T value, [CallerMemberName] string propertyName = null)
         {
@@ -108,7 +121,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks.Moqs
         object? IViewFor.ViewModel
         {
             get => ViewModel;
-            set => ViewModel = (TestClass)value;
+            set => ViewModel = (TestClass?)value;
         }
 
         /// <inheritdoc />

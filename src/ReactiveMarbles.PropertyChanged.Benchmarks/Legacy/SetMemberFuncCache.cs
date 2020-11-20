@@ -1,5 +1,5 @@
-// Copyright (c) 2019 Glenn Watson. All rights reserved.
-// Glenn Watson licenses this file to you under the MIT license.
+// Copyright (c) 2019-2020 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System;
@@ -14,8 +14,8 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks.Legacy
     {
 #if !UIKIT
         private static readonly
-            ConcurrentDictionary<(Type ParentType, string PropertyName), Action<object, TValue>> Cache
-                = new ConcurrentDictionary<(Type, string), Action<object, TValue>>();
+            ConcurrentDictionary<(Type? ParentType, string PropertyName), Action<object, TValue>> Cache
+                = new ConcurrentDictionary<(Type?, string), Action<object, TValue>>();
 #endif
 
         [SuppressMessage("Design", "CA1801: Parameter not used", Justification = "Used on some platforms")]

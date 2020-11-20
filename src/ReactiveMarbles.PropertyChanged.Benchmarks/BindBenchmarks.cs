@@ -1,5 +1,6 @@
-// Licensed under the Apache License, Version 2.0 (the "License").
-// See the LICENSE file in the project root for more information.
+// Copyright (c) 2019-2020 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for full license information.
 
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
@@ -11,6 +12,8 @@ using System.Linq.Expressions;
 using New = ReactiveMarbles.PropertyChanged.BindExtensions;
 using Old = ReactiveMarbles.PropertyChanged.Benchmarks.Legacy.BindExtensions;
 using UI = ReactiveUI.PropertyBindingMixins;
+
+#nullable disable
 
 namespace ReactiveMarbles.PropertyChanged.Benchmarks
 {
@@ -39,7 +42,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
         
         private TestClass _from;
         private TestClass _to;
-        private IDisposable? _binding;
+        private IDisposable _binding;
         private Expression<Func<TestClass, int>> _propertyExpression;
 
         [GlobalSetup(Targets = new[] { nameof(BindAndChangeUI), nameof(BindAndChangeOld), nameof(BindAndChangeNew), nameof(NoBind) })]

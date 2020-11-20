@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2019 Glenn Watson. All rights reserved.
-// Glenn Watson licenses this file to you under the MIT license.
+﻿// Copyright (c) 2019-2020 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System;
@@ -33,7 +33,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks.Legacy
             TTarget targetObject,
             Expression<Func<TFrom, TPropertyType>> fromProperty,
             Expression<Func<TTarget, TPropertyType>> toProperty,
-            IScheduler scheduler = null)
+            IScheduler? scheduler = null)
             where TFrom : class, INotifyPropertyChanged
         {
             if (fromObject == null)
@@ -65,7 +65,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks.Legacy
             Expression<Func<TFrom, TFromProperty>> fromProperty,
             Expression<Func<TTarget, TTargetProperty>> toProperty,
             Func<TFromProperty, TTargetProperty> conversionFunc,
-            IScheduler scheduler = null)
+            IScheduler? scheduler = null)
             where TFrom : class, INotifyPropertyChanged
         {
             if (fromObject == null)
@@ -209,7 +209,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks.Legacy
             TTarget targetObject,
             IObservable<TPropertyType> hostObs,
             LambdaExpression property,
-            IScheduler scheduler)
+            IScheduler? scheduler)
         {
             if (hostObs == null)
             {
@@ -226,7 +226,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks.Legacy
                 throw new ArgumentException("The expression does not bind to a valid member.");
             }
 
-            scheduler = scheduler ?? ImmediateScheduler.Instance;
+            scheduler ??= ImmediateScheduler.Instance;
 
             var setHostFunc = SetMemberFuncCache<TPropertyType>.GenerateSetCache(fromMemberExpression.Member);
             var getFetcherPropertyChain = property.Body.GetGetValueMemberChain();
