@@ -15,12 +15,12 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks.Moqs
 {
     public class TestClass : INotifyPropertyChanged, IViewFor<TestClass>
     {
-        private static readonly PropertyInfo? _childPropertyInfo = typeof(TestClass).GetProperty("Child");
-        private static readonly PropertyInfo? _valuePropertyInfo = typeof(TestClass).GetProperty("Value");
+        private static readonly PropertyInfo _childPropertyInfo = typeof(TestClass).GetProperty("Child");
+        private static readonly PropertyInfo _valuePropertyInfo = typeof(TestClass).GetProperty("Value");
 
         private static readonly ConcurrentDictionary<int, Expression<Func<TestClass, int>>> _getValueExpression
             = new ConcurrentDictionary<int, Expression<Func<TestClass, int>>>();
-        private TestClass? _child;
+        private TestClass _child;
         private int _value;
 
         public readonly int Height;
@@ -32,9 +32,9 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks.Moqs
             if (height > 1) Child = new TestClass(height - 1);
         }
 
-        public event PropertyChangedEventHandler? PropertyChanged;
+        public event PropertyChangedEventHandler PropertyChanged;
 
-        public TestClass? Child
+        public TestClass Child
         {
             get => _child;
             set => RaiseAndSetIfChanged(ref _child, value);
@@ -54,7 +54,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks.Moqs
             }
 
             var height = Height;
-            TestClass? current = this;
+            TestClass current = this;
             while (--height > depth)
             {
                 current = current?.Child;
@@ -118,13 +118,13 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks.Moqs
         }
 
         /// <inheritdoc />
-        object? IViewFor.ViewModel
+        object IViewFor.ViewModel
         {
             get => ViewModel;
-            set => ViewModel = (TestClass?)value;
+            set => ViewModel = (TestClass)value;
         }
 
         /// <inheritdoc />
-        public TestClass? ViewModel { get; set; }
+        public TestClass ViewModel { get; set; }
     }
 }

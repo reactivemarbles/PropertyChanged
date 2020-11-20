@@ -33,7 +33,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks.Legacy
             TTarget targetObject,
             Expression<Func<TFrom, TPropertyType>> fromProperty,
             Expression<Func<TTarget, TPropertyType>> toProperty,
-            IScheduler? scheduler = null)
+            IScheduler scheduler = null)
             where TFrom : class, INotifyPropertyChanged
         {
             if (fromObject == null)
@@ -65,7 +65,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks.Legacy
             Expression<Func<TFrom, TFromProperty>> fromProperty,
             Expression<Func<TTarget, TTargetProperty>> toProperty,
             Func<TFromProperty, TTargetProperty> conversionFunc,
-            IScheduler? scheduler = null)
+            IScheduler scheduler = null)
             where TFrom : class, INotifyPropertyChanged
         {
             if (fromObject == null)
@@ -209,7 +209,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks.Legacy
             TTarget targetObject,
             IObservable<TPropertyType> hostObs,
             LambdaExpression property,
-            IScheduler? scheduler)
+            IScheduler scheduler)
         {
             if (hostObs == null)
             {

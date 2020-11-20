@@ -44,7 +44,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
 
         private TestClass _from;
         private int _to;
-        private IDisposable? _subscription;
+        private IDisposable _subscription;
 
         private Expression<Func<TestClass, int>> _propertyExpression;
 
