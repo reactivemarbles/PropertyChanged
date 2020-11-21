@@ -4,8 +4,6 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.ComponentModel;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -19,7 +17,6 @@ namespace ReactiveMarbles.PropertyChanged
                 = new ConcurrentDictionary<(Type, string), Func<TFrom, TReturn>>();
 #endif
 
-        [SuppressMessage("Design", "CA1801: Parameter not used", Justification = "Used on some platforms")]
         public static Func<TFrom, TReturn> GetCache(MemberInfo memberInfo)
         {
 #if UIKIT
@@ -39,19 +36,12 @@ namespace ReactiveMarbles.PropertyChanged
 
                 var castInstance = Expression.Convert(instance, memberInfo.DeclaringType);
 
-                Expression body;
-
-                switch (memberInfo)
+                Expression body = memberInfo switch
                 {
-                    case PropertyInfo propertyInfo:
-                        body = Expression.Call(castInstance, propertyInfo.GetGetMethod());
-                        break;
-                    case FieldInfo fieldInfo:
-                        body = Expression.Field(castInstance, fieldInfo);
-                        break;
-                    default:
-                        throw new ArgumentException($"Cannot handle member {memberInfo.Name}", nameof(memberInfo));
-                }
+                    PropertyInfo propertyInfo => Expression.Call(castInstance, propertyInfo.GetGetMethod()),
+                    FieldInfo fieldInfo => Expression.Field(castInstance, fieldInfo),
+                    _ => throw new ArgumentException($"Cannot handle member {memberInfo.Name}", nameof(memberInfo)),
+                };
 
                 var parameters = new[] { instance };
 
