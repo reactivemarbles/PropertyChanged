@@ -100,7 +100,7 @@ jobs:
 
     # Decode the base 64 encoded pfx and save the Signing_Certificate
     - name: Decode the pfx
-      shell: powershell
+      shell: pwsh
       run: |
         $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.SIGNING_CERTIFICATE }}")
         [IO.File]::WriteAllBytes("GitHubActionsWorkflow.pfx", $pfx_cert_byte)
