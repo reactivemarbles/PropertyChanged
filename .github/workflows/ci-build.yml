@@ -103,8 +103,8 @@ jobs:
         $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.SIGNING_CERTIFICATE }}")
         [IO.File]::WriteAllBytes("GitHubActionsWorkflow.pfx", $pfx_cert_byte)
         $secure_password = ConvertTo-SecureString ${{ secrets.SIGN_CERTIFICATE_PASSWORD }} –asplaintext –force
-        Import-PfxCertificate -FilePath GitHubActionsWorkflow.pfx -Password $secure_password -CertStoreLocation Cert:\LocalMachine\My
-        nuget sign **/*.nupkg -Timestamper http://timestamp.digicert.com -CertificateFingerprint ${{ secrets.SIGN_CERTIFICATE_HASH }}
+        Import-PfxCertificate -FilePath GitHubActionsWorkflow.pfx -Password $secure_password -CertStoreLocation Cert:\CurrentUser\My
+        nuget sign -Timestamper http://timestamp.digicert.com -CertificateFingerprint ${{ secrets.SIGN_CERTIFICATE_HASH }} **/*.nupkg 
 
     - name: Changelog
       uses: glennawatson/ChangeLog@v1
