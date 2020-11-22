@@ -169,12 +169,12 @@ namespace ReactiveMarbles.PropertyChanged
                 throw new ArgumentNullException(nameof(fromProperty));
             }
 
-            if (!(toProperty.Body is MemberExpression))
+            if (toProperty.Body is not MemberExpression)
             {
                 throw new ArgumentException("The expression does not bind to a valid member.");
             }
 
-            if (!(fromProperty.Body is MemberExpression))
+            if (fromProperty.Body is not MemberExpression)
             {
                 throw new ArgumentException("The expression does not bind to a valid member.");
             }
@@ -209,7 +209,7 @@ namespace ReactiveMarbles.PropertyChanged
                 throw new ArgumentNullException(nameof(property));
             }
 
-            if (!(property.Body is MemberExpression))
+            if (property.Body is not MemberExpression)
             {
                 throw new ArgumentException("The expression does not bind to a valid member.");
             }
