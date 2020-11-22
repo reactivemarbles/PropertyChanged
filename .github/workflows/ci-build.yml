@@ -79,7 +79,7 @@ jobs:
         path: '**/*.nupkg'
 
   release:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     needs: build
     if: contains(github.event.pull_request.labels.*.name, 'release') && github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
     steps:
@@ -95,19 +95,15 @@ jobs:
 
     - uses: nuget/setup-nuget@v1
       name: Setup NuGet
-      with:
-        nuget-api-key: ${{ secrets.NUGET_API_KEY }}
 
     # Decode the base 64 encoded pfx and save the Signing_Certificate
-    - name: Decode the pfx
+    - name: Sign NuGet packages
       shell: pwsh
       run: |
         $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.SIGNING_CERTIFICATE }}")
         [IO.File]::WriteAllBytes("GitHubActionsWorkflow.pfx", $pfx_cert_byte)
-
-    - name: Sign NuGet Packages
-      run: |
-        nuget sign **/*.nupkg -CertificatePath GitHubActionsWorkflow.pfx -Timestamper http://timestamp.digicert.com
+        Import-PfxCertificate -FilePath GitHubActionsWorkflow.pfx -Password ${{ secrets.SIGN_CERTIFICATE_PASSWORD }} -CertStoreLocation Cert:\LocalMachine\My
+        nuget sign **/*.nupkg -Timestamper http://timestamp.digicert.com -CertificateFingerprint ${[ secrets.SIGN_CERTIFICATE_HASH ]}
 
     - name: Changelog
       uses: glennawatson/ChangeLog@v1
