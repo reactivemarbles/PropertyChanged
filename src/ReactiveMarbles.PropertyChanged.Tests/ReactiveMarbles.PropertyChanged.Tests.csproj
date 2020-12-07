@@ -1,11 +1,11 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>netcoreapp3.1;net5.0</TargetFrameworks>
 
     <IsPackable>false</IsPackable>
     <NoWarn>$(NoWarn);SA1600</NoWarn>
-    <LangVersion>preview</LangVersion>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,7 +16,13 @@
     <PackageReference Include="Xunit.StaFact" Version="1.0.37" />
     <PackageReference Include="PublicApiGenerator" Version="10.2.0" />
   </ItemGroup>
+  
   <ItemGroup>
     <ProjectReference Include="..\ReactiveMarbles.PropertyChanged\ReactiveMarbles.PropertyChanged.csproj" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <Folder Include="SourceGenerator\" />
+  </ItemGroup>
+  
 </Project>
