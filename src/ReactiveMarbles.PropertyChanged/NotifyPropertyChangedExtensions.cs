@@ -74,17 +74,17 @@ namespace ReactiveMarbles.PropertyChanged
 
                 if (i == expressionChain.Count - 1)
                 {
-                    var function = GetMemberFuncCache<INotifyPropertyChanged, TReturn>.GetCache(memberInfo);
-                    return currentObservable
-                        .Where(parent => parent.Value != null)
-                        .Select(parent => GenerateObservable(parent.Value, memberInfo, function))
+                    return Observable.Return(memberInfo)
+                        .CombineLatest(currentObservable, (memberInfo, parent) => (memberInfo, sender: parent.Sender, value: parent.Value))
+                        .Where(x => x.value != null)
+                        .Select(x => GenerateObservable(x.value, x.memberInfo, GetMemberFuncCache<INotifyPropertyChanged, TReturn>.GetCache(x.memberInfo)))
                         .Switch();
                 }
 
-                var iFunction = GetMemberFuncCache<INotifyPropertyChanged, INotifyPropertyChanged>.GetCache(memberInfo);
-                currentObservable = currentObservable
-                    .Where(parent => parent.Value != null)
-                    .Select(parent => GenerateObservable(parent.Value, memberInfo, iFunction))
+                currentObservable = Observable.Return(memberInfo)
+                    .CombineLatest(currentObservable, (memberInfo, parent) => (memberInfo, sender: parent.Sender, value: parent.Value))
+                    .Where(x => x.value != null)
+                    .Select(x => GenerateObservable(x.value, x.memberInfo, GetMemberFuncCache<INotifyPropertyChanged, INotifyPropertyChanged>.GetCache(x.memberInfo)))
                     .Switch();
 
                 i++;
