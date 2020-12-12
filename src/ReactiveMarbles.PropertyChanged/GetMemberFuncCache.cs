@@ -28,17 +28,17 @@ namespace ReactiveMarbles.PropertyChanged
                     throw new ArgumentException($"Cannot handle member {memberInfo.Name}", nameof(memberInfo));
             }
 #else
-            return Cache.GetOrAdd(memberInfo, static mi =>
+            return Cache.GetOrAdd(memberInfo, static memberInfo =>
             {
                 var instance = Expression.Parameter(typeof(TFrom), "instance");
 
-                var castInstance = Expression.Convert(instance, mi.DeclaringType);
+                var castInstance = Expression.Convert(instance, memberInfo.DeclaringType);
 
-                Expression body = mi switch
+                Expression body = memberInfo switch
                 {
                     PropertyInfo propertyInfo => Expression.Call(castInstance, propertyInfo.GetGetMethod()),
                     FieldInfo fieldInfo => Expression.Field(castInstance, fieldInfo),
-                    _ => throw new ArgumentException($"Cannot handle member {mi.Name}", nameof(mi)),
+                    _ => throw new ArgumentException($"Cannot handle member {memberInfo.Name}", nameof(memberInfo)),
                 };
 
                 var parameters = new[] { instance };
