@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
@@ -13,4 +13,33 @@
   <ItemGroup>
     <ProjectReference Include="..\ReactiveMarbles.PropertyChanged\ReactiveMarbles.PropertyChanged.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Update="BindBenchmarks.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>BindBenchmarks.cs</LastGenOutput>
+    </None>
+    <None Update="WhenChangedBenchmarks.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>WhenChangedBenchmarks.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="BindBenchmarks.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>BindBenchmarks.tt</DependentUpon>
+    </Compile>
+    <Compile Update="WhenChangedBenchmarks.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>WhenChangedBenchmarks.tt</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+  
 </Project>

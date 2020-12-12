@@ -1,0 +1,129 @@
+<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core.dll" #>
+<#@ assembly name="System.Collections.dll" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.Linq" #>
+<#@ output extension=".cs" #>
+// Copyright (c) 2019-2020 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for full license information.
+
+using System;
+using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Jobs;
+
+using ReactiveMarbles.PropertyChanged.Benchmarks.Moqs;
+<#
+// First entry will be classified as the baseline.
+var participants = new (string Alias, string MethodName, string FullClassName)[]
+{
+    ("UI", "WhenAnyValue", "ReactiveUI.WhenAnyMixin"),
+    ("Old", "WhenPropertyValueChanges", "ReactiveMarbles.PropertyChanged.Benchmarks.Legacy.NotifyPropertyChangedExtensions"),
+    ("New", "WhenPropertyValueChanges", "ReactiveMarbles.PropertyChanged.NotifyPropertyChangedExtensions"),
+};
+var depths = new[] { 1, 2, 3 };
+const string SubscribeAndChange = "SubscribeAndChange";
+const string Change = "Change";
+string GetBenchmarkName(string baseName, int depth, string alias) => $"{baseName}_Depth{depth}_{alias}";
+
+foreach(var (Alias, MethodName, FullClassName) in participants)
+{
+#>
+using <#= Alias #> = <#= FullClassName #>;
+<#}#>
+
+namespace ReactiveMarbles.PropertyChanged.Benchmarks
+{
+    /// <summary>
+    /// Benchmarks for the property changed.
+    /// </summary>
+    [SimpleJob(RuntimeMoniker.NetCoreApp31)]
+    [MemoryDiagnoser]
+    [MarkdownExporterAttribute.GitHub]
+    [GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory)]
+    public class WhenChangedBenchmarks
+    {
+        private TestClass _from;
+        private int _to;
+        private IDisposable _subscription;
+
+        /// <summary>
+        /// The number mutations to perform.
+        /// </summary>
+        [Params(1, 10, 100, 1000)]
+        public int Changes;
+
+<#
+        for(int i = 0; i < depths.Length; i++)
+        {
+            int depth = depths[i]; #>
+        [GlobalSetup(Targets = new[] { <#= string.Join(", ", participants.Select(x => $"\"{GetBenchmarkName(SubscribeAndChange, depth, x.Alias)}\"")) #> })]
+        public void Depth<#= depth #>Setup()
+        {
+            _from = new TestClass(<#= depth #>);
+        }
+
+<#        } #>
+        public void PerformMutations(int depth)
+        {
+            // We loop through the changes, creating mutations at every depth.
+            for (var i = 0; i < Changes; ++i)
+            {
+                _from.Mutate(i % depth);
+            }
+        }
+
+<#
+        for(int i = 0; i < depths.Length; i++)
+        {
+            int depth = depths[i];
+            for (int j = 0; j < participants.Length; j++)
+            {
+                var (Alias, MethodName, FullClassName) = participants[j]; #>
+        [BenchmarkCategory("Subscribe and Change Depth <#= depth #>")]
+        <# if (j == 0) WriteLine("[Benchmark(Baseline = true)]"); else WriteLine("[Benchmark]"); #>
+        public void <#= GetBenchmarkName(SubscribeAndChange, depth, Alias) #>()
+        {
+<#
+            var expression = string.Join(".", Enumerable.Range(1, depth - 1).Select(x => "Child").Prepend("x").Append("Value")); #>
+            using var subscription = <#= $"{Alias}.{MethodName}(_from, x => {expression}).Subscribe(x => _to = x);" #>
+            PerformMutations(<#= depth #>);
+        }
+
+<#            } #>
+<#      } #>
+<#
+        for(int i = 0; i < depths.Length; i++)
+        {
+            int depth = depths[i];
+            for (int j = 0; j < participants.Length; j++)
+            {
+                var (Alias, MethodName, FullClassName) = participants[j];
+                var benchmarkName = GetBenchmarkName(Change, depth, Alias); #>
+        [GlobalSetup(Target = <#= $"\"{benchmarkName}\"" #>)]
+        public void <#= $"{benchmarkName}Setup" #>()
+        {
+<#
+            var expression = string.Join(".", Enumerable.Range(1, depth - 1).Select(x => "Child").Prepend("x").Append("Value")); #>
+            Depth<#= depth #>Setup();
+            _subscription = <#= $"{Alias}.{MethodName}(_from, x => {expression}).Subscribe(x => _to = x);" #>
+        }
+
+        [BenchmarkCategory("Change Depth <#= depth #>")]
+        <# if (j == 0) WriteLine("[Benchmark(Baseline = true)]"); else WriteLine("[Benchmark]"); #>
+        public void <#= benchmarkName #>()
+        {
+            PerformMutations(<#= depth #>);
+        }
+
+<#            } #>
+<#
+      } #>
+        [GlobalCleanup(Targets = new[] { <#= string.Join(", ", depths.SelectMany(depth => participants.Select(x => $"\"{GetBenchmarkName(Change, depth, x.Alias)}\""))) #> })]
+        public void GlobalCleanup()
+        {
+            _subscription.Dispose();
+        }
+    }
+}
