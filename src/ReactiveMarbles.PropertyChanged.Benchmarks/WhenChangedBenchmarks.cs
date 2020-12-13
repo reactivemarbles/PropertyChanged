@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2019-2020 ReactiveUI Association Incorporated. All rights reserved.
+// Copyright (c) 2019-2020 ReactiveUI Association Incorporated. All rights reserved.
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
@@ -8,24 +8,24 @@ using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
 
 using ReactiveMarbles.PropertyChanged.Benchmarks.Moqs;
-using UI = ReactiveUI.PropertyBindingMixins;
-using Old = ReactiveMarbles.PropertyChanged.Benchmarks.Legacy.BindExtensions;
-using New = ReactiveMarbles.PropertyChanged.BindExtensions;
+using UI = ReactiveUI.WhenAnyMixin;
+using Old = ReactiveMarbles.PropertyChanged.Benchmarks.Legacy.NotifyPropertyChangedExtensions;
+using New = ReactiveMarbles.PropertyChanged.NotifyPropertyChangedExtensions;
 
 namespace ReactiveMarbles.PropertyChanged.Benchmarks
 {
     /// <summary>
-    /// Benchmarks for binding.
+    /// Benchmarks for the property changed.
     /// </summary>
     [SimpleJob(RuntimeMoniker.NetCoreApp31)]
     [MemoryDiagnoser]
     [MarkdownExporterAttribute.GitHub]
     [GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory)]
-    public class BindBenchmarks
+    public class WhenChangedBenchmarks
     {
         private TestClass _from;
-        private TestClass _to;
-        private IDisposable _binding;
+        private int _to;
+        private IDisposable _subscription;
 
         /// <summary>
         /// The number mutations to perform.
@@ -33,108 +33,102 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
         [Params(1, 10, 100, 1000)]
         public int Changes;
 
-        [GlobalSetup(Targets = new[] { "BindAndChange_Depth1_UI", "BindAndChange_Depth1_Old", "BindAndChange_Depth1_New" })]
+        [GlobalSetup(Targets = new[] { "SubscribeAndChange_Depth1_UI", "SubscribeAndChange_Depth1_Old", "SubscribeAndChange_Depth1_New" })]
         public void Depth1Setup()
         {
             _from = new TestClass(1);
-            _to = new TestClass(1);
         }
 
-        [GlobalSetup(Targets = new[] { "BindAndChange_Depth2_UI", "BindAndChange_Depth2_Old", "BindAndChange_Depth2_New" })]
+        [GlobalSetup(Targets = new[] { "SubscribeAndChange_Depth2_UI", "SubscribeAndChange_Depth2_Old", "SubscribeAndChange_Depth2_New" })]
         public void Depth2Setup()
         {
             _from = new TestClass(2);
-            _to = new TestClass(2);
         }
 
-        [GlobalSetup(Targets = new[] { "BindAndChange_Depth3_UI", "BindAndChange_Depth3_Old", "BindAndChange_Depth3_New" })]
+        [GlobalSetup(Targets = new[] { "SubscribeAndChange_Depth3_UI", "SubscribeAndChange_Depth3_Old", "SubscribeAndChange_Depth3_New" })]
         public void Depth3Setup()
         {
             _from = new TestClass(3);
-            _to = new TestClass(3);
         }
 
         public void PerformMutations(int depth)
         {
-            // We loop through the changes, alternating mutations to the source and destination at every depth.
-            var d2 = depth * 2;
+            // We loop through the changes, creating mutations at every depth.
             for (var i = 0; i < Changes; ++i)
             {
-                var a = i % d2;
-                var t = (a % 2) > 0 ? _to : _from;
-                t.Mutate(a / 2);
+                _from.Mutate(i % depth);
             }
         }
 
-        [BenchmarkCategory("Bind and Change Depth 1")]
+        [BenchmarkCategory("Subscribe and Change Depth 1")]
         [Benchmark(Baseline = true)]
-        public void BindAndChange_Depth1_UI()
+        public void SubscribeAndChange_Depth1_UI()
         {
-            using var binding = UI.Bind(_from, _to, x => x.Value, x => x.Value);
+            using var subscription = UI.WhenAnyValue(_from, x => x.Value).Subscribe(x => _to = x);
             PerformMutations(1);
         }
 
-        [BenchmarkCategory("Bind and Change Depth 1")]
+        [BenchmarkCategory("Subscribe and Change Depth 1")]
         [Benchmark]
-        public void BindAndChange_Depth1_Old()
+        public void SubscribeAndChange_Depth1_Old()
         {
-            using var binding = Old.Bind(_from, _to, x => x.Value, x => x.Value);
+            using var subscription = Old.WhenPropertyValueChanges(_from, x => x.Value).Subscribe(x => _to = x);
             PerformMutations(1);
         }
 
-        [BenchmarkCategory("Bind and Change Depth 1")]
+        [BenchmarkCategory("Subscribe and Change Depth 1")]
         [Benchmark]
-        public void BindAndChange_Depth1_New()
+        public void SubscribeAndChange_Depth1_New()
         {
-            using var binding = New.Bind(_from, _to, x => x.Value, x => x.Value);
+            using var subscription = New.WhenPropertyValueChanges(_from, x => x.Value).Subscribe(x => _to = x);
             PerformMutations(1);
         }
 
-        [BenchmarkCategory("Bind and Change Depth 2")]
+        [BenchmarkCategory("Subscribe and Change Depth 2")]
         [Benchmark(Baseline = true)]
-        public void BindAndChange_Depth2_UI()
+        public void SubscribeAndChange_Depth2_UI()
         {
-            using var binding = UI.Bind(_from, _to, x => x.Child.Value, x => x.Child.Value);
+            using var subscription = UI.WhenAnyValue(_from, x => x.Child.Value).Subscribe(x => _to = x);
             PerformMutations(2);
         }
 
-        [BenchmarkCategory("Bind and Change Depth 2")]
+        [BenchmarkCategory("Subscribe and Change Depth 2")]
         [Benchmark]
-        public void BindAndChange_Depth2_Old()
+        public void SubscribeAndChange_Depth2_Old()
         {
-            using var binding = Old.Bind(_from, _to, x => x.Child.Value, x => x.Child.Value);
+            using var subscription = Old.WhenPropertyValueChanges(_from, x => x.Child.Value).Subscribe(x => _to = x);
             PerformMutations(2);
         }
 
-        [BenchmarkCategory("Bind and Change Depth 2")]
+        [BenchmarkCategory("Subscribe and Change Depth 2")]
         [Benchmark]
-        public void BindAndChange_Depth2_New()
+        public void SubscribeAndChange_Depth2_New()
         {
-            using var binding = New.Bind(_from, _to, x => x.Child.Value, x => x.Child.Value);
+            using var subscription = New.WhenPropertyValueChanges(_from, x => x.Child.Value).Subscribe(x => _to = x);
             PerformMutations(2);
         }
 
-        [BenchmarkCategory("Bind and Change Depth 3")]
+        [BenchmarkCategory("Subscribe and Change Depth 3")]
         [Benchmark(Baseline = true)]
-        public void BindAndChange_Depth3_UI()
+        public void SubscribeAndChange_Depth3_UI()
         {
-            using var binding = UI.Bind(_from, _to, x => x.Child.Child.Value, x => x.Child.Child.Value);
+            using var subscription = UI.WhenAnyValue(_from, x => x.Child.Child.Value).Subscribe(x => _to = x);
             PerformMutations(3);
         }
 
-        [BenchmarkCategory("Bind and Change Depth 3")]
+        [BenchmarkCategory("Subscribe and Change Depth 3")]
         [Benchmark]
-        public void BindAndChange_Depth3_Old()
+        public void SubscribeAndChange_Depth3_Old()
         {
-            using var binding = Old.Bind(_from, _to, x => x.Child.Child.Value, x => x.Child.Child.Value);
+            using var subscription = Old.WhenPropertyValueChanges(_from, x => x.Child.Child.Value).Subscribe(x => _to = x);
             PerformMutations(3);
         }
 
-        [BenchmarkCategory("Bind and Change Depth 3")]
+        [BenchmarkCategory("Subscribe and Change Depth 3")]
         [Benchmark]
-        public void BindAndChange_Depth3_New()
+        public void SubscribeAndChange_Depth3_New()
         {
-            using var binding = New.Bind(_from, _to, x => x.Child.Child.Value, x => x.Child.Child.Value);
+            using var subscription = New.WhenPropertyValueChanges(_from, x => x.Child.Child.Value).Subscribe(x => _to = x);
             PerformMutations(3);
         }
 
@@ -142,7 +136,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
         public void Change_Depth1_UISetup()
         {
             Depth1Setup();
-            _binding = UI.Bind(_from, _to, x => x.Value, x => x.Value);
+            _subscription = UI.WhenAnyValue(_from, x => x.Value).Subscribe(x => _to = x);
         }
 
         [BenchmarkCategory("Change Depth 1")]
@@ -156,7 +150,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
         public void Change_Depth1_OldSetup()
         {
             Depth1Setup();
-            _binding = Old.Bind(_from, _to, x => x.Value, x => x.Value);
+            _subscription = Old.WhenPropertyValueChanges(_from, x => x.Value).Subscribe(x => _to = x);
         }
 
         [BenchmarkCategory("Change Depth 1")]
@@ -170,7 +164,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
         public void Change_Depth1_NewSetup()
         {
             Depth1Setup();
-            _binding = New.Bind(_from, _to, x => x.Value, x => x.Value);
+            _subscription = New.WhenPropertyValueChanges(_from, x => x.Value).Subscribe(x => _to = x);
         }
 
         [BenchmarkCategory("Change Depth 1")]
@@ -184,7 +178,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
         public void Change_Depth2_UISetup()
         {
             Depth2Setup();
-            _binding = UI.Bind(_from, _to, x => x.Child.Value, x => x.Child.Value);
+            _subscription = UI.WhenAnyValue(_from, x => x.Child.Value).Subscribe(x => _to = x);
         }
 
         [BenchmarkCategory("Change Depth 2")]
@@ -198,7 +192,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
         public void Change_Depth2_OldSetup()
         {
             Depth2Setup();
-            _binding = Old.Bind(_from, _to, x => x.Child.Value, x => x.Child.Value);
+            _subscription = Old.WhenPropertyValueChanges(_from, x => x.Child.Value).Subscribe(x => _to = x);
         }
 
         [BenchmarkCategory("Change Depth 2")]
@@ -212,7 +206,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
         public void Change_Depth2_NewSetup()
         {
             Depth2Setup();
-            _binding = New.Bind(_from, _to, x => x.Child.Value, x => x.Child.Value);
+            _subscription = New.WhenPropertyValueChanges(_from, x => x.Child.Value).Subscribe(x => _to = x);
         }
 
         [BenchmarkCategory("Change Depth 2")]
@@ -226,7 +220,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
         public void Change_Depth3_UISetup()
         {
             Depth3Setup();
-            _binding = UI.Bind(_from, _to, x => x.Child.Child.Value, x => x.Child.Child.Value);
+            _subscription = UI.WhenAnyValue(_from, x => x.Child.Child.Value).Subscribe(x => _to = x);
         }
 
         [BenchmarkCategory("Change Depth 3")]
@@ -240,7 +234,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
         public void Change_Depth3_OldSetup()
         {
             Depth3Setup();
-            _binding = Old.Bind(_from, _to, x => x.Child.Child.Value, x => x.Child.Child.Value);
+            _subscription = Old.WhenPropertyValueChanges(_from, x => x.Child.Child.Value).Subscribe(x => _to = x);
         }
 
         [BenchmarkCategory("Change Depth 3")]
@@ -254,7 +248,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
         public void Change_Depth3_NewSetup()
         {
             Depth3Setup();
-            _binding = New.Bind(_from, _to, x => x.Child.Child.Value, x => x.Child.Child.Value);
+            _subscription = New.WhenPropertyValueChanges(_from, x => x.Child.Child.Value).Subscribe(x => _to = x);
         }
 
         [BenchmarkCategory("Change Depth 3")]
@@ -267,7 +261,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
         [GlobalCleanup(Targets = new[] { "Change_Depth1_UI", "Change_Depth1_Old", "Change_Depth1_New", "Change_Depth2_UI", "Change_Depth2_Old", "Change_Depth2_New", "Change_Depth3_UI", "Change_Depth3_Old", "Change_Depth3_New" })]
         public void GlobalCleanup()
         {
-            _binding.Dispose();
+            _subscription.Dispose();
         }
     }
 }
