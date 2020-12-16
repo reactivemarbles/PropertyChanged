@@ -5,6 +5,7 @@
 using System;
 using System.ComponentModel;
 using System.Linq.Expressions;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reflection;
 
@@ -131,21 +132,21 @@ namespace ReactiveMarbles.PropertyChanged
             Func<INotifyPropertyChanged, T> getter)
         {
             var memberName = memberInfo.Name;
-            return Observable.FromEvent<PropertyChangedEventHandler, T>(
-                    handler =>
+            return Observable.Create<T>(
+                    observer =>
                     {
-                        void Handler(object sender, PropertyChangedEventArgs e)
+                        PropertyChangedEventHandler handler = (object sender, PropertyChangedEventArgs e) =>
                         {
                             if (e.PropertyName == memberName)
                             {
-                                handler(getter(parent));
+                                observer.OnNext(getter(parent));
                             }
-                        }
+                        };
 
-                        return Handler;
-                    },
-                    x => parent.PropertyChanged += x,
-                    x => parent.PropertyChanged -= x)
+                        parent.PropertyChanged += handler;
+
+                        return Disposable.Create((parent, handler), x => x.parent.PropertyChanged -= x.handler);
+                    })
                 .StartWith(getter(parent));
         }
 
@@ -155,21 +156,21 @@ namespace ReactiveMarbles.PropertyChanged
             Func<INotifyPropertyChanged, T> getter)
         {
             var memberName = memberInfo.Name;
-            return Observable.FromEvent<PropertyChangedEventHandler, (object Sender, T Value)>(
-                    handler =>
+            return Observable.Create<(object Sender, T Value)>(
+                    observer =>
                     {
-                        void Handler(object sender, PropertyChangedEventArgs e)
+                        PropertyChangedEventHandler handler = (object sender, PropertyChangedEventArgs e) =>
                         {
                             if (e.PropertyName == memberName)
                             {
-                                handler((sender, getter(parent)));
+                                observer.OnNext((sender, getter(parent)));
                             }
-                        }
+                        };
 
-                        return Handler;
-                    },
-                    x => parent.PropertyChanged += x,
-                    x => parent.PropertyChanged -= x)
+                        parent.PropertyChanged += handler;
+
+                        return Disposable.Create((parent, handler), x => x.parent.PropertyChanged -= x.handler);
+                    })
                 .StartWith((parent, getter(parent)));
         }
     }
