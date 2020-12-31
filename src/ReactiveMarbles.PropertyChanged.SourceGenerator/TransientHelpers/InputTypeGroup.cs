@@ -17,6 +17,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             OutputTypeGroups = outputTypeGroups;
         }
 
+        public string NamespaceName => _inputType.ContainingNamespace?.ToDisplayString();
+
         public string Name => _inputType.Name;
 
         public string FullName => _inputType.ToDisplayString();

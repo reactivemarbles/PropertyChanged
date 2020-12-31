@@ -30,9 +30,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         [MemberData(nameof(Data))]
         public void NoDiagnosticsAreReported_When_InvokedViaThis_Chain(InvocationKind invocationKind, ReceiverKind receiverKind)
         {
-            // x => x.Child.Child.MyString
-            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, depth: 3)
-                .ValuePropertyTypeName("string")
+            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 3)
                 .GetTypeName(out var typeName)
                 .Build();
 
@@ -77,12 +75,77 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         }
 
         [Theory]
+        [InlineData(InvocationKind.MemberAccess, ReceiverKind.This)]
+        [InlineData(InvocationKind.MemberAccess, ReceiverKind.Instance)]
+        public void NoDiagnosticsAreReported_When_PropertyAccessModifierIsProtected(InvocationKind invocationKind, ReceiverKind receiverKind)
+        {
+            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
+                .ClassAccessModifier("public")
+                .PropertyAccessModifier("protected")
+                .GetTypeName(out var typeName)
+                .Build();
+
+            Compilation compilation = CreateCompilation(userSource);
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new WhenChangedGenerator());
+
+            Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
+            Assert.Empty(newCompilation.GetDiagnostics().Where(x => x.Severity >= DiagnosticSeverity.Warning));
+
+            var assembly = GetAssembly(newCompilation);
+            var type = assembly.GetType(typeName);
+            var target = CreateInstance(type);
+            var observable = GetWhenChangedObservable<string>(target);
+
+            string testValue = "ignore";
+            observable.Subscribe(x => testValue = x);
+            Assert.Null(testValue);
+
+            SetProperty(target, "Value", "test");
+            Assert.Equal("test", testValue);
+
+            SetProperty(target, "Value", null);
+            Assert.Null(testValue);
+        }
+
+        [Theory]
+        [InlineData(InvocationKind.MemberAccess, ReceiverKind.This)]
+        [InlineData(InvocationKind.MemberAccess, ReceiverKind.Instance)]
+        public void NoDiagnosticsAreReported_When_PropertyAccessModifierIsPrivate(InvocationKind invocationKind, ReceiverKind receiverKind)
+        {
+            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
+                .ClassAccessModifier("public")
+                .PropertyAccessModifier("private")
+                .GetTypeName(out var typeName)
+                .Build();
+
+            Compilation compilation = CreateCompilation(userSource);
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new WhenChangedGenerator());
+
+            Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
+            Assert.Empty(newCompilation.GetDiagnostics().Where(x => x.Severity >= DiagnosticSeverity.Warning));
+
+            var assembly = GetAssembly(newCompilation);
+            var type = assembly.GetType(typeName);
+            var target = CreateInstance(type);
+            var observable = GetWhenChangedObservable<string>(target);
+
+            string testValue = "ignore";
+            observable.Subscribe(x => testValue = x);
+            Assert.Null(testValue);
+
+            SetProperty(target, "Value", "test");
+            Assert.Equal("test", testValue);
+
+            SetProperty(target, "Value", null);
+            Assert.Null(testValue);
+        }
+
+        [Theory]
         [MemberData(nameof(Data))]
         public void NoDiagnosticsAreReported_When_ClassAccessModifierIsPublic(InvocationKind invocationKind, ReceiverKind receiverKind)
         {
-            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, depth: 1)
+            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
                 .ClassAccessModifier("public")
-                .ValuePropertyTypeName("string")
                 .GetTypeName(out var typeName)
                 .Build();
 
@@ -112,9 +175,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         [MemberData(nameof(Data))]
         public void NoDiagnosticsAreReported_When_ClassAccessModifierIsInternal(InvocationKind invocationKind, ReceiverKind receiverKind)
         {
-            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, depth: 1)
+            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
                 .ClassAccessModifier("internal")
-                .ValuePropertyTypeName("string")
                 .GetTypeName(out var typeName)
                 .Build();
 
@@ -142,13 +204,80 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
 
         [Theory]
         [MemberData(nameof(Data))]
+        public void NoDiagnosticsAreReported_When_OutputTypeIsInternal(InvocationKind invocationKind, ReceiverKind receiverKind)
+        {
+            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
+                .ClassAccessModifier("public")
+                .AddCustomTypeForValueProperty("OutputTypeClass", "internal", out var outputTypeName)
+                .GetTypeName(out var typeName)
+                .Build();
+
+            Compilation compilation = CreateCompilation(userSource);
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new WhenChangedGenerator());
+
+            Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
+            Assert.Empty(newCompilation.GetDiagnostics().Where(x => x.Severity >= DiagnosticSeverity.Warning));
+
+            var assembly = GetAssembly(newCompilation);
+            var type = assembly.GetType(typeName);
+            var outputType = assembly.GetType(outputTypeName);
+            var target = CreateInstance(type);
+            var observable = GetWhenChangedObservable(target);
+
+            var valueInstance = CreateInstance(outputType);
+            SetProperty(target, "Value", valueInstance);
+
+            object testValue = null;
+            observable.Subscribe(x => testValue = x);
+            Assert.Equal(valueInstance, testValue);
+
+            SetProperty(target, "Value", null);
+            Assert.Null(testValue);
+        }
+
+        [Theory]
+        [InlineData(InvocationKind.MemberAccess, ReceiverKind.This)]
+        [InlineData(InvocationKind.MemberAccess, ReceiverKind.Instance)]
+        public void NoDiagnosticsAreReported_When_OutputTypeIsNestedAndPrivate(InvocationKind invocationKind, ReceiverKind receiverKind)
+        {
+            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
+                .ClassAccessModifier("public")
+                .AddCustomNestedTypeForValueProperty("OutputTypeClass", "private", out var outputTypeName)
+                .GetTypeName(out var typeName)
+                .Build();
+
+            Compilation compilation = CreateCompilation(userSource);
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new WhenChangedGenerator());
+
+            Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
+            Assert.Empty(newCompilation.GetDiagnostics().Where(x => x.Severity >= DiagnosticSeverity.Warning));
+
+            var assembly = GetAssembly(newCompilation);
+            var type = assembly.GetType(typeName);
+            var outputType = assembly.GetType(outputTypeName);
+            var target = CreateInstance(type);
+            var observable = GetWhenChangedObservable(target);
+
+            var valueInstance = CreateInstance(outputType);
+            SetProperty(target, "Value", valueInstance);
+
+            object testValue = null;
+            observable.Subscribe(x => testValue = x);
+            Assert.Equal(valueInstance, testValue);
+
+            SetProperty(target, "Value", null);
+            Assert.Null(testValue);
+        }
+
+        [Theory]
+        [MemberData(nameof(Data))]
         public void NoDiagnosticsAreReported_When_TwoClassesExistWithTheSameName(InvocationKind invocationKind, ReceiverKind receiverKind)
         {
-            string userSource1 = new MockUserSourceBuilder(invocationKind, receiverKind, depth: 1)
+            string userSource1 = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
                 .NamespaceName("Sample1")
                 .GetTypeName(out var typeName1)
                 .Build();
-            string userSource2 = new MockUserSourceBuilder(invocationKind, receiverKind, depth: 1)
+            string userSource2 = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
                 .NamespaceName("Sample2")
                 .GetTypeName(out var typeName2)
                 .Build();
@@ -194,11 +323,42 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
 
         [Theory]
         [MemberData(nameof(Data))]
+        public void NoDiagnosticsAreReported_When_TwoInvocationsWithAUniqueExpressionAndSameOutputTypeExist(InvocationKind invocationKind, ReceiverKind receiverKind)
+        {
+            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
+                .ClassAccessModifier("public")
+                .AndWhenChanged(invocationKind, receiverKind, ExpressionForm.Inline, depth: 2)
+                .GetTypeName(out var typeName)
+                .Build();
+
+            Compilation compilation = CreateCompilation(userSource);
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new WhenChangedGenerator());
+
+            Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
+            Assert.Empty(newCompilation.GetDiagnostics().Where(x => x.Severity >= DiagnosticSeverity.Warning));
+
+            var assembly = GetAssembly(newCompilation);
+            var type = assembly.GetType(typeName);
+            var target = CreateInstance(type);
+            var observable = GetWhenChangedObservable<string>(target);
+
+            string testValue = "ignore";
+            observable.Subscribe(x => testValue = x);
+            Assert.Null(testValue);
+
+            SetProperty(target, "Value", "test");
+            Assert.Equal("test", testValue);
+
+            SetProperty(target, "Value", null);
+            Assert.Null(testValue);
+        }
+
+        [Theory]
+        [MemberData(nameof(Data))]
         public void DiagnosticIsReported_When_PropertyIsUsedAsAnExpressionArgument(InvocationKind invocationKind, ReceiverKind receiverKind)
         {
             // this.WhenChanged(MyExpression)
-            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, depth: 1)
-                .WithExpressionArgumentForm(ExpressionArgumentForm.Property)
+            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Property, depth: 1)
                 .Build();
 
             Compilation compilation = CreateCompilation(userSource);
@@ -215,8 +375,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         public void DiagnosticIsReported_When_MethodInvocationIsUsedAsAnExpressionArgument(InvocationKind invocationKind, ReceiverKind receiverKind)
         {
             // this.WhenChanged(GetExpression())
-            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, depth: 1)
-                .WithExpressionArgumentForm(ExpressionArgumentForm.Method)
+            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Method, depth: 1)
                 .Build();
 
             Compilation compilation = CreateCompilation(userSource);
@@ -230,11 +389,10 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
 
         [Theory]
         [MemberData(nameof(Data))]
-        public void DiagnosticIsReported_When_ExpressionLambdaParameterIsNotUsed(InvocationKind invocationKind, ReceiverKind receiverKind)
+        public void DiagnosticIsReported_When_ExpressionExcludesLambdaParameter(InvocationKind invocationKind, ReceiverKind receiverKind)
         {
             // this.WhenChanged(GetExpression())
-            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, depth: 1)
-                .WithExpressionArgumentForm(ExpressionArgumentForm.BodyExcludesLambdaParam)
+            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.BodyExcludesLambdaParam, depth: 1)
                 .Build();
 
             Compilation compilation = CreateCompilation(userSource);
@@ -251,8 +409,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         public void DiagnosticIsReported_When_ExpressionIncludesArrayAccess(InvocationKind invocationKind, ReceiverKind receiverKind)
         {
             // this.WhenChanged(GetExpression())
-            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, depth: 1)
-                .WithExpressionArgumentForm(ExpressionArgumentForm.BodyIncludesArrayAccess)
+            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.BodyIncludesIndexer, depth: 1)
                 .Build();
 
             Compilation compilation = CreateCompilation(userSource);
@@ -269,8 +426,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         public void DiagnosticIsReported_When_ExpressionIncludesMethodInvocation(InvocationKind invocationKind, ReceiverKind receiverKind)
         {
             // this.WhenChanged(GetExpression())
-            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, depth: 1)
-                .WithExpressionArgumentForm(ExpressionArgumentForm.BodyIncludesMethodInvocation)
+            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.BodyIncludesMethodInvocation, depth: 1)
                 .Build();
 
             Compilation compilation = CreateCompilation(userSource);
@@ -295,6 +451,16 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 null,
                 target,
                 Array.Empty<object>()) as IObservable<T>;
+        }
+
+        private static IObservable<dynamic> GetWhenChangedObservable(object target)
+        {
+            return target.GetType().InvokeMember(
+                "GetWhenChangedObservable",
+                BindingFlags.InvokeMethod | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public,
+                null,
+                target,
+                Array.Empty<object>()) as IObservable<dynamic>;
         }
 
         private static void SetProperty(object target, string propertyName, object value)

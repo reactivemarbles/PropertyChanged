@@ -3,19 +3,33 @@
 // See the LICENSE file in the project root for full license information.
 
 using System.Collections.Generic;
+using System.Text;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
-    internal sealed record ClassDatum
+    internal abstract record ClassDatum
     {
-        public ClassDatum(string inputTypeName, IEnumerable<MethodDatum> methodData)
+        public ClassDatum(string name, IEnumerable<MethodDatum> methodData)
         {
-            InputTypeName = inputTypeName;
+            Name = name;
             MethodData = methodData;
         }
 
-        public string InputTypeName { get; }
+        public string Name { get; }
 
         public IEnumerable<MethodDatum> MethodData { get; }
+
+        public abstract string CreateSource(ISourceCreator sourceCreator);
+
+        protected string CreateMethodSource(ISourceCreator sourceCreator)
+        {
+            var sb = new StringBuilder();
+            foreach (var methodDatum in MethodData)
+            {
+                sb.AppendLine(methodDatum.CreateSource(sourceCreator));
+            }
+
+            return sb.ToString();
+        }
     }
 }

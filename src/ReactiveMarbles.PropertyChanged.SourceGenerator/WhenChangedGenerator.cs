@@ -65,7 +65,23 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 return;
             }
 
-            var classData = requiredData.ExpressionArguments
+            var partialClassData = requiredData.ExpressionArguments
+                .Where(x => x.ContainsPrivateOrProtectedMember)
+                .GroupBy(x => x.InputType)
+                .Select(
+                    x =>
+                    {
+                        var inputTypeGroup = x
+                            .GroupBy(y => y.OutputType)
+                            .Select(y => y.ToOuputTypeGroup())
+                            .ToInputTypeGroup(x.Key);
+
+                        return new PartialClassDatum(inputTypeGroup.NamespaceName, inputTypeGroup.Name, inputTypeGroup.OutputTypeGroups.Select(CreateSingleExpressionMethodDatum));
+                    })
+                .ToList();
+
+            var extensionClassData = requiredData.ExpressionArguments
+                .Where(x => !x.ContainsPrivateOrProtectedMember)
                 .GroupBy(x => x.InputType)
                 .Select(x => x
                     .GroupBy(y => y.OutputType)
@@ -82,15 +98,24 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                             .Select(CreateSingleExpressionMethodDatum)
                             .Concat(multiExpressionMethodData);
 
-                        return new ClassDatum(inputTypeGroup.Name, allMethodData);
+                        return new ExtensionClassDatum(inputTypeGroup.Name, allMethodData);
                     })
                 .ToList();
 
-            var sourceCreator = new StringBuilderSourceCreator();
-            for (int i = 0; i < classData.Count; i++)
+            var extensionClassCreator = new StringBuilderExtensionClassCreator();
+            for (int i = 0; i < extensionClassData.Count; i++)
             {
-                var source = sourceCreator.Create(classData[i]);
-                context.AddSource($"WhenChanged.{classData[i].InputTypeName}{i.ToString()}.g.cs", SourceText.From(source, Encoding.UTF8));
+                var source = extensionClassData[i].CreateSource(extensionClassCreator);
+
+                // Consider changing name to NotifyPropertyChangedExtensions.[InputTypeName].g.cs
+                context.AddSource($"WhenChanged.{extensionClassData[i].Name}{i.ToString()}.g.cs", SourceText.From(source, Encoding.UTF8));
+            }
+
+            var partialClassCreator = new StringBuilderPartialClassCreator();
+            for (int i = 0; i < partialClassData.Count; i++)
+            {
+                var source = partialClassData[i].CreateSource(partialClassCreator);
+                context.AddSource($"{partialClassData[i].Name}{i.ToString()}.WhenChanged.g.cs", SourceText.From(source, Encoding.UTF8));
             }
         }
 
@@ -124,7 +149,9 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                                 var lambdaInputType = methodSymbol.TypeArguments[0];
                                 var lambdaOutputType = model.GetTypeInfo(lambdaExpression.Body).Type;
                                 var expressionChain = GetExpressionChain(context, lambdaExpression);
-                                expressionArguments.Add(new(lambdaExpression.Body.ToString(), expressionChain, lambdaInputType, lambdaOutputType));
+
+                                var containsPrivateOrProtectedMember = ContainsPrivateOrProtectedMember(compilation, model, lambdaExpression);
+                                expressionArguments.Add(new(lambdaExpression.Body.ToString(), expressionChain, lambdaInputType, lambdaOutputType, containsPrivateOrProtectedMember));
                                 allExpressionArgumentsAreValid &= expressionChain != null;
                             }
                             else
@@ -156,7 +183,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         {
             MethodDatum methodDatum = null;
 
-            var (lambdaBodyString, expressionChain, inputTypeSymbol, outputTypeSymbol) = outputTypeGroup.ExpressionArguments.First();
+            var (lambdaBodyString, expressionChain, inputTypeSymbol, outputTypeSymbol, containsPrivateOrProtectedMember) = outputTypeGroup.ExpressionArguments.First();
             var (inputTypeName, outputTypeName) = (inputTypeSymbol.ToDisplayString(), outputTypeSymbol.ToDisplayString());
 
             var accessModifier = inputTypeSymbol.DeclaredAccessibility;
@@ -211,6 +238,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                     Diagnostic.Create(
                         descriptor: OnlyPropertyAndFieldAccessAllowed,
                         location: expression.GetLocation()));
+
                 return null;
             }
 
@@ -230,6 +258,49 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                     location: lambdaExpression.Body.GetLocation()));
 
             return null;
+        }
+
+        private static bool ContainsPrivateOrProtectedMember(Compilation compilation, SemanticModel model, LambdaExpressionSyntax lambdaExpression)
+        {
+            var members = new List<ExpressionSyntax>();
+            var expression = lambdaExpression.ExpressionBody;
+            var expressionChain = expression as MemberAccessExpressionSyntax;
+
+            while (expressionChain != null)
+            {
+                members.Add(expression);
+                expression = expressionChain.Expression;
+                expressionChain = expression as MemberAccessExpressionSyntax;
+            }
+
+            members.Add(expression);
+            members.Reverse();
+            var inputTypeSymbol = model.GetTypeInfo(expression).ConvertedType;
+
+            for (int i = members.Count - 1; i > 0; i--)
+            {
+                var parent = members[i - 1];
+                var child = members[i];
+                var parentTypeSymbol = model.GetTypeInfo(parent).ConvertedType;
+
+                if (!SymbolEqualityComparer.Default.Equals(parentTypeSymbol, inputTypeSymbol))
+                {
+                    continue;
+                }
+
+                var propertyInvocationSymbol = model.GetSymbolInfo(child).Symbol;
+                var propertyDeclarationSyntax = propertyInvocationSymbol.DeclaringSyntaxReferences.First().GetSyntax();
+                var propertyDeclarationModel = compilation.GetSemanticModel(propertyDeclarationSyntax.SyntaxTree);
+                var propertyDeclarationSymbol = propertyDeclarationModel.GetDeclaredSymbol(propertyDeclarationSyntax);
+                var propertyAccessibility = propertyDeclarationSymbol.DeclaredAccessibility;
+
+                if (propertyAccessibility <= Microsoft.CodeAnalysis.Accessibility.Protected)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

@@ -2,6 +2,7 @@
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
+using System;
 using System.ComponentModel;
 using System.Reactive.Linq;
 
@@ -10,9 +11,17 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample
     /// <summary>
     /// Dummy.
     /// </summary>
+    public partial class SampleClass
+    {
+        private SampleClass.PrivateClass GetClass() => throw new NotImplementedException();
+    }
+
+    /// <summary>
+    /// Dummy.
+    /// </summary>
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Readability", "RCS1018:Add accessibility modifiers.", Justification = "Because")]
     [System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1400:Access modifier should be declared", Justification = "Because")]
-    public class SampleClass : INotifyPropertyChanged
+    public partial class SampleClass : INotifyPropertyChanged
     {
         private OtherNamespace.SampleClass _myClass;
         private string _myString;
@@ -94,6 +103,10 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample
                         return System.Reactive.Disposables.Disposable.Create((parent, handler), x => x.parent.PropertyChanged -= x.handler);
                     })
                 .StartWith(getter(parent));
+        }
+
+        private class PrivateClass
+        {
         }
     }
 }

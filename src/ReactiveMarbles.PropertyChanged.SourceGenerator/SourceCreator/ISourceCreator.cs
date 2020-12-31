@@ -10,13 +10,6 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
     internal interface ISourceCreator
     {
         /// <summary>
-        /// Creates the source for a class.
-        /// </summary>
-        /// <param name="classDatum">The class.</param>
-        /// <returns>The source code.</returns>
-        string Create(ClassDatum classDatum);
-
-        /// <summary>
         /// Creates the source for a multi-expression method.
         /// </summary>
         /// <param name="methodDatum">The method datum.</param>

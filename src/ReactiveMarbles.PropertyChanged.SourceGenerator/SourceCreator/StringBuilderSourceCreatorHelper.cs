@@ -125,6 +125,71 @@ public static partial class NotifyPropertyChangedExtensions
 ";
         }
 
+        public static string GetPartialClass(string namespaceName, string className, string body)
+        {
+            return $@"
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq.Expressions;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
+
+namespace {namespaceName}
+{{
+    public partial class {className}
+    {{
+        {body}
+
+        private static IObservable<T> GenerateObservable<TObj, T>(
+                TObj parent,
+                string memberName,
+                Func<TObj, T> getter)
+            where TObj : INotifyPropertyChanged
+        {{
+            return Observable.Create<T>(
+                    observer =>
+                    {{
+                        PropertyChangedEventHandler handler = (object sender, PropertyChangedEventArgs e) =>
+                        {{
+                            if (e.PropertyName == memberName)
+                            {{
+                                observer.OnNext(getter(parent));
+                            }}
+                        }};
+
+                        parent.PropertyChanged += handler;
+
+                        return Disposable.Create((parent, handler), x => x.parent.PropertyChanged -= x.handler);
+                    }})
+                .StartWith(getter(parent));
+        }}
+    }}
+}}
+";
+        }
+
+        public static string GetPartialClassWhenChangedMethodForMap(string inputType, string outputType, string accessModifier, string mapName)
+        {
+            return $@"
+    {accessModifier} IObservable<{outputType}> WhenChanged(Expression<Func<{inputType}, {outputType}>> propertyExpression)
+    {{
+        return {mapName}[propertyExpression.Body.ToString()].Invoke(this);
+    }}
+";
+        }
+
+        public static string GetPartialClassWhenChangedMethodForDirectReturn(string inputType, string outputType, string accessModifier, string valueChain)
+        {
+            // Making the access modifier public so multi-expression extensions will able to access it, if needed.
+            return $@"
+    {accessModifier} IObservable<{outputType}> WhenChanged(Expression<Func<{inputType}, {outputType}>> propertyExpression)
+    {{
+        return Observable.Return(this){valueChain};
+    }}
+";
+        }
+
         public static string GetWhenChangedStubClass()
         {
             var assembly = Assembly.GetExecutingAssembly();

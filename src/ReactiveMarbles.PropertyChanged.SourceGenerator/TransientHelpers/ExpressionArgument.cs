@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
-    internal sealed record ExpressionArgument(string LambdaBodyString, List<string> ExpressionChain, ITypeSymbol InputType, ITypeSymbol OutputType)
+    internal sealed record ExpressionArgument(string LambdaBodyString, List<string> ExpressionChain, ITypeSymbol InputType, ITypeSymbol OutputType, bool ContainsPrivateOrProtectedMember)
     {
         public bool Equals(ExpressionArgument other)
         {

@@ -4,12 +4,12 @@
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
 {
-    internal enum ExpressionArgumentForm
+    internal enum ExpressionForm
     {
         Inline,
         Property,
         Method,
-        BodyIncludesArrayAccess,
+        BodyIncludesIndexer,
         BodyIncludesMethodInvocation,
         BodyExcludesLambdaParam,
     }
