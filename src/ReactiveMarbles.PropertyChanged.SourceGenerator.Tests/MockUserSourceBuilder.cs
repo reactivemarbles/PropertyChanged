@@ -56,7 +56,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
 
         public MockUserSourceBuilder GetTypeName(out string typeName)
         {
-            typeName = string.IsNullOrEmpty(_namespaceName) ? _className : $"{_namespaceName}.{_className}";
+            typeName = string.IsNullOrEmpty(_namespaceName) ? _className : $"{_namespaceName}.OuterClass+{_className}";
             return this;
         }
 
@@ -230,6 +230,89 @@ namespace {_namespaceName}
 {customValuePropertyTypeSource}
 }}
 ";
+        }
+
+        public string BuildNested(string outerClassAccessModifier)
+        {
+            var source = $@"
+{_classAccessModifier} partial class {_className} : INotifyPropertyChanged
+{{
+    private {_valuePropertyTypeName} _value;
+    private {_className} _child;
+
+    public event PropertyChangedEventHandler PropertyChanged;
+
+    {_propertyAccessModifier} {_valuePropertyTypeName} Value
+    {{
+        get => _value;
+        set => RaiseAndSetIfChanged(ref _value, value);
+    }}
+
+    {_propertyAccessModifier} {_className} Child
+    {{
+        get => _child;
+        set => RaiseAndSetIfChanged(ref _child, value);
+    }}
+
+    {_propertyAccessModifier} IObservable<{_valuePropertyTypeName}> GetWhenChangedObservable()
+    {{
+        var instance = this;
+        return GetWhenChangedObservables()[0];
+    }}
+
+    {_propertyAccessModifier} IObservable<{_valuePropertyTypeName}>[] GetWhenChangedObservables()
+    {{
+        var instance = this;
+        return new IObservable<{_valuePropertyTypeName}>[]
+        {{
+            {string.Join(",\n", _invocations)},
+        }};
+    }}
+
+    protected void RaiseAndSetIfChanged<T>(ref T fieldValue, T value, [CallerMemberName] string propertyName = null)
+    {{
+        if (EqualityComparer<T>.Default.Equals(fieldValue, value))
+        {{
+            return;
+        }}
+
+        fieldValue = value;
+        OnPropertyChanged(propertyName);
+    }}
+
+    protected virtual void OnPropertyChanged(string propertyName)
+    {{
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }}
+}}
+";
+
+            source = $@"
+    {outerClassAccessModifier} partial class OuterClass
+    {{
+{source}
+    }}
+";
+
+            if (!string.IsNullOrEmpty(_namespaceName))
+            {
+                source = $@"
+namespace {_namespaceName}
+{{
+{source}
+}}
+";
+            }
+
+            var usingClauses = @"
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq.Expressions;
+using System.Runtime.CompilerServices;
+";
+
+            return source.Insert(0, usingClauses);
         }
 
         private class CustomTypeInfoForValueProperty

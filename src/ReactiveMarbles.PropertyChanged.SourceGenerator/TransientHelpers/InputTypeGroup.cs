@@ -15,6 +15,16 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         {
             _inputType = inputType;
             OutputTypeGroups = outputTypeGroups;
+
+            var ancestorClasses = new List<AncestorClassInfo>();
+            var containingType = _inputType.ContainingType;
+            while (containingType != null)
+            {
+                ancestorClasses.Add(new(containingType.Name, containingType.DeclaredAccessibility.ToString().ToLower()));
+                containingType = containingType.ContainingType;
+            }
+
+            AncestorClasses = ancestorClasses;
         }
 
         public string NamespaceName => _inputType.ContainingNamespace?.ToDisplayString();
@@ -22,6 +32,10 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         public string Name => _inputType.Name;
 
         public string FullName => _inputType.ToDisplayString();
+
+        public IEnumerable<AncestorClassInfo> AncestorClasses { get; }
+
+        public string AccessModifier => _inputType.DeclaredAccessibility.ToString().ToLower();
 
         public IEnumerable<OutputTypeGroup> OutputTypeGroups { get; }
     }

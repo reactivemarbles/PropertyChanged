@@ -8,19 +8,25 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
     internal sealed record PartialClassDatum : ClassDatum
     {
-        public PartialClassDatum(string namespaceName, string name, IEnumerable<MethodDatum> methodData)
+        public PartialClassDatum(string namespaceName, string name, string accessModifier, IEnumerable<AncestorClassInfo> ancestorClasses, IEnumerable<MethodDatum> methodData)
             : base(name, methodData)
         {
             NamespaceName = namespaceName;
+            AccessModifier = accessModifier;
+            AncestorClasses = ancestorClasses;
         }
 
         public string NamespaceName { get; }
+
+        public string AccessModifier { get; }
+
+        public IEnumerable<AncestorClassInfo> AncestorClasses { get; }
 
         public override string CreateSource(ISourceCreator sourceCreator)
         {
             var methodSource = CreateMethodSource(sourceCreator);
 
-            return StringBuilderSourceCreatorHelper.GetPartialClass(NamespaceName, Name, methodSource);
+            return StringBuilderSourceCreatorHelper.GetPartialClass(NamespaceName, Name, AccessModifier, AncestorClasses, methodSource);
         }
     }
 }

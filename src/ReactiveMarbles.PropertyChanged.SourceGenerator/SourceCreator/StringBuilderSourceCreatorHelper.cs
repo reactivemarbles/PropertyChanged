@@ -125,48 +125,70 @@ public static partial class NotifyPropertyChangedExtensions
 ";
         }
 
-        public static string GetPartialClass(string namespaceName, string className, string body)
+        public static string GetPartialClass(string namespaceName, string className, string accessModifier, IEnumerable<AncestorClassInfo> ancestorClasses, string body)
         {
-            return $@"
+            var source = $@"
+{accessModifier} partial class {className}
+{{
+    {body}
+
+    private static IObservable<T> GenerateObservable<TObj, T>(
+            TObj parent,
+            string memberName,
+            Func<TObj, T> getter)
+        where TObj : INotifyPropertyChanged
+    {{
+        return Observable.Create<T>(
+                observer =>
+                {{
+                    PropertyChangedEventHandler handler = (object sender, PropertyChangedEventArgs e) =>
+                    {{
+                        if (e.PropertyName == memberName)
+                        {{
+                            observer.OnNext(getter(parent));
+                        }}
+                    }};
+
+                    parent.PropertyChanged += handler;
+
+                    return Disposable.Create((parent, handler), x => x.parent.PropertyChanged -= x.handler);
+                }})
+            .StartWith(getter(parent));
+    }}
+}}
+";
+
+            foreach (var ancestorClass in ancestorClasses)
+            {
+                // TODO: Specify access modifier.
+                source = $@"
+{ancestorClass.AccessModifier} partial class {ancestorClass.Name}
+{{
+{source}
+}}
+";
+
+                if (!string.IsNullOrEmpty(namespaceName))
+                {
+                    source = $@"
+namespace {namespaceName}
+{{
+{source}
+}}
+";
+                }
+            }
+
+            var usingClauses = @"
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq.Expressions;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-
-namespace {namespaceName}
-{{
-    public partial class {className}
-    {{
-        {body}
-
-        private static IObservable<T> GenerateObservable<TObj, T>(
-                TObj parent,
-                string memberName,
-                Func<TObj, T> getter)
-            where TObj : INotifyPropertyChanged
-        {{
-            return Observable.Create<T>(
-                    observer =>
-                    {{
-                        PropertyChangedEventHandler handler = (object sender, PropertyChangedEventArgs e) =>
-                        {{
-                            if (e.PropertyName == memberName)
-                            {{
-                                observer.OnNext(getter(parent));
-                            }}
-                        }};
-
-                        parent.PropertyChanged += handler;
-
-                        return Disposable.Create((parent, handler), x => x.parent.PropertyChanged -= x.handler);
-                    }})
-                .StartWith(getter(parent));
-        }}
-    }}
-}}
 ";
+
+            return source.Insert(0, usingClauses);
         }
 
         public static string GetPartialClassWhenChangedMethodForMap(string inputType, string outputType, string accessModifier, string mapName)

@@ -142,6 +142,37 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
 
         [Theory]
         [MemberData(nameof(Data))]
+        public void NoDiagnosticsAreReported_When_ClassIsNestedAndPublicAndParentClassIsPublic(InvocationKind invocationKind, ReceiverKind receiverKind)
+        {
+            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
+                .ClassAccessModifier("protected")
+                .GetTypeName(out var typeName)
+                .BuildNested("internal");
+
+            Compilation compilation = CreateCompilation(userSource);
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new WhenChangedGenerator());
+
+            Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
+            Assert.Empty(newCompilation.GetDiagnostics().Where(x => x.Severity >= DiagnosticSeverity.Warning));
+
+            var assembly = GetAssembly(newCompilation);
+            var type = assembly.GetType(typeName);
+            var target = CreateInstance(type);
+            var observable = GetWhenChangedObservable<string>(target);
+
+            string testValue = "ignore";
+            observable.Subscribe(x => testValue = x);
+            Assert.Null(testValue);
+
+            SetProperty(target, "Value", "test");
+            Assert.Equal("test", testValue);
+
+            SetProperty(target, "Value", null);
+            Assert.Null(testValue);
+        }
+
+        [Theory]
+        [MemberData(nameof(Data))]
         public void NoDiagnosticsAreReported_When_ClassAccessModifierIsPublic(InvocationKind invocationKind, ReceiverKind receiverKind)
         {
             string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)

@@ -76,7 +76,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                             .Select(y => y.ToOuputTypeGroup())
                             .ToInputTypeGroup(x.Key);
 
-                        return new PartialClassDatum(inputTypeGroup.NamespaceName, inputTypeGroup.Name, inputTypeGroup.OutputTypeGroups.Select(CreateSingleExpressionMethodDatum));
+                        return new PartialClassDatum(inputTypeGroup.NamespaceName, inputTypeGroup.Name, inputTypeGroup.AccessModifier, inputTypeGroup.AncestorClasses, inputTypeGroup.OutputTypeGroups.Select(CreateSingleExpressionMethodDatum));
                     })
                 .ToList();
 
@@ -150,7 +150,9 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                                 var lambdaOutputType = model.GetTypeInfo(lambdaExpression.Body).Type;
                                 var expressionChain = GetExpressionChain(context, lambdaExpression);
 
-                                var containsPrivateOrProtectedMember = ContainsPrivateOrProtectedMember(compilation, model, lambdaExpression);
+                                var containsPrivateOrProtectedMember =
+                                    lambdaInputType.DeclaredAccessibility <= Microsoft.CodeAnalysis.Accessibility.Protected ||
+                                    ContainsPrivateOrProtectedMember(compilation, model, lambdaExpression);
                                 expressionArguments.Add(new(lambdaExpression.Body.ToString(), expressionChain, lambdaInputType, lambdaOutputType, containsPrivateOrProtectedMember));
                                 allExpressionArgumentsAreValid &= expressionChain != null;
                             }
