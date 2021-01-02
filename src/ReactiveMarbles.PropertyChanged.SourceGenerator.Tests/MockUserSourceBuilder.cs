@@ -150,7 +150,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 }
             }
 
-            var classSource = $@"
+            var source = $@"
     {_classAccessModifier} partial class {_className} : INotifyPropertyChanged
     {{
         private {_valuePropertyTypeName} _value;
@@ -212,24 +212,30 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
     }}
 ";
 
-            if (string.IsNullOrEmpty(_namespaceName))
+            if (!string.IsNullOrEmpty(_namespaceName))
             {
-                return classSource;
+                source = $@"
+namespace {_namespaceName}
+{{
+{source}
+{customValuePropertyTypeSource}
+}}
+";
+            }
+            else
+            {
+                source += '\n' + customValuePropertyTypeSource;
             }
 
-            return $@"
+            var usingClauses = @"
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
-
-namespace {_namespaceName}
-{{
-{classSource}
-{customValuePropertyTypeSource}
-}}
 ";
+
+            return source.Insert(0, usingClauses);
         }
 
         public string BuildNested(string outerClassAccessModifier)

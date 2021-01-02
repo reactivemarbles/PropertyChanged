@@ -172,6 +172,42 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         }
 
         [Theory]
+        [InlineData(InvocationKind.MemberAccess, ReceiverKind.This)]
+        [InlineData(InvocationKind.MemberAccess, ReceiverKind.Instance)]
+        public void NoDiagnosticsAreReported_When_ClassAccessModifierIsPublicAndNoNamespaceAndCustomType(InvocationKind invocationKind, ReceiverKind receiverKind)
+        {
+            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
+                .ClassAccessModifier("public")
+                .NamespaceName(string.Empty) // TODO: Fix this temporal coupling. It breaks if this line is swapped with the next.
+                .AddCustomTypeForValueProperty("CustomClass", "public", out var outputTypeName)
+                .PropertyAccessModifier("protected")
+                .GetTypeName(out var typeName)
+                .Build();
+
+            Compilation compilation = CreateCompilation(userSource);
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new WhenChangedGenerator());
+
+            Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
+            Assert.Empty(newCompilation.GetDiagnostics().Where(x => x.Severity >= DiagnosticSeverity.Warning));
+
+            var assembly = GetAssembly(newCompilation);
+            var type = assembly.GetType(typeName);
+            var outputType = assembly.GetType(outputTypeName);
+            var target = CreateInstance(type);
+            var observable = GetWhenChangedObservable(target);
+
+            var valueInstance = CreateInstance(outputType);
+            SetProperty(target, "Value", valueInstance);
+
+            object testValue = null;
+            observable.Subscribe(x => testValue = x);
+            Assert.Equal(valueInstance, testValue);
+
+            SetProperty(target, "Value", null);
+            Assert.Null(testValue);
+        }
+
+        [Theory]
         [MemberData(nameof(Data))]
         public void NoDiagnosticsAreReported_When_ClassAccessModifierIsPublic(InvocationKind invocationKind, ReceiverKind receiverKind)
         {
