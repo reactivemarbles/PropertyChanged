@@ -12,11 +12,5 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             : base(name, methodData)
         {
         }
-
-        public override string CreateSource(ISourceCreator sourceCreator)
-        {
-            var methodSource = CreateMethodSource(sourceCreator);
-            return StringBuilderSourceCreatorHelper.GetClass(methodSource);
-        }
     }
 }

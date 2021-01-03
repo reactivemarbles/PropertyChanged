@@ -8,6 +8,24 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
     internal sealed record StringBuilderPartialClassCreator : ISourceCreator
     {
+        public string Create(PartialClassDatum classDatum)
+        {
+            var sb = new StringBuilder();
+            foreach (var methodDatum in classDatum.MethodData)
+            {
+                sb.AppendLine(methodDatum.CreateSource(this));
+            }
+
+            var methodSource = sb.ToString();
+
+            return StringBuilderSourceCreatorHelper.GetPartialClass(
+                classDatum.NamespaceName,
+                classDatum.Name,
+                classDatum.AccessModifier,
+                classDatum.AncestorClasses,
+                methodSource);
+        }
+
         public string Create(SingleExpressionDictionaryImplMethodDatum methodDatum)
         {
             var mapEntrySb = new StringBuilder();

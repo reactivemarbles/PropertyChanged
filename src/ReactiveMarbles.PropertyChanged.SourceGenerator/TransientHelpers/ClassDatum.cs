@@ -18,18 +18,5 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         public string Name { get; }
 
         public IEnumerable<MethodDatum> MethodData { get; }
-
-        public abstract string CreateSource(ISourceCreator sourceCreator);
-
-        protected string CreateMethodSource(ISourceCreator sourceCreator)
-        {
-            var sb = new StringBuilder();
-            foreach (var methodDatum in MethodData)
-            {
-                sb.AppendLine(methodDatum.CreateSource(sourceCreator));
-            }
-
-            return sb.ToString();
-        }
     }
 }

@@ -16,6 +16,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         private string _propertyAccessModifier;
         private string _valuePropertyTypeName;
         private CustomTypeInfoForValueProperty _customTypeInfoForValueProperty;
+        private string _outerClassAccessModifier;
         private List<string> _invocations;
 
         public MockUserSourceBuilder(InvocationKind invocationKind, ReceiverKind receiverKind, ExpressionForm expressionForm, int depth)
@@ -54,9 +55,23 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             return this;
         }
 
+        public MockUserSourceBuilder OuterClassAccessModifier(string value)
+        {
+            _outerClassAccessModifier = value;
+            return this;
+        }
+
         public MockUserSourceBuilder GetTypeName(out string typeName)
         {
-            typeName = string.IsNullOrEmpty(_namespaceName) ? _className : $"{_namespaceName}.OuterClass+{_className}";
+            if (string.IsNullOrEmpty(_outerClassAccessModifier))
+            {
+                typeName = string.IsNullOrEmpty(_namespaceName) ? _className : $"{_namespaceName}.{_className}";
+            }
+            else
+            {
+                typeName = string.IsNullOrEmpty(_namespaceName) ? $"OuterClass+{_className}" : $"{_namespaceName}.OuterClass+{_className}";
+            }
+
             return this;
         }
 
@@ -105,6 +120,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
 
         public string Build()
         {
+            if (!string.IsNullOrEmpty(_outerClassAccessModifier))
+            {
+                return BuildNested();
+            }
+
             var customValuePropertyTypeSource = string.Empty;
             var customValuePropertyNestedTypeSource = string.Empty;
 
@@ -238,7 +258,7 @@ using System.Runtime.CompilerServices;
             return source.Insert(0, usingClauses);
         }
 
-        public string BuildNested(string outerClassAccessModifier)
+        private string BuildNested()
         {
             var source = $@"
 {_classAccessModifier} partial class {_className} : INotifyPropertyChanged
@@ -294,7 +314,7 @@ using System.Runtime.CompilerServices;
 ";
 
             source = $@"
-    {outerClassAccessModifier} partial class OuterClass
+    {_outerClassAccessModifier} partial class OuterClass
     {{
 {source}
     }}

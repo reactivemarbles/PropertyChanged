@@ -8,6 +8,18 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
     internal sealed record StringBuilderExtensionClassCreator : ISourceCreator
     {
+        public string Create(ExtensionClassDatum classDatum)
+        {
+            var sb = new StringBuilder();
+            foreach (var methodDatum in classDatum.MethodData)
+            {
+                sb.AppendLine(methodDatum.CreateSource(this));
+            }
+
+            var methodSource = sb.ToString();
+            return StringBuilderSourceCreatorHelper.GetClass(methodSource);
+        }
+
         public string Create(SingleExpressionDictionaryImplMethodDatum methodDatum)
         {
             var mapEntrySb = new StringBuilder();

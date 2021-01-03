@@ -105,16 +105,16 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             var extensionClassCreator = new StringBuilderExtensionClassCreator();
             for (int i = 0; i < extensionClassData.Count; i++)
             {
-                var source = extensionClassData[i].CreateSource(extensionClassCreator);
+                var source = extensionClassCreator.Create(extensionClassData[i]);
 
-                // Consider changing name to NotifyPropertyChangedExtensions.[InputTypeName].g.cs
+                // TODO: Consider changing name to NotifyPropertyChangedExtensions.[InputTypeName].g.cs
                 context.AddSource($"WhenChanged.{extensionClassData[i].Name}{i.ToString()}.g.cs", SourceText.From(source, Encoding.UTF8));
             }
 
             var partialClassCreator = new StringBuilderPartialClassCreator();
             for (int i = 0; i < partialClassData.Count; i++)
             {
-                var source = partialClassData[i].CreateSource(partialClassCreator);
+                var source = partialClassCreator.Create(partialClassData[i]);
                 context.AddSource($"{partialClassData[i].Name}{i.ToString()}.WhenChanged.g.cs", SourceText.From(source, Encoding.UTF8));
             }
         }

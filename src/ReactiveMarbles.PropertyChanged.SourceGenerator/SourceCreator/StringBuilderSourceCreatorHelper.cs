@@ -167,16 +167,16 @@ public static partial class NotifyPropertyChangedExtensions
 {source}
 }}
 ";
+            }
 
-                if (!string.IsNullOrEmpty(namespaceName))
-                {
-                    source = $@"
+            if (!string.IsNullOrEmpty(namespaceName))
+            {
+                source = $@"
 namespace {namespaceName}
 {{
 {source}
 }}
 ";
-                }
             }
 
             var usingClauses = @"

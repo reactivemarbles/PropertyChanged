@@ -141,13 +141,15 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         }
 
         [Theory]
-        [MemberData(nameof(Data))]
-        public void NoDiagnosticsAreReported_When_ClassIsNestedAndPublicAndParentClassIsPublic(InvocationKind invocationKind, ReceiverKind receiverKind)
+        [InlineData(InvocationKind.MemberAccess, ReceiverKind.This)]
+        [InlineData(InvocationKind.MemberAccess, ReceiverKind.Instance)]
+        public void NoDiagnosticsAreReported_When_ClassIsNestedAndProtectedAndOuterClassIsInternal(InvocationKind invocationKind, ReceiverKind receiverKind)
         {
             string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
                 .ClassAccessModifier("protected")
+                .OuterClassAccessModifier("internal")
                 .GetTypeName(out var typeName)
-                .BuildNested("internal");
+                .Build();
 
             Compilation compilation = CreateCompilation(userSource);
             var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new WhenChangedGenerator());

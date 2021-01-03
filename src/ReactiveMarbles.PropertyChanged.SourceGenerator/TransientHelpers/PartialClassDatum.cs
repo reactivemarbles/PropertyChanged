@@ -21,12 +21,5 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         public string AccessModifier { get; }
 
         public IEnumerable<AncestorClassInfo> AncestorClasses { get; }
-
-        public override string CreateSource(ISourceCreator sourceCreator)
-        {
-            var methodSource = CreateMethodSource(sourceCreator);
-
-            return StringBuilderSourceCreatorHelper.GetPartialClass(NamespaceName, Name, AccessModifier, AncestorClasses, methodSource);
-        }
     }
 }
