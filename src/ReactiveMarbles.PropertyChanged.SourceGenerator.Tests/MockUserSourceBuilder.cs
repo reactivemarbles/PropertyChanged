@@ -346,6 +346,132 @@ namespace Sample2
 ";
         }
 
+        public string BuildMultiExpressionVersion()
+        {
+            return $@"
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq.Expressions;
+using System.Runtime.CompilerServices;
+
+public partial class SampleClass : INotifyPropertyChanged
+{{
+    private MyClass _value;
+    private string _stringValue;
+    private SampleClass _child;
+
+    public event PropertyChangedEventHandler PropertyChanged;
+
+    protected MyClass Value
+    {{
+        get => _value;
+        set => RaiseAndSetIfChanged(ref _value, value);
+    }}
+
+    public string StringValue
+    {{
+        get => _stringValue;
+        set => RaiseAndSetIfChanged(ref _stringValue, value);
+    }}
+
+    public SampleClass Child
+    {{
+        get => _child;
+        set => RaiseAndSetIfChanged(ref _child, value);
+    }}
+
+    public IObservable<MyClass> GetWhenChangedObservable()
+    {{
+        return this.WhenChanged(x => x.Value, x => x.StringValue, (a, b) => a);
+    }}
+
+    protected void RaiseAndSetIfChanged<T>(ref T fieldValue, T value, [CallerMemberName] string propertyName = null)
+    {{
+        if (EqualityComparer<T>.Default.Equals(fieldValue, value))
+        {{
+            return;
+        }}
+
+        fieldValue = value;
+        OnPropertyChanged(propertyName);
+    }}
+
+    protected virtual void OnPropertyChanged(string propertyName)
+    {{
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }}
+}}
+
+public class MyClass
+{{
+}}
+";
+        }
+
+        public string BuildMultiExpressionVersionNestedOutputType()
+        {
+            return $@"
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq.Expressions;
+using System.Runtime.CompilerServices;
+
+public partial class SampleClass : INotifyPropertyChanged
+{{
+    private MyClass _value;
+    private string _stringValue;
+    private SampleClass _child;
+
+    public event PropertyChangedEventHandler PropertyChanged;
+
+    protected MyClass Value
+    {{
+        get => _value;
+        set => RaiseAndSetIfChanged(ref _value, value);
+    }}
+
+    public string StringValue
+    {{
+        get => _stringValue;
+        set => RaiseAndSetIfChanged(ref _stringValue, value);
+    }}
+
+    public SampleClass Child
+    {{
+        get => _child;
+        set => RaiseAndSetIfChanged(ref _child, value);
+    }}
+
+    protected IObservable<MyClass> GetWhenChangedObservable()
+    {{
+        return this.WhenChanged(x => x.Value, x => x.StringValue, (a, b) => a);
+    }}
+
+    protected void RaiseAndSetIfChanged<T>(ref T fieldValue, T value, [CallerMemberName] string propertyName = null)
+    {{
+        if (EqualityComparer<T>.Default.Equals(fieldValue, value))
+        {{
+            return;
+        }}
+
+        fieldValue = value;
+        OnPropertyChanged(propertyName);
+    }}
+
+    protected virtual void OnPropertyChanged(string propertyName)
+    {{
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }}
+
+    protected class MyClass
+    {{
+    }}
+}}
+";
+        }
+
         private string BuildNested()
         {
             var source = $@"

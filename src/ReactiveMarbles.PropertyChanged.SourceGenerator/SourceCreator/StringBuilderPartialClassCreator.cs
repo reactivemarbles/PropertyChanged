@@ -60,9 +60,9 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         public string Create(MultiExpressionMethodDatum methodDatum)
         {
             var expressionParameters = StringBuilderSourceCreatorHelper.GetMultiExpressionMethodParameters(methodDatum.InputTypeFullName, methodDatum.OutputTypeFullName, methodDatum.TempReturnTypes);
-            var body = StringBuilderSourceCreatorHelper.GetMultiExpressionMethodBody(methodDatum.TempReturnTypes.Count);
+            var body = StringBuilderSourceCreatorHelper.GetMultiExpressionMethodBodyForPartialClass(methodDatum.TempReturnTypes.Count);
 
-            return StringBuilderSourceCreatorHelper.GetMultiExpressionMethod(methodDatum.InputTypeFullName, methodDatum.OutputTypeFullName, methodDatum.AccessModifier, expressionParameters, body);
+            return StringBuilderSourceCreatorHelper.GetMultiExpressionMethodForPartialClass(methodDatum.InputTypeFullName, methodDatum.OutputTypeFullName, methodDatum.AccessModifier, expressionParameters, body);
         }
     }
 }

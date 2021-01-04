@@ -51,11 +51,41 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             return sb.ToString();
         }
 
+        public static string GetMultiExpressionMethodBodyForPartialClass(int counter)
+        {
+            var sb = new StringBuilder();
+            for (int i = 0; i < counter; i++)
+            {
+                sb.AppendLine($"        var obs{i + 1} = this.WhenChanged(propertyExpression{i + 1});");
+            }
+
+            sb.Append("        return obs1.CombineLatest(");
+            for (int i = 1; i < counter; i++)
+            {
+                sb.Append($"obs{i + 1}, ");
+            }
+
+            sb.Append("conversionFunc);");
+
+            return sb.ToString();
+        }
+
         public static string GetMultiExpressionMethod(string inputType, string outputType, string accessModifier, string expressionParameters, string body)
         {
             return $@"
     {accessModifier} static IObservable<{outputType}> WhenChanged(
         this {inputType} objectToMonitor,
+{expressionParameters}
+    {{
+{body}
+    }}
+";
+        }
+
+        public static string GetMultiExpressionMethodForPartialClass(string inputType, string outputType, string accessModifier, string expressionParameters, string body)
+        {
+            return $@"
+    {accessModifier} IObservable<{outputType}> WhenChanged(
 {expressionParameters}
     {{
 {body}

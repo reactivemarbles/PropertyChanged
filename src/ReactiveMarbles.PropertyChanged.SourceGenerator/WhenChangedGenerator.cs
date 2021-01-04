@@ -60,37 +60,22 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 return;
             }
 
-            WhenChangedInvocationInfo requiredData = ExtractWhenChangedInvocationInfo(context, compilation, syntaxReceiver);
+            WhenChangedInvocationInfo whenChangedInvocationInfo = ExtractWhenChangedInvocationInfo(context, compilation, syntaxReceiver);
 
-            if (!requiredData.AllExpressionArgumentsAreValid)
+            if (!whenChangedInvocationInfo.AllExpressionArgumentsAreValid)
             {
                 return;
             }
 
-            var partialClassData = requiredData.ExpressionArguments
+            var partialClassData = whenChangedInvocationInfo.ExpressionArguments
                 .Where(x => x.ContainsPrivateOrProtectedMember)
-                .GroupBy(x => x.InputType)
-                .Select(
-                    x =>
-                    {
-                        var inputTypeGroup = x
-                            .GroupBy(y => y.OutputType)
-                            .Select(y => y.ToOuputTypeGroup())
-                            .ToInputTypeGroup(x.Key);
-
-                        return new PartialClassDatum(inputTypeGroup.NamespaceName, inputTypeGroup.Name, inputTypeGroup.AccessModifier, inputTypeGroup.AncestorClasses, inputTypeGroup.OutputTypeGroups.Select(CreateSingleExpressionMethodDatum));
-                    })
-                .ToList();
-
-            var extensionClassData = requiredData.ExpressionArguments
-                .Where(x => !x.ContainsPrivateOrProtectedMember)
                 .GroupBy(x => x.InputType)
                 .Select(x => x
                     .GroupBy(y => y.OutputType)
                     .Select(y => y.ToOuputTypeGroup())
                     .ToInputTypeGroup(x.Key))
                 .GroupJoin(
-                    requiredData.MultiExpressionMethodData,
+                    whenChangedInvocationInfo.MultiExpressionMethodData,
                     x => x.FullName,
                     x => x.InputTypeFullName,
                     (inputTypeGroup, multiExpressionMethodData) =>
@@ -98,7 +83,29 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                         var allMethodData = inputTypeGroup
                             .OutputTypeGroups
                             .Select(CreateSingleExpressionMethodDatum)
-                            .Concat(multiExpressionMethodData);
+                            .Concat(multiExpressionMethodData.Where(x => x.ContainsPrivateOrProtectedTypeArgument));
+
+                        return new PartialClassDatum(inputTypeGroup.NamespaceName, inputTypeGroup.Name, inputTypeGroup.AccessModifier, inputTypeGroup.AncestorClasses, allMethodData);
+                    })
+                .ToList();
+
+            var extensionClassData = whenChangedInvocationInfo.ExpressionArguments
+                .Where(x => !x.ContainsPrivateOrProtectedMember)
+                .GroupBy(x => x.InputType)
+                .Select(x => x
+                    .GroupBy(y => y.OutputType)
+                    .Select(y => y.ToOuputTypeGroup())
+                    .ToInputTypeGroup(x.Key))
+                .GroupJoin(
+                    whenChangedInvocationInfo.MultiExpressionMethodData,
+                    x => x.FullName,
+                    x => x.InputTypeFullName,
+                    (inputTypeGroup, multiExpressionMethodData) =>
+                    {
+                        var allMethodData = inputTypeGroup
+                            .OutputTypeGroups
+                            .Select(CreateSingleExpressionMethodDatum)
+                            .Concat(multiExpressionMethodData.Where(x => !x.ContainsPrivateOrProtectedTypeArgument));
 
                         return new ExtensionClassDatum(inputTypeGroup.Name, allMethodData);
                     })
@@ -168,9 +175,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
                     if (methodSymbol.TypeArguments.Length > 2)
                     {
-                        var accessModifier = methodSymbol.TypeArguments[0].DeclaredAccessibility.ToString().ToLower();
+                        var minAccessibility = methodSymbol.TypeArguments.Min(x => x.DeclaredAccessibility);
+                        var accessModifier = minAccessibility.ToString().ToLower();
+                        var containsPrivateOrProtectedTypeArgument = minAccessibility <= Microsoft.CodeAnalysis.Accessibility.Protected;
                         var typeNames = methodSymbol.TypeArguments.Select(x => x.ToDisplayString());
-                        multiExpressionMethodData.Add(new(accessModifier, typeNames));
+                        multiExpressionMethodData.Add(new(accessModifier, typeNames, containsPrivateOrProtectedTypeArgument));
                     }
                 }
             }

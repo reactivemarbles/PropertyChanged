@@ -427,13 +427,33 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         public void NoDiagnosticsAreReported_When_MultipleOutputTypesExistWithSameName_And_MultipleUniqueInvocationsInvolvingEachExist(InvocationKind invocationKind, ReceiverKind receiverKind)
         {
             string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
-                .BuildTest();
+                .BuildMultiExpressionVersion();
 
             Compilation compilation = CreateCompilation(userSource);
             var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new WhenChangedGenerator());
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
             Assert.Empty(newCompilation.GetDiagnostics().Where(x => x.Severity >= DiagnosticSeverity.Warning));
+        }
+
+        [Theory]
+        [MemberData(nameof(Data))]
+        public void NoDiagnosticsAreReported_When_MultiExpressionWithNestedProtectedOutputType(InvocationKind invocationKind, ReceiverKind receiverKind)
+        {
+            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
+                .BuildMultiExpressionVersionNestedOutputType();
+
+            Compilation compilation = CreateCompilation(userSource);
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new WhenChangedGenerator());
+
+            Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
+            Assert.Empty(newCompilation.GetDiagnostics().Where(x => x.Severity >= DiagnosticSeverity.Warning));
+
+            var assembly = GetAssembly(newCompilation);
+            var type = assembly.GetType("SampleClass");
+            var target = CreateInstance(type);
+            var observable = GetWhenChangedObservable(target);
+            observable.Subscribe();
         }
 
         [Theory]

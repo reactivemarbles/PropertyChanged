@@ -9,9 +9,10 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
     internal sealed record MultiExpressionMethodDatum : MethodDatum
     {
-        public MultiExpressionMethodDatum(string accessModifier, IEnumerable<string> typeNames)
+        public MultiExpressionMethodDatum(string accessModifier, IEnumerable<string> typeNames, bool containsPrivateOrProtectedTypeArgument)
         {
             AccessModifier = accessModifier;
+            ContainsPrivateOrProtectedTypeArgument = containsPrivateOrProtectedTypeArgument;
 
             var list = typeNames.ToArray();
             InputTypeFullName = list[0];
@@ -30,6 +31,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         public string AccessModifier { get; }
 
         public List<string> TempReturnTypes { get; }
+
+        public bool ContainsPrivateOrProtectedTypeArgument { get; }
 
         public override string CreateSource(ISourceCreator sourceCreator)
         {
