@@ -258,6 +258,94 @@ using System.Runtime.CompilerServices;
             return source.Insert(0, usingClauses);
         }
 
+        public string BuildTest()
+        {
+            return $@"
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq.Expressions;
+using System.Runtime.CompilerServices;
+
+public class MyType : INotifyPropertyChanged
+{{
+    private Sample1.Output _output1;
+    private Sample2.Output _output2;
+    private MyType _child;
+
+    public event PropertyChangedEventHandler PropertyChanged;
+
+    public Sample1.Output Output1
+    {{
+        get => _output1;
+        set => RaiseAndSetIfChanged(ref _output1, value);
+    }}
+
+    public Sample2.Output Output2
+    {{
+        get => _output2;
+        set => RaiseAndSetIfChanged(ref _output2, value);
+    }}
+
+    public MyType Child
+    {{
+        get => _child;
+        set => RaiseAndSetIfChanged(ref _child, value);
+    }}
+
+    public IObservable<Sample1.Output>[] GetWhenChangedObservables1()
+    {{
+        var instance = this;
+        return new IObservable<Sample1.Output>[]
+        {{
+            this.WhenChanged(x => x.Output1),
+            this.WhenChanged(x => x.Child.Output1),
+        }};
+    }}
+
+    public IObservable<Sample2.Output>[] GetWhenChangedObservables2()
+    {{
+        var instance = this;
+        return new IObservable<Sample2.Output>[]
+        {{
+            this.WhenChanged(x => x.Output2),
+            this.WhenChanged(x => x.Child.Output2),
+        }};
+    }}
+
+    protected void RaiseAndSetIfChanged<T>(ref T fieldValue, T value, [CallerMemberName] string propertyName = null)
+    {{
+        if (EqualityComparer<T>.Default.Equals(fieldValue, value))
+        {{
+            return;
+        }}
+
+        fieldValue = value;
+        OnPropertyChanged(propertyName);
+    }}
+
+    protected virtual void OnPropertyChanged(string propertyName)
+    {{
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }}
+}}
+
+namespace Sample1
+{{
+    public class Output
+    {{
+    }}
+}}
+
+namespace Sample2
+{{
+    public class Output
+    {{
+    }}
+}}
+";
+        }
+
         private string BuildNested()
         {
             var source = $@"

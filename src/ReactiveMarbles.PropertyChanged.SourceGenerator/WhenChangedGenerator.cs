@@ -41,6 +41,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             defaultSeverity: DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
+        private const string ExtensionClassFullName = "NotifyPropertyChangedExtensions";
+
         public void Initialize(GeneratorInitializationContext context)
         {
             context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
@@ -106,8 +108,6 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             for (int i = 0; i < extensionClassData.Count; i++)
             {
                 var source = extensionClassCreator.Create(extensionClassData[i]);
-
-                // TODO: Consider changing name to NotifyPropertyChangedExtensions.[InputTypeName].g.cs
                 context.AddSource($"WhenChanged.{extensionClassData[i].Name}{i.ToString()}.g.cs", SourceText.From(source, Encoding.UTF8));
             }
 
@@ -132,15 +132,12 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
                 if (symbol is IMethodSymbol methodSymbol)
                 {
-                    // TODO: Maybe check for exact argument matches.
-                    if (!methodSymbol.IsExtensionMethod)
+                    if (!methodSymbol.ContainingType.ToDisplayString().Equals(ExtensionClassFullName))
                     {
                         continue;
                     }
 
-                    var arguments = invocationExpression.ArgumentList.Arguments;
-
-                    foreach (var argument in arguments)
+                    foreach (var argument in invocationExpression.ArgumentList.Arguments)
                     {
                         if (model.GetTypeInfo(argument.Expression).ConvertedType.Name.Equals("Expression"))
                         {
@@ -202,8 +199,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             }
             else if (outputTypeGroup.ExpressionArguments.Count > 1)
             {
-                // TODO: Consider including namespace to prevent potential name conflicts.
-                var mapName = $"{inputTypeSymbol.Name}To{outputTypeSymbol.Name}Map";
+                var mapName = $"{outputTypeSymbol.ToDisplayParts().Where(x => x.Kind != SymbolDisplayPartKind.Punctuation).Select(x => x.ToString()).Aggregate((a, b) => a + b)}Map";
 
                 var entries = new List<MapEntryDatum>(outputTypeGroup.ExpressionArguments.Count);
                 foreach (var argumentDatum in outputTypeGroup.ExpressionArguments)

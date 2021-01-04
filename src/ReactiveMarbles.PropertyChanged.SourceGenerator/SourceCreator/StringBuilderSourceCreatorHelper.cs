@@ -160,7 +160,6 @@ public static partial class NotifyPropertyChangedExtensions
 
             foreach (var ancestorClass in ancestorClasses)
             {
-                // TODO: Specify access modifier.
                 source = $@"
 {ancestorClass.AccessModifier} partial class {ancestorClass.Name}
 {{
