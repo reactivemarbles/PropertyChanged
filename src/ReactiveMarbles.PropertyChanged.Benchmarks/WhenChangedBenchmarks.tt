@@ -21,6 +21,7 @@ var participants = new (string Alias, string MethodName, string FullClassName)[]
     ("UI", "WhenAnyValue", "ReactiveUI.WhenAnyMixin"),
     ("Old", "WhenPropertyValueChanges", "ReactiveMarbles.PropertyChanged.Benchmarks.Legacy.NotifyPropertyChangedExtensions"),
     ("New", "WhenPropertyValueChanges", "ReactiveMarbles.PropertyChanged.NotifyPropertyChangedExtensions"),
+    ("SourceGen", "WhenChanged", "NotifyPropertyChangedExtensions"),
 };
 var depths = new[] { 1, 2, 3 };
 const string SubscribeAndChange = "SubscribeAndChange";

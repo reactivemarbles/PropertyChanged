@@ -11,6 +11,7 @@ using ReactiveMarbles.PropertyChanged.Benchmarks.Moqs;
 using UI = ReactiveUI.WhenAnyMixin;
 using Old = ReactiveMarbles.PropertyChanged.Benchmarks.Legacy.NotifyPropertyChangedExtensions;
 using New = ReactiveMarbles.PropertyChanged.NotifyPropertyChangedExtensions;
+using SourceGen = NotifyPropertyChangedExtensions;
 
 namespace ReactiveMarbles.PropertyChanged.Benchmarks
 {
@@ -33,19 +34,19 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
         [Params(1, 10, 100, 1000)]
         public int Changes;
 
-        [GlobalSetup(Targets = new[] { "SubscribeAndChange_Depth1_UI", "SubscribeAndChange_Depth1_Old", "SubscribeAndChange_Depth1_New" })]
+        [GlobalSetup(Targets = new[] { "SubscribeAndChange_Depth1_UI", "SubscribeAndChange_Depth1_Old", "SubscribeAndChange_Depth1_New", "SubscribeAndChange_Depth1_SourceGen" })]
         public void Depth1Setup()
         {
             _from = new TestClass(1);
         }
 
-        [GlobalSetup(Targets = new[] { "SubscribeAndChange_Depth2_UI", "SubscribeAndChange_Depth2_Old", "SubscribeAndChange_Depth2_New" })]
+        [GlobalSetup(Targets = new[] { "SubscribeAndChange_Depth2_UI", "SubscribeAndChange_Depth2_Old", "SubscribeAndChange_Depth2_New", "SubscribeAndChange_Depth2_SourceGen" })]
         public void Depth2Setup()
         {
             _from = new TestClass(2);
         }
 
-        [GlobalSetup(Targets = new[] { "SubscribeAndChange_Depth3_UI", "SubscribeAndChange_Depth3_Old", "SubscribeAndChange_Depth3_New" })]
+        [GlobalSetup(Targets = new[] { "SubscribeAndChange_Depth3_UI", "SubscribeAndChange_Depth3_Old", "SubscribeAndChange_Depth3_New", "SubscribeAndChange_Depth3_SourceGen" })]
         public void Depth3Setup()
         {
             _from = new TestClass(3);
@@ -84,6 +85,14 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
             PerformMutations(1);
         }
 
+        [BenchmarkCategory("Subscribe and Change Depth 1")]
+        [Benchmark]
+        public void SubscribeAndChange_Depth1_SourceGen()
+        {
+            using var subscription = SourceGen.WhenChanged(_from, x => x.Value).Subscribe(x => _to = x);
+            PerformMutations(1);
+        }
+
         [BenchmarkCategory("Subscribe and Change Depth 2")]
         [Benchmark(Baseline = true)]
         public void SubscribeAndChange_Depth2_UI()
@@ -108,6 +117,14 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
             PerformMutations(2);
         }
 
+        [BenchmarkCategory("Subscribe and Change Depth 2")]
+        [Benchmark]
+        public void SubscribeAndChange_Depth2_SourceGen()
+        {
+            using var subscription = SourceGen.WhenChanged(_from, x => x.Child.Value).Subscribe(x => _to = x);
+            PerformMutations(2);
+        }
+
         [BenchmarkCategory("Subscribe and Change Depth 3")]
         [Benchmark(Baseline = true)]
         public void SubscribeAndChange_Depth3_UI()
@@ -129,6 +146,14 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
         public void SubscribeAndChange_Depth3_New()
         {
             using var subscription = New.WhenPropertyValueChanges(_from, x => x.Child.Child.Value).Subscribe(x => _to = x);
+            PerformMutations(3);
+        }
+
+        [BenchmarkCategory("Subscribe and Change Depth 3")]
+        [Benchmark]
+        public void SubscribeAndChange_Depth3_SourceGen()
+        {
+            using var subscription = SourceGen.WhenChanged(_from, x => x.Child.Child.Value).Subscribe(x => _to = x);
             PerformMutations(3);
         }
 
@@ -170,6 +195,20 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
         [BenchmarkCategory("Change Depth 1")]
         [Benchmark]
         public void Change_Depth1_New()
+        {
+            PerformMutations(1);
+        }
+
+        [GlobalSetup(Target = "Change_Depth1_SourceGen")]
+        public void Change_Depth1_SourceGenSetup()
+        {
+            Depth1Setup();
+            _subscription = SourceGen.WhenChanged(_from, x => x.Value).Subscribe(x => _to = x);
+        }
+
+        [BenchmarkCategory("Change Depth 1")]
+        [Benchmark]
+        public void Change_Depth1_SourceGen()
         {
             PerformMutations(1);
         }
@@ -216,6 +255,20 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
             PerformMutations(2);
         }
 
+        [GlobalSetup(Target = "Change_Depth2_SourceGen")]
+        public void Change_Depth2_SourceGenSetup()
+        {
+            Depth2Setup();
+            _subscription = SourceGen.WhenChanged(_from, x => x.Child.Value).Subscribe(x => _to = x);
+        }
+
+        [BenchmarkCategory("Change Depth 2")]
+        [Benchmark]
+        public void Change_Depth2_SourceGen()
+        {
+            PerformMutations(2);
+        }
+
         [GlobalSetup(Target = "Change_Depth3_UI")]
         public void Change_Depth3_UISetup()
         {
@@ -258,7 +311,21 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
             PerformMutations(3);
         }
 
-        [GlobalCleanup(Targets = new[] { "Change_Depth1_UI", "Change_Depth1_Old", "Change_Depth1_New", "Change_Depth2_UI", "Change_Depth2_Old", "Change_Depth2_New", "Change_Depth3_UI", "Change_Depth3_Old", "Change_Depth3_New" })]
+        [GlobalSetup(Target = "Change_Depth3_SourceGen")]
+        public void Change_Depth3_SourceGenSetup()
+        {
+            Depth3Setup();
+            _subscription = SourceGen.WhenChanged(_from, x => x.Child.Child.Value).Subscribe(x => _to = x);
+        }
+
+        [BenchmarkCategory("Change Depth 3")]
+        [Benchmark]
+        public void Change_Depth3_SourceGen()
+        {
+            PerformMutations(3);
+        }
+
+        [GlobalCleanup(Targets = new[] { "Change_Depth1_UI", "Change_Depth1_Old", "Change_Depth1_New", "Change_Depth1_SourceGen", "Change_Depth2_UI", "Change_Depth2_Old", "Change_Depth2_New", "Change_Depth2_SourceGen", "Change_Depth3_UI", "Change_Depth3_Old", "Change_Depth3_New", "Change_Depth3_SourceGen" })]
         public void GlobalCleanup()
         {
             _subscription.Dispose();
