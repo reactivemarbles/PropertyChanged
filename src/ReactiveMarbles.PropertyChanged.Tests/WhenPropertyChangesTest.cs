@@ -20,7 +20,7 @@ namespace ReactiveMarbles.PropertyChanged.Tests
             b.C = c;
 
             string testValue = "ignore";
-            a.WhenPropertyValueChanges(x => x.B.C.Test).Subscribe(x => testValue = x);
+            a.WhenChanged(x => x.B.C.Test).Subscribe(x => testValue = x);
             Assert.Null(testValue);
 
             c.Test = "Hello World";
@@ -37,7 +37,7 @@ namespace ReactiveMarbles.PropertyChanged.Tests
         {
             var c = new C();
             string testValue = "ignore";
-            c.WhenPropertyValueChanges(x => x.Test).Subscribe(x => testValue = x);
+            c.WhenChanged(x => x.Test).Subscribe(x => testValue = x);
 
             Assert.Null(testValue);
             c.Test = "test";

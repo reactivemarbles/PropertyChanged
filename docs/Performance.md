@@ -5,7 +5,7 @@ The following explains the performance analysis methodology, and results in deta
 ## Benchmarks
 
 The Benchmarks are generated using the [ReactiveMarbles.PropertyChanged.Benchmarks project](/src/ReactiveMarbles.PropertyChanged.Benchmarks).  They are currently 2 main benchmarks -
-1. [Property Change Benchmarks](/src/ReactiveMarbles.PropertyChanged.Benchmarks/PropertyChangesBenchmarks.cs) - which test the performance of the [`WhenPropertyValueChanges`](/src/ReactiveMarbles.PropertyChanged/NotifyPropertyChangedExtensions.cs) extension methods which are equivalent (but not yet identical to) the [`WhenAnyValue`](https://github.com/reactiveui/ReactiveUI/blob/main/src/ReactiveUI/VariadicTemplates.tt) extension methods from [ReactiveUI](https://github.com/reactiveui/ReactiveUI).
+1. [Property Change Benchmarks](/src/ReactiveMarbles.PropertyChanged.Benchmarks/PropertyChangesBenchmarks.cs) - which test the performance of the [`WhenChanged`](/src/ReactiveMarbles.PropertyChanged/NotifyPropertyChangedExtensions.cs) extension methods which are equivalent (but not yet identical to) the [`WhenAnyValue`](https://github.com/reactiveui/ReactiveUI/blob/main/src/ReactiveUI/VariadicTemplates.tt) extension methods from [ReactiveUI](https://github.com/reactiveui/ReactiveUI).
 2. [Binding Benchmarks](/src/ReactiveMarbles.PropertyChanged.Benchmarks/BindBenchmarks.cs) - which test the performance of the new [`Bind`](/src/ReactiveMarbles.PropertyChanged/BindExtensions.cs) extension methods which are equivalent (but not yet identical to) the [`Bind`](https://github.com/reactiveui/ReactiveUI/blob/main/src/ReactiveUI/Bindings/Property/PropertyBindingMixins.cs) extension methods from [ReactiveUI](https://github.com/reactiveui/ReactiveUI).
 
 Both of these benchmarks are parameterised with the following:
@@ -56,7 +56,7 @@ The latest `New` changes, reverse this trend for a `Depth=1` where they take ~40
 
 ### Interpretation
 
-The [`WhenPropertyValueChanges`](/src/ReactiveMarbles.PropertyChanged/NotifyPropertyChangedExtensions.cs) extension methods represent a signficant improvement to the existing [`WhenAnyValue`](https://github.com/reactiveui/ReactiveUI/blob/main/src/ReactiveUI/VariadicTemplates.tt) extension methods.  There is reason to be optimistic that these benefits can be carried forward when support for dependency properties is added.
+The [`WhenChanged`](/src/ReactiveMarbles.PropertyChanged/NotifyPropertyChangedExtensions.cs) extension methods represent a signficant improvement to the existing [`WhenAnyValue`](https://github.com/reactiveui/ReactiveUI/blob/main/src/ReactiveUI/VariadicTemplates.tt) extension methods.  There is reason to be optimistic that these benefits can be carried forward when support for dependency properties is added.
 
 The latest `New` changes offer a significant improvement to `Bind` performance of the existing `Old` changes (which represent a regression compared to the `UI` methods), and an improvement to the `UI` `Bind` extension methods when the `Depth=1`.  
 

@@ -24,7 +24,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks.Legacy
         /// <returns>An observable that signals when the property specified in the expression has changed.</returns>
         /// <exception cref="ArgumentNullException">Either the property expression or the object to monitor is null.</exception>
         /// <exception cref="ArgumentException">If there is an issue with the property expression.</exception>
-        public static IObservable<TReturn> WhenPropertyValueChanges<TObj, TReturn>(
+        public static IObservable<TReturn> WhenChanged<TObj, TReturn>(
             this TObj objectToMonitor,
             Expression<Func<TObj, TReturn>> propertyExpression)
             where TObj : class, INotifyPropertyChanged

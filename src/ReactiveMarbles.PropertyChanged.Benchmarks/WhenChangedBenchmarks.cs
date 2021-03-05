@@ -73,7 +73,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
         [Benchmark]
         public void SubscribeAndChange_Depth1_Old()
         {
-            using var subscription = Old.WhenPropertyValueChanges(_from, x => x.Value).Subscribe(x => _to = x);
+            using var subscription = Old.WhenChanged(_from, x => x.Value).Subscribe(x => _to = x);
             PerformMutations(1);
         }
 
@@ -81,7 +81,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
         [Benchmark]
         public void SubscribeAndChange_Depth1_New()
         {
-            using var subscription = New.WhenPropertyValueChanges(_from, x => x.Value).Subscribe(x => _to = x);
+            using var subscription = New.WhenChanged(_from, x => x.Value).Subscribe(x => _to = x);
             PerformMutations(1);
         }
 
@@ -105,7 +105,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
         [Benchmark]
         public void SubscribeAndChange_Depth2_Old()
         {
-            using var subscription = Old.WhenPropertyValueChanges(_from, x => x.Child.Value).Subscribe(x => _to = x);
+            using var subscription = Old.WhenChanged(_from, x => x.Child.Value).Subscribe(x => _to = x);
             PerformMutations(2);
         }
 
@@ -113,7 +113,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
         [Benchmark]
         public void SubscribeAndChange_Depth2_New()
         {
-            using var subscription = New.WhenPropertyValueChanges(_from, x => x.Child.Value).Subscribe(x => _to = x);
+            using var subscription = New.WhenChanged(_from, x => x.Child.Value).Subscribe(x => _to = x);
             PerformMutations(2);
         }
 
@@ -137,7 +137,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
         [Benchmark]
         public void SubscribeAndChange_Depth3_Old()
         {
-            using var subscription = Old.WhenPropertyValueChanges(_from, x => x.Child.Child.Value).Subscribe(x => _to = x);
+            using var subscription = Old.WhenChanged(_from, x => x.Child.Child.Value).Subscribe(x => _to = x);
             PerformMutations(3);
         }
 
@@ -145,7 +145,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
         [Benchmark]
         public void SubscribeAndChange_Depth3_New()
         {
-            using var subscription = New.WhenPropertyValueChanges(_from, x => x.Child.Child.Value).Subscribe(x => _to = x);
+            using var subscription = New.WhenChanged(_from, x => x.Child.Child.Value).Subscribe(x => _to = x);
             PerformMutations(3);
         }
 
@@ -175,7 +175,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
         public void Change_Depth1_OldSetup()
         {
             Depth1Setup();
-            _subscription = Old.WhenPropertyValueChanges(_from, x => x.Value).Subscribe(x => _to = x);
+            _subscription = Old.WhenChanged(_from, x => x.Value).Subscribe(x => _to = x);
         }
 
         [BenchmarkCategory("Change Depth 1")]
@@ -189,7 +189,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
         public void Change_Depth1_NewSetup()
         {
             Depth1Setup();
-            _subscription = New.WhenPropertyValueChanges(_from, x => x.Value).Subscribe(x => _to = x);
+            _subscription = New.WhenChanged(_from, x => x.Value).Subscribe(x => _to = x);
         }
 
         [BenchmarkCategory("Change Depth 1")]
@@ -231,7 +231,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
         public void Change_Depth2_OldSetup()
         {
             Depth2Setup();
-            _subscription = Old.WhenPropertyValueChanges(_from, x => x.Child.Value).Subscribe(x => _to = x);
+            _subscription = Old.WhenChanged(_from, x => x.Child.Value).Subscribe(x => _to = x);
         }
 
         [BenchmarkCategory("Change Depth 2")]
@@ -245,7 +245,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
         public void Change_Depth2_NewSetup()
         {
             Depth2Setup();
-            _subscription = New.WhenPropertyValueChanges(_from, x => x.Child.Value).Subscribe(x => _to = x);
+            _subscription = New.WhenChanged(_from, x => x.Child.Value).Subscribe(x => _to = x);
         }
 
         [BenchmarkCategory("Change Depth 2")]
@@ -287,7 +287,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
         public void Change_Depth3_OldSetup()
         {
             Depth3Setup();
-            _subscription = Old.WhenPropertyValueChanges(_from, x => x.Child.Child.Value).Subscribe(x => _to = x);
+            _subscription = Old.WhenChanged(_from, x => x.Child.Child.Value).Subscribe(x => _to = x);
         }
 
         [BenchmarkCategory("Change Depth 3")]
@@ -301,7 +301,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
         public void Change_Depth3_NewSetup()
         {
             Depth3Setup();
-            _subscription = New.WhenPropertyValueChanges(_from, x => x.Child.Child.Value).Subscribe(x => _to = x);
+            _subscription = New.WhenChanged(_from, x => x.Child.Child.Value).Subscribe(x => _to = x);
         }
 
         [BenchmarkCategory("Change Depth 3")]

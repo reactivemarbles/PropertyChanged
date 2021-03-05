@@ -41,7 +41,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks.Legacy
                 throw new ArgumentNullException(nameof(fromObject));
             }
 
-            return OneWayBindImplementation(targetObject, fromObject.WhenPropertyValueChanges(fromProperty), toProperty, scheduler);
+            return OneWayBindImplementation(targetObject, fromObject.WhenChanged(fromProperty), toProperty, scheduler);
         }
 
         /// <summary>
@@ -73,7 +73,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks.Legacy
                 throw new ArgumentNullException(nameof(fromObject));
             }
 
-            var hostObs = fromObject.WhenPropertyValueChanges(fromProperty)
+            var hostObs = fromObject.WhenChanged(fromProperty)
                 .Select(conversionFunc);
 
             return OneWayBindImplementation(targetObject, hostObs, toProperty, scheduler);
@@ -106,10 +106,10 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks.Legacy
             where TFrom : class, INotifyPropertyChanged
             where TTarget : class, INotifyPropertyChanged
         {
-            var hostObs = fromObject.WhenPropertyValueChanges(fromProperty)
+            var hostObs = fromObject.WhenChanged(fromProperty)
                 .Select(hostToTargetConv)
                 .Select(x => (value: (object)x, isHost: true));
-            var targetObs = targetObject.WhenPropertyValueChanges(toProperty)
+            var targetObs = targetObject.WhenChanged(toProperty)
                 .Skip(1) // We have the host to win first off.
                 .Select(targetToHostConv)
                 .Select(x => (value: (object)x, isHost: false));
@@ -139,9 +139,9 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks.Legacy
             where TFrom : class, INotifyPropertyChanged
             where TTarget : class, INotifyPropertyChanged
         {
-            var hostObs = fromObject.WhenPropertyValueChanges(fromProperty)
+            var hostObs = fromObject.WhenChanged(fromProperty)
                 .Select(x => (value: x, isHost: true));
-            var targetObs = targetObject.WhenPropertyValueChanges(toProperty)
+            var targetObs = targetObject.WhenChanged(toProperty)
                 .Skip(1) // We have the host to win first off.
                 .Select(x => (value: x, isHost: false));
 

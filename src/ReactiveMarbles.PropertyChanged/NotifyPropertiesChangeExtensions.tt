@@ -4,8 +4,8 @@
 <#@ import namespace="System.Collections.Generic" #>
 <#@ import namespace="System.Linq" #>
 <#@ output extension=".cs" #>
-// Copyright (c) 2019 Glenn Watson. All rights reserved.
-// Glenn Watson licenses this file to you under the MIT license.
+// Copyright (c) 2019-2021 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System;
@@ -57,7 +57,7 @@ namespace ReactiveMarbles.PropertyChanged
         /// <returns>An observable that signals when the properties specified in the expressions have changed.</returns>
         /// <exception cref="ArgumentNullException">Either the property expression or the object to monitor is null.</exception>
         /// <exception cref="ArgumentException">If there is an issue with the property expression.</exception>
-        public static IObservable<TReturn> WhenPropertiesValueChanges<TObj, <#= string.Join(", ", templateParams) #>, TReturn>(
+        public static IObservable<TReturn> WhenChanged<TObj, <#= string.Join(", ", templateParams) #>, TReturn>(
             this TObj objectToMonitor,
 <#
                 for (int i = 0; i < templateParams.Count; ++i)
@@ -76,7 +76,7 @@ namespace ReactiveMarbles.PropertyChanged
                     var templateParam = templateParams[i];
                     var templateParamNumber = i + 1;#>
 
-            var obs<#= templateParamNumber #> = objectToMonitor.WhenPropertyValueChanges(propertyExpression<#= templateParamNumber #>);
+            var obs<#= templateParamNumber #> = objectToMonitor.WhenChanged(propertyExpression<#= templateParamNumber #>);
 <#              }#>
 
             return obs1.CombineLatest(<#= string.Join(", ", observableNames.Skip(1)) #>, conversionFunc);

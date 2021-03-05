@@ -42,7 +42,7 @@ namespace ReactiveMarbles.PropertyChanged
                 throw new ArgumentNullException(nameof(fromObject));
             }
 
-            return OneWayBindImplementation(targetObject, fromObject.WhenPropertyValueChanges(fromProperty), toProperty, scheduler);
+            return OneWayBindImplementation(targetObject, fromObject.WhenChanged(fromProperty), toProperty, scheduler);
         }
 
         /// <summary>
@@ -74,7 +74,7 @@ namespace ReactiveMarbles.PropertyChanged
                 throw new ArgumentNullException(nameof(fromObject));
             }
 
-            var hostObs = fromObject.WhenPropertyValueChanges(fromProperty)
+            var hostObs = fromObject.WhenChanged(fromProperty)
                 .Select(conversionFunc);
 
             return OneWayBindImplementation(targetObject, hostObs, toProperty, scheduler);
@@ -107,9 +107,9 @@ namespace ReactiveMarbles.PropertyChanged
             where TFrom : class, INotifyPropertyChanged
             where TTarget : class, INotifyPropertyChanged
         {
-            var hostObs = fromObject.WhenPropertyValueChanges(fromProperty)
+            var hostObs = fromObject.WhenChanged(fromProperty)
                 .Select(hostToTargetConv);
-            var targetObs = targetObject.WhenPropertyValueChanges(toProperty)
+            var targetObs = targetObject.WhenChanged(toProperty)
                 .Skip(1) // We have the host to win first off.
                 .Select(targetToHostConv);
 
@@ -138,8 +138,8 @@ namespace ReactiveMarbles.PropertyChanged
             where TFrom : class, INotifyPropertyChanged
             where TTarget : class, INotifyPropertyChanged
         {
-            var hostObs = fromObject.WhenPropertyValueChanges(fromProperty);
-            var targetObs = targetObject.WhenPropertyValueChanges(toProperty)
+            var hostObs = fromObject.WhenChanged(fromProperty);
+            var targetObs = targetObject.WhenChanged(toProperty)
                 .Skip(1); // We have the host to win first off.
 
             return BindImplementation(fromObject, targetObject, hostObs, targetObs, fromProperty, toProperty, scheduler);
