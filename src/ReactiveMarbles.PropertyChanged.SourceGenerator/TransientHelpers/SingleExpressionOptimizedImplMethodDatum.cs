@@ -4,11 +4,13 @@
 
 using System.Collections.Generic;
 
+using Microsoft.CodeAnalysis;
+
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
     internal sealed record SingleExpressionOptimizedImplMethodDatum : MethodDatum
     {
-        public SingleExpressionOptimizedImplMethodDatum(string inputType, string outputType, string accessModifier, List<string> memberNames)
+        public SingleExpressionOptimizedImplMethodDatum(string inputType, string outputType, Accessibility accessModifier, List<string> memberNames)
         {
             InputTypeName = inputType;
             OutputTypeName = outputType;
@@ -20,7 +22,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
         public string OutputTypeName { get; }
 
-        public string AccessModifier { get; }
+        public Accessibility AccessModifier { get; }
 
         public List<string> MemberNames { get; }
 

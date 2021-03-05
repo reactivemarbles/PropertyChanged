@@ -4,11 +4,13 @@
 
 using System.Collections.Generic;
 
+using Microsoft.CodeAnalysis;
+
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
     internal sealed record PartialClassDatum : ClassDatum
     {
-        public PartialClassDatum(string namespaceName, string name, string accessModifier, IEnumerable<AncestorClassInfo> ancestorClasses, IEnumerable<MethodDatum> methodData)
+        public PartialClassDatum(string namespaceName, string name, Accessibility accessModifier, IEnumerable<AncestorClassInfo> ancestorClasses, IEnumerable<MethodDatum> methodData)
             : base(name, methodData)
         {
             NamespaceName = namespaceName;
@@ -18,7 +20,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
         public string NamespaceName { get; }
 
-        public string AccessModifier { get; }
+        public Accessibility AccessModifier { get; }
 
         public IEnumerable<AncestorClassInfo> AncestorClasses { get; }
     }
