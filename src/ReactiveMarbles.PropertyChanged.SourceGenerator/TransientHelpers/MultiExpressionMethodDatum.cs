@@ -5,11 +5,13 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using Microsoft.CodeAnalysis;
+
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
     internal sealed record MultiExpressionMethodDatum : MethodDatum
     {
-        public MultiExpressionMethodDatum(string accessModifier, IEnumerable<string> typeNames, bool containsPrivateOrProtectedTypeArgument)
+        public MultiExpressionMethodDatum(Accessibility accessModifier, IEnumerable<string> typeNames, bool containsPrivateOrProtectedTypeArgument)
         {
             AccessModifier = accessModifier;
             ContainsPrivateOrProtectedTypeArgument = containsPrivateOrProtectedTypeArgument;
@@ -28,7 +30,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
         public string OutputTypeFullName { get; }
 
-        public string AccessModifier { get; }
+        public Accessibility AccessModifier { get; }
 
         public List<string> TempReturnTypes { get; }
 

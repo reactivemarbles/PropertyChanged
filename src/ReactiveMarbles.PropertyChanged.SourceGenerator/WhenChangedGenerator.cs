@@ -176,7 +176,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                     if (methodSymbol.TypeArguments.Length > 2)
                     {
                         var minAccessibility = methodSymbol.TypeArguments.Min(x => x.DeclaredAccessibility);
-                        var accessModifier = minAccessibility.ToString().ToLower();
+                        var accessModifier = minAccessibility;
                         var containsPrivateOrProtectedTypeArgument = minAccessibility <= Accessibility.Protected;
                         var typeNames = methodSymbol.TypeArguments.Select(x => x.ToDisplayString());
                         multiExpressionMethodData.Add(new(accessModifier, typeNames, containsPrivateOrProtectedTypeArgument));
@@ -200,11 +200,9 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 accessModifier = outputTypeSymbol.DeclaredAccessibility;
             }
 
-            var accessModifierName = accessModifier.ToString().ToLower();
-
             if (outputTypeGroup.ExpressionArguments.Count == 1)
             {
-                methodDatum = new SingleExpressionOptimizedImplMethodDatum(inputTypeName, outputTypeName, accessModifierName, expressionChain);
+                methodDatum = new SingleExpressionOptimizedImplMethodDatum(inputTypeName, outputTypeName, accessModifier, expressionChain);
             }
             else if (outputTypeGroup.ExpressionArguments.Count > 1)
             {
@@ -219,7 +217,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 }
 
                 var map = new MapDatum(mapName, entries);
-                methodDatum = new SingleExpressionDictionaryImplMethodDatum(inputTypeName, outputTypeName, accessModifierName, map);
+                methodDatum = new SingleExpressionDictionaryImplMethodDatum(inputTypeName, outputTypeName, accessModifier, map);
             }
 
             return methodDatum;

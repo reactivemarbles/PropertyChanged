@@ -30,7 +30,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             var containingType = _inputType.ContainingType;
             while (containingType != null)
             {
-                ancestorClasses.Add(new(containingType.Name, containingType.DeclaredAccessibility.ToString().ToLower()));
+                ancestorClasses.Add(new(containingType.Name, containingType.DeclaredAccessibility));
                 containingType = containingType.ContainingType;
             }
 
@@ -45,7 +45,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
         public IEnumerable<AncestorClassInfo> AncestorClasses { get; }
 
-        public string AccessModifier => _inputType.DeclaredAccessibility.ToString().ToLower();
+        public Accessibility AccessModifier => _inputType.DeclaredAccessibility;
 
         public IEnumerable<OutputTypeGroup> OutputTypeGroups { get; }
     }
