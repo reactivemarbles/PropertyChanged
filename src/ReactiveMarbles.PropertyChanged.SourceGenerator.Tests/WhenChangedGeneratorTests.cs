@@ -46,7 +46,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .Build();
 
             Compilation compilation = CreateCompilation(userSource);
-            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new WhenChangedGenerator());
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator());
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
             Assert.Empty(newCompilation.GetDiagnostics().Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -102,7 +102,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .Build();
 
             Compilation compilation = CreateCompilation(userSource);
-            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new WhenChangedGenerator());
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator());
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
             Assert.Empty(newCompilation.GetDiagnostics().Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -140,7 +140,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .Build();
 
             Compilation compilation = CreateCompilation(userSource);
-            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new WhenChangedGenerator());
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator());
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
             Assert.Empty(newCompilation.GetDiagnostics().Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -178,7 +178,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .Build();
 
             Compilation compilation = CreateCompilation(userSource);
-            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new WhenChangedGenerator());
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator());
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
             Assert.Empty(newCompilation.GetDiagnostics().Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -218,7 +218,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .Build();
 
             Compilation compilation = CreateCompilation(userSource);
-            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new WhenChangedGenerator());
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator());
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
             Assert.Empty(newCompilation.GetDiagnostics().Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -255,7 +255,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .Build();
 
             Compilation compilation = CreateCompilation(userSource);
-            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new WhenChangedGenerator());
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator());
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
             Assert.Empty(newCompilation.GetDiagnostics().Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -291,7 +291,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .Build();
 
             Compilation compilation = CreateCompilation(userSource);
-            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new WhenChangedGenerator());
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator());
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
             Assert.Empty(newCompilation.GetDiagnostics().Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -328,7 +328,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .Build();
 
             Compilation compilation = CreateCompilation(userSource);
-            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new WhenChangedGenerator());
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator());
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
             Assert.Empty(newCompilation.GetDiagnostics().Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -367,7 +367,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .Build();
 
             Compilation compilation = CreateCompilation(userSource);
-            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new WhenChangedGenerator());
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator());
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
             Assert.Empty(newCompilation.GetDiagnostics().Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -408,7 +408,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .Build();
 
             Compilation compilation = CreateCompilation(userSource1, userSource2);
-            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new WhenChangedGenerator());
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator());
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
             Assert.Empty(newCompilation.GetDiagnostics().Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -462,7 +462,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .Build();
 
             Compilation compilation = CreateCompilation(userSource);
-            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new WhenChangedGenerator());
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator());
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
             Assert.Empty(newCompilation.GetDiagnostics().Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -496,7 +496,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .BuildMultiExpressionVersion();
 
             Compilation compilation = CreateCompilation(userSource);
-            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new WhenChangedGenerator());
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator());
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
             Assert.Empty(newCompilation.GetDiagnostics().Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -515,7 +515,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .BuildMultiExpressionVersionNestedOutputType();
 
             Compilation compilation = CreateCompilation(userSource);
-            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new WhenChangedGenerator());
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator());
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
             Assert.Empty(newCompilation.GetDiagnostics().Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -541,7 +541,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .Build();
 
             Compilation compilation = CreateCompilation(userSource);
-            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new WhenChangedGenerator());
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator());
             var diagnostics = newCompilation.GetDiagnostics();
 
             Assert.Empty(diagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -563,7 +563,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .Build();
 
             Compilation compilation = CreateCompilation(userSource);
-            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new WhenChangedGenerator());
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator());
             var diagnostics = newCompilation.GetDiagnostics();
 
             Assert.Empty(diagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -585,7 +585,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .Build();
 
             Compilation compilation = CreateCompilation(userSource);
-            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new WhenChangedGenerator());
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator());
             var diagnostics = newCompilation.GetDiagnostics();
 
             Assert.Empty(diagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -607,7 +607,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .Build();
 
             Compilation compilation = CreateCompilation(userSource);
-            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new WhenChangedGenerator());
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator());
             var diagnostics = newCompilation.GetDiagnostics();
 
             Assert.Empty(diagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -629,7 +629,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .Build();
 
             Compilation compilation = CreateCompilation(userSource);
-            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new WhenChangedGenerator());
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator());
             var diagnostics = newCompilation.GetDiagnostics();
 
             Assert.Empty(diagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));

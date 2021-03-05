@@ -8,6 +8,9 @@ using Microsoft.CodeAnalysis;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
+    /// <summary>
+    /// Single expression with a particular input/output type so it can return the chain directly without needing a dictionary.
+    /// </summary>
     internal sealed record SingleExpressionOptimizedImplMethodDatum : MethodDatum
     {
         public SingleExpressionOptimizedImplMethodDatum(string inputType, string outputType, Accessibility accessModifier, List<string> memberNames)

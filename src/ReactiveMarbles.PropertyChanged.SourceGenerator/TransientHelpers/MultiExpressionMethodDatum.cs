@@ -9,6 +9,9 @@ using Microsoft.CodeAnalysis;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
+    /// <summary>
+    /// Holds the data for the creating the implementation of obs1.CombineLatest(obs2, obs3, ..., conversionFunc).
+    /// </summary>
     internal sealed record MultiExpressionMethodDatum : MethodDatum
     {
         public MultiExpressionMethodDatum(Accessibility accessModifier, IEnumerable<string> typeNames, bool containsPrivateOrProtectedTypeArgument)

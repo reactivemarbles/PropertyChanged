@@ -12,6 +12,10 @@ namespace ReactiveMarbles.PropertyChanged
     {
         public List<InvocationExpressionSyntax> WhenChangedMethods { get; } = new();
 
+        public List<InvocationExpressionSyntax> BindMethods { get; } = new();
+
+        public List<InvocationExpressionSyntax> OneWayBindMethods { get; } = new();
+
         /// <inheritdoc />
         public void OnVisitSyntaxNode(SyntaxNode syntaxNode)
         {
@@ -23,6 +27,16 @@ namespace ReactiveMarbles.PropertyChanged
                 if (string.Equals(methodName, "WhenChanged"))
                 {
                     WhenChangedMethods.Add(invocationExpression);
+                }
+
+                if (string.Equals(methodName, "Bind"))
+                {
+                    BindMethods.Add(invocationExpression);
+                }
+
+                if (string.Equals(methodName, "OneWayBind"))
+                {
+                    OneWayBindMethods.Add(invocationExpression);
                 }
             }
         }

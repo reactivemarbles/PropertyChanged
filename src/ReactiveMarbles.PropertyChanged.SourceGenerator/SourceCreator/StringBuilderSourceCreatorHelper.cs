@@ -258,5 +258,15 @@ using System.Reactive.Linq;
             using StreamReader reader = new StreamReader(stream);
             return reader.ReadToEnd();
         }
+
+        public static string GetBindingStubClass()
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            const string resourceName = "ReactiveMarbles.PropertyChanged.SourceGenerator.BindExtensions.cs";
+
+            using Stream stream = assembly.GetManifestResourceStream(resourceName);
+            using StreamReader reader = new StreamReader(stream);
+            return reader.ReadToEnd();
+        }
     }
 }

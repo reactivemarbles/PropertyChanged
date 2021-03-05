@@ -14,52 +14,12 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
-    [Generator]
-    internal sealed class WhenChangedGenerator : ISourceGenerator
+    internal sealed class WhenChangedGenerator
     {
-        internal static readonly DiagnosticDescriptor ExpressionMustBeInline = new DiagnosticDescriptor(
-            id: "RXM001",
-            title: "Expression chain must be inline",
-            messageFormat: "The expression must be inline (e.g. not a variable or method invocation).",
-            category: "Compiler",
-            defaultSeverity: DiagnosticSeverity.Error,
-            isEnabledByDefault: true);
-
-        internal static readonly DiagnosticDescriptor OnlyPropertyAndFieldAccessAllowed = new DiagnosticDescriptor(
-            id: "RXM002",
-            title: "Expression chain may only consist of property and field access",
-            messageFormat: "The expression may only consist of field and property access",
-            category: "Compiler",
-            defaultSeverity: DiagnosticSeverity.Error,
-            isEnabledByDefault: true);
-
-        internal static readonly DiagnosticDescriptor LambdaParameterMustBeUsed = new DiagnosticDescriptor(
-            id: "RXM003",
-            title: "Lambda parameter must be used in expression chain",
-            messageFormat: "The lambda parameter must be used in the expression chain",
-            category: "Compiler",
-            defaultSeverity: DiagnosticSeverity.Error,
-            isEnabledByDefault: true);
-
         private const string ExtensionClassFullName = "NotifyPropertyChangedExtensions";
 
-        public void Initialize(GeneratorInitializationContext context)
+        public static void GenerateWhenChanged(GeneratorExecutionContext context, Compilation compilation, SyntaxReceiver syntaxReceiver)
         {
-            context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
-        }
-
-        public void Execute(GeneratorExecutionContext context)
-        {
-            CSharpParseOptions options = (context.Compilation as CSharpCompilation).SyntaxTrees[0].Options as CSharpParseOptions;
-            var stubSource = StringBuilderSourceCreatorHelper.GetWhenChangedStubClass();
-            Compilation compilation = context.Compilation.AddSyntaxTrees(CSharpSyntaxTree.ParseText(SourceText.From(stubSource, Encoding.UTF8), options));
-            context.AddSource("WhenChanged.Stubs.g.cs", SourceText.From(stubSource, Encoding.UTF8));
-
-            if (context.SyntaxReceiver is not SyntaxReceiver syntaxReceiver)
-            {
-                return;
-            }
-
             WhenChangedInvocationInfo whenChangedInvocationInfo = ExtractWhenChangedInvocationInfo(context, compilation, syntaxReceiver);
 
             if (!whenChangedInvocationInfo.AllExpressionArgumentsAreValid)
@@ -165,7 +125,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                                 // The argument is evaluates to an expression but it's not inline (could be a variable, method invocation, etc).
                                 context.ReportDiagnostic(
                                     Diagnostic.Create(
-                                        descriptor: ExpressionMustBeInline,
+                                        descriptor: DiagnosticWarnings.ExpressionMustBeInline,
                                         location: argument.GetLocation()));
 
                                 allExpressionArgumentsAreValid = false;
@@ -241,7 +201,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 // It stopped before reaching the lambda parameter, so the expression is invalid.
                 context.ReportDiagnostic(
                     Diagnostic.Create(
-                        descriptor: OnlyPropertyAndFieldAccessAllowed,
+                        descriptor: DiagnosticWarnings.OnlyPropertyAndFieldAccessAllowed,
                         location: expression.GetLocation()));
 
                 return null;
@@ -259,7 +219,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
             context.ReportDiagnostic(
                 Diagnostic.Create(
-                    descriptor: LambdaParameterMustBeUsed,
+                    descriptor: DiagnosticWarnings.LambdaParameterMustBeUsed,
                     location: lambdaExpression.Body.GetLocation()));
 
             return null;
