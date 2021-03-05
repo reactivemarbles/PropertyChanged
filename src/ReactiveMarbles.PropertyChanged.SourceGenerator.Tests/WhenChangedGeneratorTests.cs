@@ -15,8 +15,14 @@ using Xunit;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
 {
+    /// <summary>
+    /// Source generator tets.
+    /// </summary>
     public class WhenChangedGeneratorTests
     {
+        /// <summary>
+        /// Gets the testing data.
+        /// </summary>
         public static IEnumerable<object[]> Data =>
             new List<object[]>
             {
@@ -26,6 +32,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 new object[] { InvocationKind.Explicit, ReceiverKind.Instance },
             };
 
+        /// <summary>
+        /// Tests that there are no diagnostics are reported when invoked via this chain.
+        /// </summary>
+        /// <param name="invocationKind">Kind of the invocation.</param>
+        /// <param name="receiverKind">Kind of the receiver.</param>
         [Theory]
         [MemberData(nameof(Data))]
         public void NoDiagnosticsAreReported_When_InvokedViaThis_Chain(InvocationKind invocationKind, ReceiverKind receiverKind)
@@ -74,6 +85,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             Assert.Null(testValue);
         }
 
+        /// <summary>
+        /// Tests that no diagnostics are reported when property access modifier is protected.
+        /// </summary>
+        /// <param name="invocationKind">Kind of the invocation.</param>
+        /// <param name="receiverKind">Kind of the receiver.</param>
         [Theory]
         [InlineData(InvocationKind.MemberAccess, ReceiverKind.This)]
         [InlineData(InvocationKind.MemberAccess, ReceiverKind.Instance)]
@@ -107,6 +123,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             Assert.Null(testValue);
         }
 
+        /// <summary>
+        /// Tests that no diagnostics are reported when property access modifier is private.
+        /// </summary>
+        /// <param name="invocationKind">Kind of the invocation.</param>
+        /// <param name="receiverKind">Kind of the receiver.</param>
         [Theory]
         [InlineData(InvocationKind.MemberAccess, ReceiverKind.This)]
         [InlineData(InvocationKind.MemberAccess, ReceiverKind.Instance)]
@@ -140,6 +161,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             Assert.Null(testValue);
         }
 
+        /// <summary>
+        /// Tests that no diagnostics are reported when class is nested and protected and outer class is internal.
+        /// </summary>
+        /// <param name="invocationKind">Kind of the invocation.</param>
+        /// <param name="receiverKind">Kind of the receiver.</param>
         [Theory]
         [InlineData(InvocationKind.MemberAccess, ReceiverKind.This)]
         [InlineData(InvocationKind.MemberAccess, ReceiverKind.Instance)]
@@ -173,6 +199,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             Assert.Null(testValue);
         }
 
+        /// <summary>
+        /// Tests that no diagnostics are reported when class access modifier is public and no namespace and custom.
+        /// </summary>
+        /// <param name="invocationKind">Kind of the invocation.</param>
+        /// <param name="receiverKind">Kind of the receiver.</param>
         [Theory]
         [InlineData(InvocationKind.MemberAccess, ReceiverKind.This)]
         [InlineData(InvocationKind.MemberAccess, ReceiverKind.Instance)]
@@ -209,6 +240,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             Assert.Null(testValue);
         }
 
+        /// <summary>
+        /// Tests that no diagnostics are reported when class access modifier is public.
+        /// </summary>
+        /// <param name="invocationKind">Kind of the invocation.</param>
+        /// <param name="receiverKind">Kind of the receiver.</param>
         [Theory]
         [MemberData(nameof(Data))]
         public void NoDiagnosticsAreReported_When_ClassAccessModifierIsPublic(InvocationKind invocationKind, ReceiverKind receiverKind)
@@ -240,6 +276,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             Assert.Null(testValue);
         }
 
+        /// <summary>
+        /// Tests that no diagnostics are reported when class access modifier is internal.
+        /// </summary>
+        /// <param name="invocationKind">Kind of the invocation.</param>
+        /// <param name="receiverKind">Kind of the receiver.</param>
         [Theory]
         [MemberData(nameof(Data))]
         public void NoDiagnosticsAreReported_When_ClassAccessModifierIsInternal(InvocationKind invocationKind, ReceiverKind receiverKind)
@@ -271,6 +312,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             Assert.Null(testValue);
         }
 
+        /// <summary>
+        /// Tests that no diagnostics are reported when output type is internal.
+        /// </summary>
+        /// <param name="invocationKind">Kind of the invocation.</param>
+        /// <param name="receiverKind">Kind of the receiver.</param>
         [Theory]
         [MemberData(nameof(Data))]
         public void NoDiagnosticsAreReported_When_OutputTypeIsInternal(InvocationKind invocationKind, ReceiverKind receiverKind)
@@ -304,6 +350,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             Assert.Null(testValue);
         }
 
+        /// <summary>
+        /// Tests that no diagnostics are reported when output type is nested and private.
+        /// </summary>
+        /// <param name="invocationKind">Kind of the invocation.</param>
+        /// <param name="receiverKind">Kind of the receiver.</param>
         [Theory]
         [InlineData(InvocationKind.MemberAccess, ReceiverKind.This)]
         [InlineData(InvocationKind.MemberAccess, ReceiverKind.Instance)]
@@ -338,6 +389,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             Assert.Null(testValue);
         }
 
+        /// <summary>
+        /// Tests that no diagnostics are reported when two classes exist with the same.
+        /// </summary>
+        /// <param name="invocationKind">Kind of the invocation.</param>
+        /// <param name="receiverKind">Kind of the receiver.</param>
         [Theory]
         [MemberData(nameof(Data))]
         public void NoDiagnosticsAreReported_When_TwoClassesExistWithTheSameName(InvocationKind invocationKind, ReceiverKind receiverKind)
@@ -390,6 +446,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             Assert.Null(testValue2);
         }
 
+        /// <summary>
+        /// Tests that no diagnostics are reported when two invocations with a unique expression and same output type exist.
+        /// </summary>
+        /// <param name="invocationKind">Kind of the invocation.</param>
+        /// <param name="receiverKind">Kind of the receiver.</param>
         [Theory]
         [MemberData(nameof(Data))]
         public void NoDiagnosticsAreReported_When_TwoInvocationsWithAUniqueExpressionAndSameOutputTypeExist(InvocationKind invocationKind, ReceiverKind receiverKind)
@@ -422,6 +483,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             Assert.Null(testValue);
         }
 
+        /// <summary>
+        /// Tests that no diagnostics are reported when multiple output types exist with same name and multiple unique invocations involving each exist.
+        /// </summary>
+        /// <param name="invocationKind">Kind of the invocation.</param>
+        /// <param name="receiverKind">Kind of the receiver.</param>
         [Theory]
         [MemberData(nameof(Data))]
         public void NoDiagnosticsAreReported_When_MultipleOutputTypesExistWithSameName_And_MultipleUniqueInvocationsInvolvingEachExist(InvocationKind invocationKind, ReceiverKind receiverKind)
@@ -436,6 +502,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             Assert.Empty(newCompilation.GetDiagnostics().Where(x => x.Severity >= DiagnosticSeverity.Warning));
         }
 
+        /// <summary>
+        /// Tests that no diagnostics are reported when multi expression with nested protected output.
+        /// </summary>
+        /// <param name="invocationKind">Kind of the invocation.</param>
+        /// <param name="receiverKind">Kind of the receiver.</param>
         [Theory]
         [MemberData(nameof(Data))]
         public void NoDiagnosticsAreReported_When_MultiExpressionWithNestedProtectedOutputType(InvocationKind invocationKind, ReceiverKind receiverKind)
@@ -456,6 +527,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             observable.Subscribe();
         }
 
+        /// <summary>
+        /// Test that diagnostics are reported when property is used as an expression argument.
+        /// </summary>
+        /// <param name="invocationKind">Kind of the invocation.</param>
+        /// <param name="receiverKind">Kind of the receiver.</param>
         [Theory]
         [MemberData(nameof(Data))]
         public void DiagnosticIsReported_When_PropertyIsUsedAsAnExpressionArgument(InvocationKind invocationKind, ReceiverKind receiverKind)
@@ -473,6 +549,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             Assert.Equal(WhenChangedGenerator.ExpressionMustBeInline, generatorDiagnostics[0].Descriptor);
         }
 
+        /// <summary>
+        /// Tests that diagnostics is reported when method invocation is used as an expression argument.
+        /// </summary>
+        /// <param name="invocationKind">Kind of the invocation.</param>
+        /// <param name="receiverKind">Kind of the receiver.</param>
         [Theory]
         [MemberData(nameof(Data))]
         public void DiagnosticIsReported_When_MethodInvocationIsUsedAsAnExpressionArgument(InvocationKind invocationKind, ReceiverKind receiverKind)
@@ -490,6 +571,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             Assert.Equal(WhenChangedGenerator.ExpressionMustBeInline, generatorDiagnostics[0].Descriptor);
         }
 
+        /// <summary>
+        /// Tests that Diagnostics are reported when expression excludes lambda parameter.
+        /// </summary>
+        /// <param name="invocationKind">Kind of the invocation.</param>
+        /// <param name="receiverKind">Kind of the receiver.</param>
         [Theory]
         [MemberData(nameof(Data))]
         public void DiagnosticIsReported_When_ExpressionExcludesLambdaParameter(InvocationKind invocationKind, ReceiverKind receiverKind)
@@ -507,6 +593,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             Assert.Equal(WhenChangedGenerator.LambdaParameterMustBeUsed, generatorDiagnostics[0].Descriptor);
         }
 
+        /// <summary>
+        /// Tests that Diagnostics are reported when expression includes array access.
+        /// </summary>
+        /// <param name="invocationKind">Kind of the invocation.</param>
+        /// <param name="receiverKind">Kind of the receiver.</param>
         [Theory]
         [MemberData(nameof(Data))]
         public void DiagnosticIsReported_When_ExpressionIncludesArrayAccess(InvocationKind invocationKind, ReceiverKind receiverKind)
@@ -524,6 +615,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             Assert.Equal(WhenChangedGenerator.OnlyPropertyAndFieldAccessAllowed, generatorDiagnostics[0].Descriptor);
         }
 
+        /// <summary>
+        /// Tests that diagnostics are reported when expression includes method invocation.
+        /// </summary>
+        /// <param name="invocationKind">Kind of the invocation.</param>
+        /// <param name="receiverKind">Kind of the receiver.</param>
         [Theory]
         [MemberData(nameof(Data))]
         public void DiagnosticIsReported_When_ExpressionIncludesMethodInvocation(InvocationKind invocationKind, ReceiverKind receiverKind)

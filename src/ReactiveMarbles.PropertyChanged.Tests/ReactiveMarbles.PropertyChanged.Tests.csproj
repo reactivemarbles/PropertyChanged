@@ -9,6 +9,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="SourceGenerator\**" />
+    <EmbeddedResource Remove="SourceGenerator\**" />
+    <None Remove="SourceGenerator\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.9.1" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.console" Version="2.4.1" />
@@ -19,10 +25,6 @@
   
   <ItemGroup>
     <ProjectReference Include="..\ReactiveMarbles.PropertyChanged\ReactiveMarbles.PropertyChanged.csproj" />
-  </ItemGroup>
-  
-  <ItemGroup>
-    <Folder Include="SourceGenerator\" />
   </ItemGroup>
   
 </Project>

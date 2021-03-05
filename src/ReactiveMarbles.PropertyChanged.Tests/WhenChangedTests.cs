@@ -8,8 +8,14 @@ using Xunit;
 
 namespace ReactiveMarbles.PropertyChanged.Tests
 {
-    public class WhenPropertyChangesTest
+    /// <summary>
+    /// Whens the WhenChanged.
+    /// </summary>
+    public class WhenChangedTests
     {
+        /// <summary>
+        /// Checks to make sure that nested property value changes work.
+        /// </summary>
         [Fact]
         public void NestedPropertyValueChangedWork()
         {
@@ -32,6 +38,9 @@ namespace ReactiveMarbles.PropertyChanged.Tests
             Assert.Null(testValue);
         }
 
+        /// <summary>
+        /// Checks to make sure that property value changes work.
+        /// </summary>
         [Fact]
         public void PropertyValueChangedWork()
         {

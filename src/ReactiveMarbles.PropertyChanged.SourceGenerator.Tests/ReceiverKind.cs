@@ -4,10 +4,19 @@
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
 {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1602:Enumeration items should be documented", Justification = "Just for tests")]
+    /// <summary>
+    /// The type of receiver.
+    /// </summary>
     public enum ReceiverKind
     {
+        /// <summary>
+        /// The receiver is a 'this' reference.
+        /// </summary>
         This,
+
+        /// <summary>
+        /// The reciever is a instance reference.
+        /// </summary>
         Instance,
     }
 }

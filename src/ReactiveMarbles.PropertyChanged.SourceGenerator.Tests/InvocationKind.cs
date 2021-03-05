@@ -4,10 +4,19 @@
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
 {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1602:Enumeration items should be documented", Justification = "Just for tests")]
+    /// <summary>
+    /// The type of invocation.
+    /// </summary>
     public enum InvocationKind
     {
+        /// <summary>
+        /// The invocation is a member access.
+        /// </summary>
         MemberAccess,
+
+        /// <summary>
+        /// The invocation is explicit.
+        /// </summary>
         Explicit,
     }
 }

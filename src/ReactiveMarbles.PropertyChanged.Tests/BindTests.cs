@@ -8,8 +8,14 @@ using Xunit;
 
 namespace ReactiveMarbles.PropertyChanged.Tests
 {
+    /// <summary>
+    /// Tests to make sure that Bind works.
+    /// </summary>
     public class BindTests
     {
+        /// <summary>
+        /// Tests one way binding.
+        /// </summary>
         [Fact]
         public void OneWayBindTest()
         {
@@ -35,6 +41,9 @@ namespace ReactiveMarbles.PropertyChanged.Tests
             Assert.Null(bindToC.Test);
         }
 
+        /// <summary>
+        /// Tests one way binding with a converter.
+        /// </summary>
         [Fact]
         public void OneWayBindWithConverterTest()
         {
@@ -60,6 +69,9 @@ namespace ReactiveMarbles.PropertyChanged.Tests
             Assert.Equal("blah", bindToC.Test);
         }
 
+        /// <summary>
+        /// Tests two way binding.
+        /// </summary>
         [Fact]
         public void TwoWayBindTest()
         {
@@ -93,6 +105,9 @@ namespace ReactiveMarbles.PropertyChanged.Tests
             Assert.Equal("Test3", bindToC.Test);
         }
 
+        /// <summary>
+        /// Tests two way binding with a converter.
+        /// </summary>
         [Fact]
         public void TwoWayBindTestConverter()
         {

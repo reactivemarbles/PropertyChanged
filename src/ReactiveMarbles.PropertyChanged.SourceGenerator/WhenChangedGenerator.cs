@@ -115,14 +115,14 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             for (int i = 0; i < extensionClassData.Count; i++)
             {
                 var source = extensionClassCreator.Create(extensionClassData[i]);
-                context.AddSource($"WhenChanged.{extensionClassData[i].Name}{i.ToString()}.g.cs", SourceText.From(source, Encoding.UTF8));
+                context.AddSource($"WhenChanged.{extensionClassData[i].Name}{i}.g.cs", SourceText.From(source, Encoding.UTF8));
             }
 
             var partialClassCreator = new StringBuilderPartialClassCreator();
             for (int i = 0; i < partialClassData.Count; i++)
             {
                 var source = partialClassCreator.Create(partialClassData[i]);
-                context.AddSource($"{partialClassData[i].Name}{i.ToString()}.WhenChanged.g.cs", SourceText.From(source, Encoding.UTF8));
+                context.AddSource($"{partialClassData[i].Name}{i}.WhenChanged.g.cs", SourceText.From(source, Encoding.UTF8));
             }
         }
 
@@ -155,7 +155,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                                 var expressionChain = GetExpressionChain(context, lambdaExpression);
 
                                 var containsPrivateOrProtectedMember =
-                                    lambdaInputType.DeclaredAccessibility <= Microsoft.CodeAnalysis.Accessibility.Protected ||
+                                    lambdaInputType.DeclaredAccessibility <= Accessibility.Protected ||
                                     ContainsPrivateOrProtectedMember(compilation, model, lambdaExpression);
                                 expressionArguments.Add(new(lambdaExpression.Body.ToString(), expressionChain, lambdaInputType, lambdaOutputType, containsPrivateOrProtectedMember));
                                 allExpressionArgumentsAreValid &= expressionChain != null;
@@ -177,7 +177,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                     {
                         var minAccessibility = methodSymbol.TypeArguments.Min(x => x.DeclaredAccessibility);
                         var accessModifier = minAccessibility.ToString().ToLower();
-                        var containsPrivateOrProtectedTypeArgument = minAccessibility <= Microsoft.CodeAnalysis.Accessibility.Protected;
+                        var containsPrivateOrProtectedTypeArgument = minAccessibility <= Accessibility.Protected;
                         var typeNames = methodSymbol.TypeArguments.Select(x => x.ToDisplayString());
                         multiExpressionMethodData.Add(new(accessModifier, typeNames, containsPrivateOrProtectedTypeArgument));
                     }
@@ -301,7 +301,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 var propertyDeclarationSymbol = propertyDeclarationModel.GetDeclaredSymbol(propertyDeclarationSyntax);
                 var propertyAccessibility = propertyDeclarationSymbol.DeclaredAccessibility;
 
-                if (propertyAccessibility <= Microsoft.CodeAnalysis.Accessibility.Protected)
+                if (propertyAccessibility <= Accessibility.Protected)
                 {
                     return true;
                 }
