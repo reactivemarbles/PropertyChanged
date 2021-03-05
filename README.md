@@ -6,7 +6,7 @@ A framework for providing an observable with the latest value of a property expr
 Will use Expression trees on platforms that support it (no iOS based platforms). On iOS it will just use reflection. This provides a roughly 2x performance boost for those platforms that can use expression trees.
 
 ```cs
-this.WhenPropertyChanges(x => x.Property1.Property2.Property3);
+this.WhenChanged(x => x.Property1.Property2.Property3);
 ```
 
 The above will generate a `IObservable<T>` where T is the type of `Property3`. It will signal each time a value has changed. It is aware of all property changes in the property chain.
