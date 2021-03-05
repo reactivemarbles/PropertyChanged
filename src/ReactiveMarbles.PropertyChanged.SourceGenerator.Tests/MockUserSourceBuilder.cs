@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2019-2020 ReactiveUI Association Incorporated. All rights reserved.
+﻿// Copyright (c) 2019-2021 ReactiveUI Association Incorporated. All rights reserved.
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
@@ -260,7 +260,7 @@ using System.Runtime.CompilerServices;
 
         public string BuildTest()
         {
-            return $@"
+            return @"
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -268,7 +268,7 @@ using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 
 public class MyType : INotifyPropertyChanged
-{{
+{
     private Sample1.Output _output1;
     private Sample2.Output _output2;
     private MyType _child;
@@ -276,79 +276,79 @@ public class MyType : INotifyPropertyChanged
     public event PropertyChangedEventHandler PropertyChanged;
 
     public Sample1.Output Output1
-    {{
+    {
         get => _output1;
         set => RaiseAndSetIfChanged(ref _output1, value);
-    }}
+    }
 
     public Sample2.Output Output2
-    {{
+    {
         get => _output2;
         set => RaiseAndSetIfChanged(ref _output2, value);
-    }}
+    }
 
     public MyType Child
-    {{
+    {
         get => _child;
         set => RaiseAndSetIfChanged(ref _child, value);
-    }}
+    }
 
     public IObservable<Sample1.Output>[] GetWhenChangedObservables1()
-    {{
+    {
         var instance = this;
         return new IObservable<Sample1.Output>[]
-        {{
+        {
             this.WhenChanged(x => x.Output1),
             this.WhenChanged(x => x.Child.Output1),
-        }};
-    }}
+        };
+    }
 
     public IObservable<Sample2.Output>[] GetWhenChangedObservables2()
-    {{
+    {
         var instance = this;
         return new IObservable<Sample2.Output>[]
-        {{
+        {
             this.WhenChanged(x => x.Output2),
             this.WhenChanged(x => x.Child.Output2),
-        }};
-    }}
+        };
+    }
 
     protected void RaiseAndSetIfChanged<T>(ref T fieldValue, T value, [CallerMemberName] string propertyName = null)
-    {{
+    {
         if (EqualityComparer<T>.Default.Equals(fieldValue, value))
-        {{
+        {
             return;
-        }}
+        }
 
         fieldValue = value;
         OnPropertyChanged(propertyName);
-    }}
+    }
 
     protected virtual void OnPropertyChanged(string propertyName)
-    {{
+    {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }}
-}}
+    }
+}
 
 namespace Sample1
-{{
+{
     public class Output
-    {{
-    }}
-}}
+    {
+    }
+}
 
 namespace Sample2
-{{
+{
     public class Output
-    {{
-    }}
-}}
+    {
+    }
+}
 ";
         }
 
         public string BuildMultiExpressionVersion()
         {
-            return $@"
+            return @"
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -356,7 +356,7 @@ using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 
 public partial class SampleClass : INotifyPropertyChanged
-{{
+{
     private MyClass _value;
     private string _stringValue;
     private SampleClass _child;
@@ -364,54 +364,54 @@ public partial class SampleClass : INotifyPropertyChanged
     public event PropertyChangedEventHandler PropertyChanged;
 
     protected MyClass Value
-    {{
+    {
         get => _value;
         set => RaiseAndSetIfChanged(ref _value, value);
-    }}
+    }
 
     public string StringValue
-    {{
+    {
         get => _stringValue;
         set => RaiseAndSetIfChanged(ref _stringValue, value);
-    }}
+    }
 
     public SampleClass Child
-    {{
+    {
         get => _child;
         set => RaiseAndSetIfChanged(ref _child, value);
-    }}
+    }
 
     public IObservable<MyClass> GetWhenChangedObservable()
-    {{
+    {
         return this.WhenChanged(x => x.Value, x => x.StringValue, (a, b) => a);
-    }}
+    }
 
     protected void RaiseAndSetIfChanged<T>(ref T fieldValue, T value, [CallerMemberName] string propertyName = null)
-    {{
+    {
         if (EqualityComparer<T>.Default.Equals(fieldValue, value))
-        {{
+        {
             return;
-        }}
+        }
 
         fieldValue = value;
         OnPropertyChanged(propertyName);
-    }}
+    }
 
     protected virtual void OnPropertyChanged(string propertyName)
-    {{
+    {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }}
-}}
+    }
+}
 
 public class MyClass
-{{
-}}
+{
+}
 ";
         }
 
         public string BuildMultiExpressionVersionNestedOutputType()
         {
-            return $@"
+            return @"
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -419,7 +419,7 @@ using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 
 public partial class SampleClass : INotifyPropertyChanged
-{{
+{
     private MyClass _value;
     private string _stringValue;
     private SampleClass _child;
@@ -427,48 +427,48 @@ public partial class SampleClass : INotifyPropertyChanged
     public event PropertyChangedEventHandler PropertyChanged;
 
     protected MyClass Value
-    {{
+    {
         get => _value;
         set => RaiseAndSetIfChanged(ref _value, value);
-    }}
+    }
 
     public string StringValue
-    {{
+    {
         get => _stringValue;
         set => RaiseAndSetIfChanged(ref _stringValue, value);
-    }}
+    }
 
     public SampleClass Child
-    {{
+    {
         get => _child;
         set => RaiseAndSetIfChanged(ref _child, value);
-    }}
+    }
 
     protected IObservable<MyClass> GetWhenChangedObservable()
-    {{
+    {
         return this.WhenChanged(x => x.Value, x => x.StringValue, (a, b) => a);
-    }}
+    }
 
     protected void RaiseAndSetIfChanged<T>(ref T fieldValue, T value, [CallerMemberName] string propertyName = null)
-    {{
+    {
         if (EqualityComparer<T>.Default.Equals(fieldValue, value))
-        {{
+        {
             return;
-        }}
+        }
 
         fieldValue = value;
         OnPropertyChanged(propertyName);
-    }}
+    }
 
     protected virtual void OnPropertyChanged(string propertyName)
-    {{
+    {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }}
+    }
 
     protected class MyClass
-    {{
-    }}
-}}
+    {
+    }
+}
 ";
         }
 

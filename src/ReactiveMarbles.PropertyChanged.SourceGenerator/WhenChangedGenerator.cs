@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2019-2020 ReactiveUI Association Incorporated. All rights reserved.
+﻿// Copyright (c) 2019-2021 ReactiveUI Association Incorporated. All rights reserved.
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
@@ -53,7 +53,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             CSharpParseOptions options = (context.Compilation as CSharpCompilation).SyntaxTrees[0].Options as CSharpParseOptions;
             var stubSource = StringBuilderSourceCreatorHelper.GetWhenChangedStubClass();
             Compilation compilation = context.Compilation.AddSyntaxTrees(CSharpSyntaxTree.ParseText(SourceText.From(stubSource, Encoding.UTF8), options));
-            context.AddSource($"WhenChanged.Stubs.g.cs", SourceText.From(stubSource, Encoding.UTF8));
+            context.AddSource("WhenChanged.Stubs.g.cs", SourceText.From(stubSource, Encoding.UTF8));
 
             if (context.SyntaxReceiver is not SyntaxReceiver syntaxReceiver)
             {
