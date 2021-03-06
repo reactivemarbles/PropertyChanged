@@ -546,7 +546,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
 
             Assert.Empty(diagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
             Assert.Single(generatorDiagnostics);
-            Assert.Equal(WhenChangedGenerator.ExpressionMustBeInline, generatorDiagnostics[0].Descriptor);
+            Assert.Equal(DiagnosticWarnings.ExpressionMustBeInline, generatorDiagnostics[0].Descriptor);
         }
 
         /// <summary>
@@ -568,7 +568,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
 
             Assert.Empty(diagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
             Assert.Single(generatorDiagnostics);
-            Assert.Equal(WhenChangedGenerator.ExpressionMustBeInline, generatorDiagnostics[0].Descriptor);
+            Assert.Equal(DiagnosticWarnings.ExpressionMustBeInline, generatorDiagnostics[0].Descriptor);
         }
 
         /// <summary>
@@ -590,7 +590,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
 
             Assert.Empty(diagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
             Assert.Single(generatorDiagnostics);
-            Assert.Equal(WhenChangedGenerator.LambdaParameterMustBeUsed, generatorDiagnostics[0].Descriptor);
+            Assert.Equal(DiagnosticWarnings.LambdaParameterMustBeUsed, generatorDiagnostics[0].Descriptor);
         }
 
         /// <summary>
@@ -612,7 +612,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
 
             Assert.Empty(diagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
             Assert.Single(generatorDiagnostics);
-            Assert.Equal(WhenChangedGenerator.OnlyPropertyAndFieldAccessAllowed, generatorDiagnostics[0].Descriptor);
+            Assert.Equal(DiagnosticWarnings.OnlyPropertyAndFieldAccessAllowed, generatorDiagnostics[0].Descriptor);
         }
 
         /// <summary>
@@ -634,7 +634,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
 
             Assert.Empty(diagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
             Assert.Single(generatorDiagnostics);
-            Assert.Equal(WhenChangedGenerator.OnlyPropertyAndFieldAccessAllowed, generatorDiagnostics[0].Descriptor);
+            Assert.Equal(DiagnosticWarnings.OnlyPropertyAndFieldAccessAllowed, generatorDiagnostics[0].Descriptor);
         }
 
         private static object CreateInstance(Type type)
