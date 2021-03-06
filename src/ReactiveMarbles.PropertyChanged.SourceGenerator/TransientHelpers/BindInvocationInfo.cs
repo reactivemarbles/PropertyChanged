@@ -8,7 +8,9 @@ using System.Text;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator.TransientHelpers
 {
-    internal sealed record BindInvocationInfo
-    {
-    }
+    internal sealed record BindInvocationInfo(
+        bool AllExpressionArgumentsAreValid,
+        HashSet<ExpressionArgument> ViewModelExpressionArguments,
+        HashSet<ExpressionArgument> ViewExpressionArguments,
+        HashSet<MultiExpressionMethodDatum> MultiExpressionMethodData);
 }
