@@ -36,7 +36,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 var valueChainSb = new StringBuilder();
                 foreach (var memberName in entry.MemberNames)
                 {
-                    valueChainSb.Append(StringBuilderSourceCreatorHelper.GetMapEntryChain(memberName));
+                    valueChainSb.Append(StringBuilderSourceCreatorHelper.GetMapEntryChain(methodDatum.InputTypeName, methodDatum.OutputTypeName, memberName));
                 }
 
                 mapEntrySb.Append(StringBuilderSourceCreatorHelper.GetMapEntry(entry.Key, valueChainSb.ToString()));
@@ -53,7 +53,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             var sb = new StringBuilder();
             foreach (var memberName in methodDatum.MemberNames)
             {
-                sb.Append(StringBuilderSourceCreatorHelper.GetMapEntryChain(memberName));
+                sb.Append(StringBuilderSourceCreatorHelper.GetMapEntryChain(methodDatum.InputTypeName, methodDatum.OutputTypeName, memberName));
             }
 
             return StringBuilderSourceCreatorHelper.GetPartialClassWhenChangedMethodForDirectReturn(methodDatum.InputTypeName, methodDatum.OutputTypeName, methodDatum.AccessModifier, sb.ToString());

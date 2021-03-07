@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for full license information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -26,16 +27,16 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
             for (int i = 0; i < counter; i++)
             {
-                sb.AppendLine($"        Expression<Func<{inputType}, {tempReturnTypes[i]}>> propertyExpression{i + 1},");
+                sb.Append("        Func<").Append(inputType).Append(", ").Append(tempReturnTypes[i]).Append("> propertyExpression").Append(i + 1).AppendLine(",");
             }
 
             sb.Append("        Func<");
             for (int i = 0; i < counter; i++)
             {
-                sb.Append($"{tempReturnTypes[i]}, ");
+                sb.Append(tempReturnTypes[i]).Append(", ");
             }
 
-            sb.Append($"{outputType}> conversionFunc)");
+            sb.Append(outputType).Append("> conversionFunc)");
 
             return sb.ToString();
         }
@@ -45,13 +46,13 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             var sb = new StringBuilder();
             for (int i = 0; i < counter; i++)
             {
-                sb.AppendLine($"        var obs{i + 1} = objectToMonitor.WhenChanged(propertyExpression{i + 1});");
+                sb.Append("        var obs").Append(i + 1).Append(" = objectToMonitor.WhenChanged(propertyExpression").Append(i + 1).AppendLine(");");
             }
 
             sb.Append("        return obs1.CombineLatest(");
             for (int i = 1; i < counter; i++)
             {
-                sb.Append($"obs{i + 1}, ");
+                sb.Append("obs").Append(i + 1).Append(", ");
             }
 
             sb.Append("conversionFunc);");
@@ -64,13 +65,13 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             var sb = new StringBuilder();
             for (int i = 0; i < counter; i++)
             {
-                sb.AppendLine($"        var obs{i + 1} = this.WhenChanged(propertyExpression{i + 1});");
+                sb.Append("        var obs").Append(i + 1).Append(" = this.WhenChanged(propertyExpression").Append(i + 1).AppendLine(");");
             }
 
             sb.Append("        return obs1.CombineLatest(");
             for (int i = 1; i < counter; i++)
             {
-                sb.Append($"obs{i + 1}, ");
+                sb.Append("obs").Append(i + 1).Append(", ");
             }
 
             sb.Append("conversionFunc);");
@@ -111,9 +112,36 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 ";
         }
 
+        public static string GetObservableCreation(string inputType, string inputName, string outputType, string memberName)
+        {
+            return $@"Observable.Create<{outputType}>(
+                observer =>
+                {{
+                    PropertyChangedEventHandler handler = (object sender, PropertyChangedEventArgs e) =>
+                    {{
+                        var input = ({inputType}){inputName};
+                        if (e.PropertyName == ""{memberName}"")
+                        {{
+                            observer.OnNext(input.{memberName});
+                        }}
+                    }};
+
+                    {inputName}.PropertyChanged += handler;
+
+                    return Disposable.Create((parent: {inputName}, handler), x => x.parent.PropertyChanged -= x.handler);
+                }})
+            .StartWith({inputName}.{memberName})";
+        }
+
         public static string GetWhenChangedMethodForDirectReturn(string inputType, string outputType, Accessibility accessModifier, string valueChain)
         {
             return $@"
+    /// <summary>
+    /// Generates a IObservable which signals with updated property value changes.
+    /// </summary>
+    /// <param name=""source"">The source of the property changes.</param>
+    /// <param name=""propertyExpression"">The property.</param>
+    /// <returns>The observable which signals with updates.</returns>
     {accessModifier.ToFriendlyString()} static IObservable<{outputType}> WhenChanged(this {inputType} source, Expression<Func<{inputType}, {outputType}>> propertyExpression)
     {{
         return Observable.Return(source){valueChain};
@@ -121,11 +149,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 ";
         }
 
-        public static string GetMapEntryChain(string memberName)
+        public static string GetMapEntryChain(string inputType, string outputType, string memberName)
         {
             return $@"
                 .Where(x => x != null)
-                .Select(x => GenerateObservable(x, ""{memberName}"", y => y.{memberName}))
+                .Select(x => {GetObservableCreation(inputType, "x", outputType, memberName)})
                 .Switch()";
         }
 
@@ -153,7 +181,9 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             return $@"
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq.Expressions;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 
 public static partial class NotifyPropertyChangedExtensions
@@ -169,30 +199,6 @@ public static partial class NotifyPropertyChangedExtensions
 {accessModifier.ToFriendlyString()} partial class {className}
 {{
     {body}
-
-    private static IObservable<T> GenerateObservable<TObj, T>(
-            TObj parent,
-            string memberName,
-            Func<TObj, T> getter)
-        where TObj : INotifyPropertyChanged
-    {{
-        return Observable.Create<T>(
-                observer =>
-                {{
-                    PropertyChangedEventHandler handler = (object sender, PropertyChangedEventArgs e) =>
-                    {{
-                        if (e.PropertyName == memberName)
-                        {{
-                            observer.OnNext(getter(parent));
-                        }}
-                    }};
-
-                    parent.PropertyChanged += handler;
-
-                    return Disposable.Create((parent, handler), x => x.parent.PropertyChanged -= x.handler);
-                }})
-            .StartWith(getter(parent));
-    }}
 }}
 ";
 
@@ -244,7 +250,7 @@ using System.Reactive.Linq;
             return $@"
     {accessModifier.ToFriendlyString()} IObservable<{outputType}> WhenChanged(Expression<Func<{inputType}, {outputType}>> propertyExpression)
     {{
-        return Observable.Return(this){valueChain};
+        return {GetObservableCreation(inputType, "x", outputType, valueChain)};
     }}
 ";
         }

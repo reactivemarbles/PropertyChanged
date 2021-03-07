@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2020 ReactiveUI Association Incorporated. All rights reserved.
+﻿// Copyright (c) 2019-2021 ReactiveUI Association Incorporated. All rights reserved.
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
@@ -21,15 +21,13 @@ public static partial class NotifyPropertyChangedExtensions
     /// <typeparam name="TObj">The type of initial object.</typeparam>
     /// <typeparam name="TReturn">The eventual return value.</typeparam>
     /// <returns>An observable that signals when the property specified in the expression has changed.</returns>
-    /// <exception cref="ArgumentNullException">Either the property expression or the object to monitor is null.</exception>
-    /// <exception cref="ArgumentException">If there is an issue with the property expression.</exception>
     public static IObservable<TReturn> WhenChanged<TObj, TReturn>(this TObj objectToMonitor, Expression<Func<TObj, TReturn>> propertyExpression)
         where TObj : INotifyPropertyChanged
     {
         throw new Exception("The impementation should have been generated.");
     }
 
-        /// <summary>
+    /// <summary>
     /// Notifies when the specified property changes.
     /// </summary>
     /// <param name="objectToMonitor">The object to monitor.</param>
@@ -41,8 +39,6 @@ public static partial class NotifyPropertyChangedExtensions
     /// <typeparam name="TTempReturn2">The return type of the value2.</typeparam>
     /// <typeparam name="TReturn">The return value of the observable. Generated from the conversion func.</typeparam>
     /// <returns>An observable that signals when the properties specified in the expressions have changed.</returns>
-    /// <exception cref="ArgumentNullException">Either the property expression or the object to monitor is null.</exception>
-    /// <exception cref="ArgumentException">If there is an issue with the property expression.</exception>
     public static IObservable<TReturn> WhenChanged<TObj, TTempReturn1, TTempReturn2, TReturn>(
         this TObj objectToMonitor,
         Expression<Func<TObj, TTempReturn1>> propertyExpression1,
@@ -50,7 +46,7 @@ public static partial class NotifyPropertyChangedExtensions
         Func<TTempReturn1, TTempReturn2, TReturn> conversionFunc)
             where TObj : class, INotifyPropertyChanged
     {
-        throw new Exception("The impementation should have been generated.");
+        throw new NotImplementedException("The impementation should have been generated.");
     }
 
     /// <summary>
@@ -67,8 +63,6 @@ public static partial class NotifyPropertyChangedExtensions
     /// <typeparam name="TTempReturn3">The return type of the value3.</typeparam>
     /// <typeparam name="TReturn">The return value of the observable. Generated from the conversion func.</typeparam>
     /// <returns>An observable that signals when the properties specified in the expressions have changed.</returns>
-    /// <exception cref="ArgumentNullException">Either the property expression or the object to monitor is null.</exception>
-    /// <exception cref="ArgumentException">If there is an issue with the property expression.</exception>
     public static IObservable<TReturn> WhenChanged<TObj, TTempReturn1, TTempReturn2, TTempReturn3, TReturn>(
         this TObj objectToMonitor,
         Expression<Func<TObj, TTempReturn1>> propertyExpression1,
@@ -77,7 +71,7 @@ public static partial class NotifyPropertyChangedExtensions
         Func<TTempReturn1, TTempReturn2, TTempReturn3, TReturn> conversionFunc)
             where TObj : class, INotifyPropertyChanged
     {
-        throw new Exception("The impementation should have been generated.");
+        throw new NotImplementedException("The impementation should have been generated.");
     }
 
     /// <summary>
@@ -96,8 +90,6 @@ public static partial class NotifyPropertyChangedExtensions
     /// <typeparam name="TTempReturn4">The return type of the value4.</typeparam>
     /// <typeparam name="TReturn">The return value of the observable. Generated from the conversion func.</typeparam>
     /// <returns>An observable that signals when the properties specified in the expressions have changed.</returns>
-    /// <exception cref="ArgumentNullException">Either the property expression or the object to monitor is null.</exception>
-    /// <exception cref="ArgumentException">If there is an issue with the property expression.</exception>
     public static IObservable<TReturn> WhenChanged<TObj, TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TReturn>(
         this TObj objectToMonitor,
         Expression<Func<TObj, TTempReturn1>> propertyExpression1,
@@ -107,7 +99,7 @@ public static partial class NotifyPropertyChangedExtensions
         Func<TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TReturn> conversionFunc)
             where TObj : class, INotifyPropertyChanged
     {
-        throw new Exception("The impementation should have been generated.");
+        throw new NotImplementedException("The impementation should have been generated.");
     }
 
     /// <summary>
@@ -128,8 +120,6 @@ public static partial class NotifyPropertyChangedExtensions
     /// <typeparam name="TTempReturn5">The return type of the value5.</typeparam>
     /// <typeparam name="TReturn">The return value of the observable. Generated from the conversion func.</typeparam>
     /// <returns>An observable that signals when the properties specified in the expressions have changed.</returns>
-    /// <exception cref="ArgumentNullException">Either the property expression or the object to monitor is null.</exception>
-    /// <exception cref="ArgumentException">If there is an issue with the property expression.</exception>
     public static IObservable<TReturn> WhenChanged<TObj, TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TReturn>(
         this TObj objectToMonitor,
         Expression<Func<TObj, TTempReturn1>> propertyExpression1,
@@ -140,7 +130,7 @@ public static partial class NotifyPropertyChangedExtensions
         Func<TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TReturn> conversionFunc)
             where TObj : class, INotifyPropertyChanged
     {
-        throw new Exception("The impementation should have been generated.");
+        throw new NotImplementedException("The impementation should have been generated.");
     }
 
     /// <summary>
@@ -163,8 +153,6 @@ public static partial class NotifyPropertyChangedExtensions
     /// <typeparam name="TTempReturn6">The return type of the value6.</typeparam>
     /// <typeparam name="TReturn">The return value of the observable. Generated from the conversion func.</typeparam>
     /// <returns>An observable that signals when the properties specified in the expressions have changed.</returns>
-    /// <exception cref="ArgumentNullException">Either the property expression or the object to monitor is null.</exception>
-    /// <exception cref="ArgumentException">If there is an issue with the property expression.</exception>
     public static IObservable<TReturn> WhenChanged<TObj, TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TReturn>(
         this TObj objectToMonitor,
         Expression<Func<TObj, TTempReturn1>> propertyExpression1,
@@ -176,7 +164,7 @@ public static partial class NotifyPropertyChangedExtensions
         Func<TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TReturn> conversionFunc)
             where TObj : class, INotifyPropertyChanged
     {
-        throw new Exception("The impementation should have been generated.");
+        throw new NotImplementedException("The impementation should have been generated.");
     }
 
     /// <summary>
@@ -201,8 +189,6 @@ public static partial class NotifyPropertyChangedExtensions
     /// <typeparam name="TTempReturn7">The return type of the value7.</typeparam>
     /// <typeparam name="TReturn">The return value of the observable. Generated from the conversion func.</typeparam>
     /// <returns>An observable that signals when the properties specified in the expressions have changed.</returns>
-    /// <exception cref="ArgumentNullException">Either the property expression or the object to monitor is null.</exception>
-    /// <exception cref="ArgumentException">If there is an issue with the property expression.</exception>
     public static IObservable<TReturn> WhenChanged<TObj, TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TTempReturn7, TReturn>(
         this TObj objectToMonitor,
         Expression<Func<TObj, TTempReturn1>> propertyExpression1,
@@ -215,7 +201,7 @@ public static partial class NotifyPropertyChangedExtensions
         Func<TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TTempReturn7, TReturn> conversionFunc)
             where TObj : class, INotifyPropertyChanged
     {
-        throw new Exception("The impementation should have been generated.");
+        throw new NotImplementedException("The impementation should have been generated.");
     }
 
     /// <summary>
@@ -242,8 +228,6 @@ public static partial class NotifyPropertyChangedExtensions
     /// <typeparam name="TTempReturn8">The return type of the value8.</typeparam>
     /// <typeparam name="TReturn">The return value of the observable. Generated from the conversion func.</typeparam>
     /// <returns>An observable that signals when the properties specified in the expressions have changed.</returns>
-    /// <exception cref="ArgumentNullException">Either the property expression or the object to monitor is null.</exception>
-    /// <exception cref="ArgumentException">If there is an issue with the property expression.</exception>
     public static IObservable<TReturn> WhenChanged<TObj, TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TTempReturn7, TTempReturn8, TReturn>(
         this TObj objectToMonitor,
         Expression<Func<TObj, TTempReturn1>> propertyExpression1,
@@ -257,7 +241,7 @@ public static partial class NotifyPropertyChangedExtensions
         Func<TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TTempReturn7, TTempReturn8, TReturn> conversionFunc)
             where TObj : class, INotifyPropertyChanged
     {
-        throw new Exception("The impementation should have been generated.");
+        throw new NotImplementedException("The impementation should have been generated.");
     }
 
     /// <summary>
@@ -286,8 +270,6 @@ public static partial class NotifyPropertyChangedExtensions
     /// <typeparam name="TTempReturn9">The return type of the value9.</typeparam>
     /// <typeparam name="TReturn">The return value of the observable. Generated from the conversion func.</typeparam>
     /// <returns>An observable that signals when the properties specified in the expressions have changed.</returns>
-    /// <exception cref="ArgumentNullException">Either the property expression or the object to monitor is null.</exception>
-    /// <exception cref="ArgumentException">If there is an issue with the property expression.</exception>
     public static IObservable<TReturn> WhenChanged<TObj, TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TTempReturn7, TTempReturn8, TTempReturn9, TReturn>(
         this TObj objectToMonitor,
         Expression<Func<TObj, TTempReturn1>> propertyExpression1,
@@ -302,7 +284,7 @@ public static partial class NotifyPropertyChangedExtensions
         Func<TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TTempReturn7, TTempReturn8, TTempReturn9, TReturn> conversionFunc)
             where TObj : class, INotifyPropertyChanged
     {
-        throw new Exception("The impementation should have been generated.");
+        throw new NotImplementedException("The impementation should have been generated.");
     }
 
     /// <summary>
@@ -333,8 +315,6 @@ public static partial class NotifyPropertyChangedExtensions
     /// <typeparam name="TTempReturn10">The return type of the value10.</typeparam>
     /// <typeparam name="TReturn">The return value of the observable. Generated from the conversion func.</typeparam>
     /// <returns>An observable that signals when the properties specified in the expressions have changed.</returns>
-    /// <exception cref="ArgumentNullException">Either the property expression or the object to monitor is null.</exception>
-    /// <exception cref="ArgumentException">If there is an issue with the property expression.</exception>
     public static IObservable<TReturn> WhenChanged<TObj, TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TTempReturn7, TTempReturn8, TTempReturn9, TTempReturn10, TReturn>(
         this TObj objectToMonitor,
         Expression<Func<TObj, TTempReturn1>> propertyExpression1,
@@ -350,7 +330,7 @@ public static partial class NotifyPropertyChangedExtensions
         Func<TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TTempReturn7, TTempReturn8, TTempReturn9, TTempReturn10, TReturn> conversionFunc)
             where TObj : class, INotifyPropertyChanged
     {
-        throw new Exception("The impementation should have been generated.");
+        throw new NotImplementedException("The impementation should have been generated.");
     }
 
     /// <summary>
@@ -383,8 +363,6 @@ public static partial class NotifyPropertyChangedExtensions
     /// <typeparam name="TTempReturn11">The return type of the value11.</typeparam>
     /// <typeparam name="TReturn">The return value of the observable. Generated from the conversion func.</typeparam>
     /// <returns>An observable that signals when the properties specified in the expressions have changed.</returns>
-    /// <exception cref="ArgumentNullException">Either the property expression or the object to monitor is null.</exception>
-    /// <exception cref="ArgumentException">If there is an issue with the property expression.</exception>
     public static IObservable<TReturn> WhenChanged<TObj, TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TTempReturn7, TTempReturn8, TTempReturn9, TTempReturn10, TTempReturn11, TReturn>(
         this TObj objectToMonitor,
         Expression<Func<TObj, TTempReturn1>> propertyExpression1,
@@ -401,7 +379,7 @@ public static partial class NotifyPropertyChangedExtensions
         Func<TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TTempReturn7, TTempReturn8, TTempReturn9, TTempReturn10, TTempReturn11, TReturn> conversionFunc)
             where TObj : class, INotifyPropertyChanged
     {
-        throw new Exception("The impementation should have been generated.");
+        throw new NotImplementedException("The impementation should have been generated.");
     }
 
     /// <summary>
@@ -436,8 +414,6 @@ public static partial class NotifyPropertyChangedExtensions
     /// <typeparam name="TTempReturn12">The return type of the value12.</typeparam>
     /// <typeparam name="TReturn">The return value of the observable. Generated from the conversion func.</typeparam>
     /// <returns>An observable that signals when the properties specified in the expressions have changed.</returns>
-    /// <exception cref="ArgumentNullException">Either the property expression or the object to monitor is null.</exception>
-    /// <exception cref="ArgumentException">If there is an issue with the property expression.</exception>
     public static IObservable<TReturn> WhenChanged<TObj, TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TTempReturn7, TTempReturn8, TTempReturn9, TTempReturn10, TTempReturn11, TTempReturn12, TReturn>(
         this TObj objectToMonitor,
         Expression<Func<TObj, TTempReturn1>> propertyExpression1,
@@ -455,7 +431,7 @@ public static partial class NotifyPropertyChangedExtensions
         Func<TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TTempReturn7, TTempReturn8, TTempReturn9, TTempReturn10, TTempReturn11, TTempReturn12, TReturn> conversionFunc)
             where TObj : class, INotifyPropertyChanged
     {
-        throw new Exception("The impementation should have been generated.");
+        throw new NotImplementedException("The impementation should have been generated.");
     }
 
     private static IObservable<T> GenerateObservable<TObj, T>(

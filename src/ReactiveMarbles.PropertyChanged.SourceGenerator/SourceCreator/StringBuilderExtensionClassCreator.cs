@@ -30,13 +30,16 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 var valueChainSb = new StringBuilder();
                 foreach (var memberName in entry.MemberNames)
                 {
-                    valueChainSb.Append(StringBuilderSourceCreatorHelper.GetMapEntryChain(memberName));
+                    valueChainSb.Append(StringBuilderSourceCreatorHelper.GetMapEntryChain(methodDatum.InputTypeName, methodDatum.OutputTypeName, memberName));
                 }
 
                 mapEntrySb.Append(StringBuilderSourceCreatorHelper.GetMapEntry(entry.Key, valueChainSb.ToString()));
             }
 
-            var map = StringBuilderSourceCreatorHelper.GetMap(methodDatum.InputTypeName, methodDatum.OutputTypeName, methodDatum.Map.MapName, mapEntrySb.ToString());
+            var mapEntryString = mapEntrySb.ToString();
+
+            var map = StringBuilderSourceCreatorHelper.GetMap(methodDatum.InputTypeName, methodDatum.OutputTypeName, methodDatum.Map.MapName, mapEntryString);
+
             var method = StringBuilderSourceCreatorHelper.GetWhenChangedMethodForMap(methodDatum.InputTypeName, methodDatum.OutputTypeName, methodDatum.AccessModifier, methodDatum.Map.MapName);
 
             return map + "\n" + method;
@@ -47,7 +50,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             var sb = new StringBuilder();
             foreach (var memberName in methodDatum.MemberNames)
             {
-                sb.Append(StringBuilderSourceCreatorHelper.GetMapEntryChain(memberName));
+                sb.Append(StringBuilderSourceCreatorHelper.GetMapEntryChain(methodDatum.InputTypeName, methodDatum.OutputTypeName, memberName));
             }
 
             return StringBuilderSourceCreatorHelper.GetWhenChangedMethodForDirectReturn(methodDatum.InputTypeName, methodDatum.OutputTypeName, methodDatum.AccessModifier, sb.ToString());

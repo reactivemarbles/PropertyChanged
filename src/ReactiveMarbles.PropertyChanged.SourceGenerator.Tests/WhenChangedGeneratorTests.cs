@@ -134,6 +134,49 @@ namespace Foo
         }
 
         /// <summary>
+        /// Tests the basic generation explicit works.
+        /// </summary>
+        [Fact]
+        public void TestBasicGenerationWithMultipleNestedWorks()
+        {
+            string source = @"
+using System;
+using System.ComponentModel;
+
+namespace Foo
+{
+    public class A : INotifyPropertyChanged
+    {
+        public A()
+        {
+            this.WhenChanged(x => x.BValue.MyString1, x => x.BValue.Child.Child.MyString2, (x, y) => x + ' ' + y).Subscribe(Console.WriteLine);
+        }
+
+        public B BValue { get; set; }
+    }
+    
+    public class B : INotifyPropertyChanged
+    {
+        public B()
+        {
+            this.WhenChanged(x => x.MyString1, x => x.MyString2, (x, y) => x + ' ' + y).Subscribe(Console.WriteLine);
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public string MyString1 { get; set; }
+        public string MyString2 { get; set; }
+
+        public B Child { get; set; }
+    }
+}";
+
+            var generatedSource = GetGeneratedOutput(source);
+
+            Assert.NotNull(generatedSource);
+        }
+
+        /// <summary>
         /// Tests that there are no diagnostics are reported when invoked via this chain.
         /// </summary>
         /// <param name="invocationKind">Kind of the invocation.</param>
