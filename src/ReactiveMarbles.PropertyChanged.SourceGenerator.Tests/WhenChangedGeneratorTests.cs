@@ -33,6 +33,107 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             };
 
         /// <summary>
+        /// Tests the basic generation works.
+        /// </summary>
+        [Fact]
+        public void TestBasicGenerationWorks()
+        {
+            string source = @"
+using System;
+using System.ComponentModel;
+
+namespace Foo
+{
+    public class C : INotifyPropertyChanged
+    {
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public C()
+        {
+            this.WhenChanged(x => x.MyProperty).Subscribe(Console.WriteLine);
+        }
+
+        public string MyProperty { get; set; }
+
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }    
+}";
+
+            var generatedSource = GetGeneratedOutput(source);
+
+            Assert.NotNull(generatedSource);
+        }
+
+        /// <summary>
+        /// Tests the basic generation explicit works.
+        /// </summary>
+        [Fact]
+        public void TestBasicGenerationExplicitWorks()
+        {
+            string source = @"
+using System;
+using System.ComponentModel;
+
+namespace Foo
+{
+    public class C : INotifyPropertyChanged
+    {
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public C()
+        {
+            NotifyPropertyChangedExtensions.WhenChanged(this, x => x.MyProperty).Subscribe(Console.WriteLine);
+        }
+
+        public string MyProperty { get; set; }
+
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }    
+}";
+
+            var generatedSource = GetGeneratedOutput(source);
+
+            Assert.NotNull(generatedSource);
+        }
+
+        /// <summary>
+        /// Tests the basic generation explicit works.
+        /// </summary>
+        [Fact]
+        public void TestBasicGenerationWithMultipleWorks()
+        {
+            string source = @"
+using System;
+using System.ComponentModel;
+
+namespace Foo
+{
+    public class A : INotifyPropertyChanged
+    {
+        public A()
+        {
+            this.WhenChanged(x => x.MyString1, x => x.MyString2, (x, y) => x + ' ' + y).Subscribe(Console.WriteLine);
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public string MyString1 { get; set; }
+        public string MyString2 { get; set; }
+    }
+}";
+
+            var generatedSource = GetGeneratedOutput(source);
+
+            Assert.NotNull(generatedSource);
+        }
+
+        /// <summary>
         /// Tests that there are no diagnostics are reported when invoked via this chain.
         /// </summary>
         /// <param name="invocationKind">Kind of the invocation.</param>
@@ -714,6 +815,36 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         {
             CreateDriver(compilation, generators).RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out diagnostics);
             return outputCompilation;
+        }
+
+        private static string GetGeneratedOutput(string source)
+        {
+            var syntaxTree = CSharpSyntaxTree.ParseText(source);
+
+            var references = new List<MetadataReference>();
+            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            foreach (var assembly in assemblies)
+            {
+                if (!assembly.IsDynamic && !string.IsNullOrWhiteSpace(assembly.Location))
+                {
+                    references.Add(MetadataReference.CreateFromFile(assembly.Location));
+                }
+            }
+
+            var compilation = CreateCompilation(source);
+
+            //// TODO: Uncomment this line if you want to fail tests when the injected program isn't valid _before_ running generators
+            ////var compileDiagnostics = compilation.GetDiagnostics();
+            ////Assert.False(compileDiagnostics.Any(d => d.Severity == DiagnosticSeverity.Error), "Failed: " + compileDiagnostics.FirstOrDefault()?.GetMessage());
+            ISourceGenerator generator = new Generator();
+
+            var driver = CSharpGeneratorDriver.Create(generator);
+            driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var generateDiagnostics);
+            Assert.False(generateDiagnostics.Any(d => d.Severity == DiagnosticSeverity.Error), "Failed: " + generateDiagnostics.FirstOrDefault()?.GetMessage());
+
+            string output = string.Join(Environment.NewLine, outputCompilation.SyntaxTrees.Select(x => x.ToString()));
+
+            return output;
         }
     }
 }
