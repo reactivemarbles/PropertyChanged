@@ -24,7 +24,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
         public override int GetHashCode()
         {
-            int hashCode = 1230885993;
+            var hashCode = 1230885993;
             hashCode = (hashCode * -1521134295) + EqualityComparer<string>.Default.GetHashCode(LambdaBodyString);
             hashCode = (hashCode * -1521134295) + SymbolEqualityComparer.Default.GetHashCode(InputType);
             hashCode = (hashCode * -1521134295) + SymbolEqualityComparer.Default.GetHashCode(OutputType);

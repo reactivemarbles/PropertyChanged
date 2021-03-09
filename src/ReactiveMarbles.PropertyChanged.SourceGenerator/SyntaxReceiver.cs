@@ -21,7 +21,7 @@ namespace ReactiveMarbles.PropertyChanged
         {
             if (syntaxNode is InvocationExpressionSyntax invocationExpression)
             {
-                string methodName = (invocationExpression.Expression as MemberAccessExpressionSyntax)?.Name.ToString() ??
+                var methodName = (invocationExpression.Expression as MemberAccessExpressionSyntax)?.Name.ToString() ??
                     (invocationExpression.Expression as MemberBindingExpressionSyntax)?.Name.ToString();
 
                 if (string.Equals(methodName, "WhenChanged"))

@@ -20,7 +20,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
         public static void GenerateWhenChanged(GeneratorExecutionContext context, Compilation compilation, SyntaxReceiver syntaxReceiver)
         {
-            WhenChangedInvocationInfo whenChangedInvocationInfo = ExtractWhenChangedInvocationInfo(context, compilation, syntaxReceiver);
+            var whenChangedInvocationInfo = ExtractWhenChangedInvocationInfo(context, compilation, syntaxReceiver);
 
             if (!whenChangedInvocationInfo.AllExpressionArgumentsAreValid)
             {
@@ -40,7 +40,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                     x => x.InputTypeFullName,
                     (inputTypeGroup, multiExpressionMethodData) =>
                     {
-                        IEnumerable<MethodDatum> allMethodData = inputTypeGroup
+                        var allMethodData = inputTypeGroup
                             .OutputTypeGroups
                             .Select(CreateSingleExpressionMethodDatum)
                             .Concat(multiExpressionMethodData.Where(x => x.ContainsPrivateOrProtectedTypeArgument));
@@ -62,7 +62,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                     x => x.InputTypeFullName,
                     (inputTypeGroup, multiExpressionMethodData) =>
                     {
-                        IEnumerable<MethodDatum> allMethodData = inputTypeGroup
+                        var allMethodData = inputTypeGroup
                             .OutputTypeGroups
                             .Select(CreateSingleExpressionMethodDatum)
                             .Concat(multiExpressionMethodData.Where(x => !x.ContainsPrivateOrProtectedTypeArgument));
@@ -72,30 +72,30 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 .ToList();
 
             var extensionClassCreator = new StringBuilderExtensionClassCreator();
-            for (int i = 0; i < extensionClassData.Count; i++)
+            for (var i = 0; i < extensionClassData.Count; i++)
             {
-                string source = extensionClassCreator.Create(extensionClassData[i]);
+                var source = extensionClassCreator.Create(extensionClassData[i]);
                 context.AddSource($"WhenChanged.{extensionClassData[i].Name}{i}.g.cs", SourceText.From(source, Encoding.UTF8));
             }
 
             var partialClassCreator = new StringBuilderPartialClassCreator();
-            for (int i = 0; i < partialClassData.Count; i++)
+            for (var i = 0; i < partialClassData.Count; i++)
             {
-                string source = partialClassCreator.Create(partialClassData[i]);
+                var source = partialClassCreator.Create(partialClassData[i]);
                 context.AddSource($"{partialClassData[i].Name}{i}.WhenChanged.g.cs", SourceText.From(source, Encoding.UTF8));
             }
         }
 
         private static WhenChangedInvocationInfo ExtractWhenChangedInvocationInfo(GeneratorExecutionContext context, Compilation compilation, SyntaxReceiver syntaxReceiver)
         {
-            bool allExpressionArgumentsAreValid = true;
+            var allExpressionArgumentsAreValid = true;
             var expressionArguments = new HashSet<ExpressionArgument>();
             var multiExpressionMethodData = new HashSet<MultiExpressionMethodDatum>();
 
-            foreach (InvocationExpressionSyntax invocationExpression in syntaxReceiver.WhenChangedMethods)
+            foreach (var invocationExpression in syntaxReceiver.WhenChangedMethods)
             {
-                SemanticModel model = compilation.GetSemanticModel(invocationExpression.SyntaxTree);
-                ISymbol symbol = model.GetSymbolInfo(invocationExpression).Symbol;
+                var model = compilation.GetSemanticModel(invocationExpression.SyntaxTree);
+                var symbol = model.GetSymbolInfo(invocationExpression).Symbol;
 
                 if (symbol is IMethodSymbol methodSymbol)
                 {
@@ -104,17 +104,17 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                         continue;
                     }
 
-                    foreach (ArgumentSyntax argument in invocationExpression.ArgumentList.Arguments)
+                    foreach (var argument in invocationExpression.ArgumentList.Arguments)
                     {
                         if (model.GetTypeInfo(argument.Expression).ConvertedType.Name.Equals("Expression"))
                         {
                             if (argument.Expression is LambdaExpressionSyntax lambdaExpression)
                             {
-                                ITypeSymbol lambdaInputType = methodSymbol.TypeArguments[0];
-                                ITypeSymbol lambdaOutputType = model.GetTypeInfo(lambdaExpression.Body).Type;
-                                List<(string Name, string InputType, string OutputType)> expressionChain = GetExpressionChain(context, lambdaExpression, model);
+                                var lambdaInputType = methodSymbol.TypeArguments[0];
+                                var lambdaOutputType = model.GetTypeInfo(lambdaExpression.Body).Type;
+                                var expressionChain = GetExpressionChain(context, lambdaExpression, model);
 
-                                bool containsPrivateOrProtectedMember =
+                                var containsPrivateOrProtectedMember =
                                     lambdaInputType.DeclaredAccessibility <= Accessibility.Protected ||
                                     ContainsPrivateOrProtectedMember(compilation, model, lambdaExpression);
                                 expressionArguments.Add(new(lambdaExpression.Body.ToString(), expressionChain, lambdaInputType, lambdaOutputType, containsPrivateOrProtectedMember));
@@ -135,10 +135,10 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
                     if (methodSymbol.TypeArguments.Length > 2)
                     {
-                        Accessibility minAccessibility = methodSymbol.TypeArguments.Min(x => x.DeclaredAccessibility);
-                        Accessibility accessModifier = minAccessibility;
-                        bool containsPrivateOrProtectedTypeArgument = minAccessibility <= Accessibility.Protected;
-                        IEnumerable<string> typeNames = methodSymbol.TypeArguments.Select(x => x.ToDisplayString());
+                        var minAccessibility = methodSymbol.TypeArguments.Min(x => x.DeclaredAccessibility);
+                        var accessModifier = minAccessibility;
+                        var containsPrivateOrProtectedTypeArgument = minAccessibility <= Accessibility.Protected;
+                        var typeNames = methodSymbol.TypeArguments.Select(x => x.ToDisplayString());
                         multiExpressionMethodData.Add(new(accessModifier, typeNames, containsPrivateOrProtectedTypeArgument));
                     }
                 }
@@ -151,10 +151,10 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         {
             MethodDatum methodDatum = null;
 
-            (string _, List<(string Name, string InputType, string outputType)> expressionChain, ITypeSymbol inputTypeSymbol, ITypeSymbol outputTypeSymbol, bool _) = outputTypeGroup.ExpressionArguments.First();
-            (string inputTypeName, string outputTypeName) = (inputTypeSymbol.ToDisplayString(), outputTypeSymbol.ToDisplayString());
+            (var _, var expressionChain, var inputTypeSymbol, var outputTypeSymbol, var _) = outputTypeGroup.ExpressionArguments.First();
+            (var inputTypeName, var outputTypeName) = (inputTypeSymbol.ToDisplayString(), outputTypeSymbol.ToDisplayString());
 
-            Accessibility accessModifier = inputTypeSymbol.DeclaredAccessibility;
+            var accessModifier = inputTypeSymbol.DeclaredAccessibility;
             if (outputTypeSymbol.DeclaredAccessibility < inputTypeSymbol.DeclaredAccessibility)
             {
                 accessModifier = outputTypeSymbol.DeclaredAccessibility;
@@ -166,12 +166,12 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             }
             else if (outputTypeGroup.ExpressionArguments.Count > 1)
             {
-                string mapName = $"__generated{inputTypeSymbol.GetVariableName()}{outputTypeSymbol.GetVariableName()}Map";
+                var mapName = $"__generated{inputTypeSymbol.GetVariableName()}{outputTypeSymbol.GetVariableName()}Map";
 
                 var entries = new List<MapEntryDatum>(outputTypeGroup.ExpressionArguments.Count);
-                foreach (ExpressionArgument argumentDatum in outputTypeGroup.ExpressionArguments)
+                foreach (var argumentDatum in outputTypeGroup.ExpressionArguments)
                 {
-                    string mapKey = argumentDatum.LambdaBodyString;
+                    var mapKey = argumentDatum.LambdaBodyString;
                     var mapEntry = new MapEntryDatum(mapKey, argumentDatum.ExpressionChain);
                     entries.Add(mapEntry);
                 }
@@ -186,12 +186,12 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         private static List<(string Name, string InputType, string OutputType)> GetExpressionChain(GeneratorExecutionContext context, LambdaExpressionSyntax lambdaExpression, SemanticModel model)
         {
             var members = new List<(string Name, string InputType, string OutputType)>();
-            ExpressionSyntax expression = lambdaExpression.ExpressionBody;
+            var expression = lambdaExpression.ExpressionBody;
             var expressionChain = expression as MemberAccessExpressionSyntax;
 
             while (expressionChain != null)
             {
-                string name = expressionChain.Name.ToString();
+                var name = expressionChain.Name.ToString();
                 var inputType = model.GetTypeInfo(expressionChain.ChildNodes().ElementAt(0)).Type as INamedTypeSymbol;
                 var outputType = model.GetTypeInfo(expressionChain.ChildNodes().ElementAt(1)).Type as INamedTypeSymbol;
 
@@ -212,7 +212,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 return null;
             }
 
-            string lambdaParameterName =
+            var lambdaParameterName =
                 (lambdaExpression as SimpleLambdaExpressionSyntax)?.Parameter.Identifier.ToString() ??
                 (lambdaExpression as ParenthesizedLambdaExpressionSyntax)?.ParameterList.Parameters[0].Identifier.ToString();
 
@@ -233,7 +233,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         private static bool ContainsPrivateOrProtectedMember(Compilation compilation, SemanticModel model, LambdaExpressionSyntax lambdaExpression)
         {
             var members = new List<ExpressionSyntax>();
-            ExpressionSyntax expression = lambdaExpression.ExpressionBody;
+            var expression = lambdaExpression.ExpressionBody;
             var expressionChain = expression as MemberAccessExpressionSyntax;
 
             while (expressionChain != null)
@@ -245,24 +245,24 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
             members.Add(expression);
             members.Reverse();
-            ITypeSymbol inputTypeSymbol = model.GetTypeInfo(expression).ConvertedType;
+            var inputTypeSymbol = model.GetTypeInfo(expression).ConvertedType;
 
-            for (int i = members.Count - 1; i > 0; i--)
+            for (var i = members.Count - 1; i > 0; i--)
             {
-                ExpressionSyntax parent = members[i - 1];
-                ExpressionSyntax child = members[i];
-                ITypeSymbol parentTypeSymbol = model.GetTypeInfo(parent).ConvertedType;
+                var parent = members[i - 1];
+                var child = members[i];
+                var parentTypeSymbol = model.GetTypeInfo(parent).ConvertedType;
 
                 if (!SymbolEqualityComparer.Default.Equals(parentTypeSymbol, inputTypeSymbol))
                 {
                     continue;
                 }
 
-                ISymbol propertyInvocationSymbol = model.GetSymbolInfo(child).Symbol;
-                SyntaxNode propertyDeclarationSyntax = propertyInvocationSymbol.DeclaringSyntaxReferences.First().GetSyntax();
-                SemanticModel propertyDeclarationModel = compilation.GetSemanticModel(propertyDeclarationSyntax.SyntaxTree);
-                ISymbol propertyDeclarationSymbol = propertyDeclarationModel.GetDeclaredSymbol(propertyDeclarationSyntax);
-                Accessibility propertyAccessibility = propertyDeclarationSymbol.DeclaredAccessibility;
+                var propertyInvocationSymbol = model.GetSymbolInfo(child).Symbol;
+                var propertyDeclarationSyntax = propertyInvocationSymbol.DeclaringSyntaxReferences.First().GetSyntax();
+                var propertyDeclarationModel = compilation.GetSemanticModel(propertyDeclarationSyntax.SyntaxTree);
+                var propertyDeclarationSymbol = propertyDeclarationModel.GetDeclaredSymbol(propertyDeclarationSyntax);
+                var propertyAccessibility = propertyDeclarationSymbol.DeclaredAccessibility;
 
                 if (propertyAccessibility <= Accessibility.Protected)
                 {

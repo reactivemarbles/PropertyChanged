@@ -24,15 +24,15 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         public static string GetMultiExpressionMethodParameters(string inputType, string outputType, List<string> tempReturnTypes)
         {
             var sb = new StringBuilder();
-            int counter = tempReturnTypes.Count;
+            var counter = tempReturnTypes.Count;
 
-            for (int i = 0; i < counter; i++)
+            for (var i = 0; i < counter; i++)
             {
                 sb.Append("        Expression<Func<").Append(inputType).Append(", ").Append(tempReturnTypes[i]).Append(">> propertyExpression").Append(i + 1).AppendLine(",");
             }
 
             sb.Append("        Func<");
-            for (int i = 0; i < counter; i++)
+            for (var i = 0; i < counter; i++)
             {
                 sb.Append(tempReturnTypes[i]).Append(", ");
             }
@@ -48,13 +48,13 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         public static string GetMultiExpressionMethodBody(int counter)
         {
             var sb = new StringBuilder();
-            for (int i = 0; i < counter; i++)
+            for (var i = 0; i < counter; i++)
             {
                 sb.Append("        var obs").Append(i + 1).Append(" = objectToMonitor.WhenChanged(propertyExpression").Append(i + 1).AppendLine(", callerMemberName, callerFilePath, callerLineNumber);");
             }
 
             sb.Append("        return obs1.CombineLatest(");
-            for (int i = 1; i < counter; i++)
+            for (var i = 1; i < counter; i++)
             {
                 sb.Append("obs").Append(i + 1).Append(", ");
             }
@@ -67,13 +67,13 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         public static string GetMultiExpressionMethodBodyForPartialClass(int counter)
         {
             var sb = new StringBuilder();
-            for (int i = 0; i < counter; i++)
+            for (var i = 0; i < counter; i++)
             {
                 sb.Append("        var obs").Append(i + 1).Append(" = this.WhenChanged(propertyExpression").Append(i + 1).AppendLine(", callerMemberName, callerFilePath, callerLineNumber);");
             }
 
             sb.Append("        return obs1.CombineLatest(");
-            for (int i = 1; i < counter; i++)
+            for (var i = 1; i < counter; i++)
             {
                 sb.Append("obs").Append(i + 1).Append(", ");
             }
@@ -222,14 +222,14 @@ using System.Runtime.CompilerServices;
 
         public static string GetPartialClass(string namespaceName, string className, Accessibility accessModifier, IEnumerable<AncestorClassInfo> ancestorClasses, string body)
         {
-            string source = $@"
+            var source = $@"
 {accessModifier.ToFriendlyString()} partial class {className}
 {{
     {body}
 }}
 ";
 
-            foreach (AncestorClassInfo ancestorClass in ancestorClasses)
+            foreach (var ancestorClass in ancestorClasses)
             {
                 source = $@"
 {ancestorClass.AccessModifier.ToFriendlyString()} partial class {ancestorClass.Name}
@@ -293,8 +293,8 @@ namespace {namespaceName}
             var assembly = Assembly.GetExecutingAssembly();
             const string resourceName = "ReactiveMarbles.PropertyChanged.SourceGenerator.NotifyPropertyChangedExtensions.cs";
 
-            using Stream stream = assembly.GetManifestResourceStream(resourceName);
-            using StreamReader reader = new StreamReader(stream);
+            using var stream = assembly.GetManifestResourceStream(resourceName);
+            using var reader = new StreamReader(stream);
             return reader.ReadToEnd();
         }
 
@@ -303,8 +303,8 @@ namespace {namespaceName}
             var assembly = Assembly.GetExecutingAssembly();
             const string resourceName = "ReactiveMarbles.PropertyChanged.SourceGenerator.BindExtensions.cs";
 
-            using Stream stream = assembly.GetManifestResourceStream(resourceName);
-            using StreamReader reader = new StreamReader(stream);
+            using var stream = assembly.GetManifestResourceStream(resourceName);
+            using var reader = new StreamReader(stream);
             return reader.ReadToEnd();
         }
     }

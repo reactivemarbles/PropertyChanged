@@ -19,11 +19,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             AccessModifier = accessModifier;
             ContainsPrivateOrProtectedTypeArgument = containsPrivateOrProtectedTypeArgument;
 
-            string[] list = typeNames.ToArray();
+            var list = typeNames.ToArray();
             InputTypeFullName = list[0];
             OutputTypeFullName = list[list.Length - 1];
             TempReturnTypes = new List<string>(list.Length - 2);
-            for (int i = 1; i < list.Length - 1; i++)
+            for (var i = 1; i < list.Length - 1; i++)
             {
                 TempReturnTypes.Add(list[i]);
             }
@@ -51,7 +51,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 return false;
             }
 
-            bool result =
+            var result =
                 InputTypeFullName == other.InputTypeFullName &&
                 OutputTypeFullName == other.OutputTypeFullName &&
                 TempReturnTypes.Count == other.TempReturnTypes.Count;
@@ -61,7 +61,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 return false;
             }
 
-            for (int i = 0; i < TempReturnTypes.Count; ++i)
+            for (var i = 0; i < TempReturnTypes.Count; ++i)
             {
                 result &= EqualityComparer<string>.Default.Equals(TempReturnTypes[i], other.TempReturnTypes[i]);
             }
@@ -71,11 +71,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
         public override int GetHashCode()
         {
-            int hashCode = 1230885993;
+            var hashCode = 1230885993;
             hashCode = (hashCode * -1521134295) + EqualityComparer<string>.Default.GetHashCode(InputTypeFullName);
             hashCode = (hashCode * -1521134295) + EqualityComparer<string>.Default.GetHashCode(OutputTypeFullName);
 
-            foreach (string typeName in TempReturnTypes)
+            foreach (var typeName in TempReturnTypes)
             {
                 hashCode = (hashCode * -1521134295) + EqualityComparer<string>.Default.GetHashCode(typeName);
             }
