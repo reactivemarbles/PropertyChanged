@@ -8,14 +8,14 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
     internal sealed record MapEntryDatum
     {
-        public MapEntryDatum(string key, List<string> memberNames)
+        public MapEntryDatum(string key, List<(string Name, string InputType, string OutputType)> members)
         {
             Key = key;
-            MemberNames = memberNames;
+            Members = members;
         }
 
         public string Key { get; }
 
-        public List<string> MemberNames { get; }
+        public List<(string Name, string InputType, string OutputType)> Members { get; }
     }
 }

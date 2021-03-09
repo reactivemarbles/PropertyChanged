@@ -18,9 +18,9 @@ using ReactiveMarbles.PropertyChanged.Benchmarks.Moqs;
 // First entry will be classified as the baseline.
 var participants = new (string Alias, string MethodName, string FullClassName)[]
 {
-    ("UI", "WhenAnyValue", "ReactiveUI.WhenAnyMixin"),
-    ("Old", "WhenChanged", "ReactiveMarbles.PropertyChanged.Benchmarks.Legacy.NotifyPropertyChangedExtensions"),
-    ("New", "WhenChanged", "ReactiveMarbles.PropertyChanged.NotifyPropertyChangedExtensions"),
+    ////("UI", "WhenAnyValue", "ReactiveUI.WhenAnyMixin"),
+    ////("Old", "WhenChanged", "ReactiveMarbles.PropertyChanged.Benchmarks.Legacy.NotifyPropertyChangedExtensions"),
+    ////("New", "WhenChanged", "ReactiveMarbles.PropertyChanged.NotifyPropertyChangedExtensions"),
     ("SourceGen", "WhenChanged", "NotifyPropertyChangedExtensions"),
 };
 var depths = new[] { 1, 2, 3 };
