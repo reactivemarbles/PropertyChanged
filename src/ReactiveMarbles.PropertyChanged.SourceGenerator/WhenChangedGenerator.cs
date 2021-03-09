@@ -112,7 +112,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                             {
                                 var lambdaInputType = methodSymbol.TypeArguments[0];
                                 var lambdaOutputType = model.GetTypeInfo(lambdaExpression.Body).Type;
-                                var expressionChain = GetExpressionChain(context, lambdaExpression);
+                                var expressionChain = GetExpressionChain(context, lambdaExpression, model);
 
                                 var containsPrivateOrProtectedMember =
                                     lambdaInputType.DeclaredAccessibility <= Accessibility.Protected ||
@@ -151,8 +151,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         {
             MethodDatum methodDatum = null;
 
-            var (lambdaBodyString, expressionChain, inputTypeSymbol, outputTypeSymbol, containsPrivateOrProtectedMember) = outputTypeGroup.ExpressionArguments.First();
-            var (inputTypeName, outputTypeName) = (inputTypeSymbol.ToDisplayString(), outputTypeSymbol.ToDisplayString());
+            (var _, var expressionChain, var inputTypeSymbol, var outputTypeSymbol, var _) = outputTypeGroup.ExpressionArguments.First();
+            (var inputTypeName, var outputTypeName) = (inputTypeSymbol.ToDisplayString(), outputTypeSymbol.ToDisplayString());
 
             var accessModifier = inputTypeSymbol.DeclaredAccessibility;
             if (outputTypeSymbol.DeclaredAccessibility < inputTypeSymbol.DeclaredAccessibility)
@@ -166,7 +166,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             }
             else if (outputTypeGroup.ExpressionArguments.Count > 1)
             {
-                var mapName = $"{outputTypeSymbol.ToDisplayParts().Where(x => x.Kind != SymbolDisplayPartKind.Punctuation).Select(x => x.ToString()).Aggregate((a, b) => a + b)}Map";
+                var mapName = $"__generated{inputTypeSymbol.GetVariableName()}{outputTypeSymbol.GetVariableName()}Map";
 
                 var entries = new List<MapEntryDatum>(outputTypeGroup.ExpressionArguments.Count);
                 foreach (var argumentDatum in outputTypeGroup.ExpressionArguments)
@@ -183,15 +183,20 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             return methodDatum;
         }
 
-        private static List<string> GetExpressionChain(GeneratorExecutionContext context, LambdaExpressionSyntax lambdaExpression)
+        private static List<(string Name, string InputType, string OutputType)> GetExpressionChain(GeneratorExecutionContext context, LambdaExpressionSyntax lambdaExpression, SemanticModel model)
         {
-            var members = new List<string>();
+            var members = new List<(string Name, string InputType, string OutputType)>();
             var expression = lambdaExpression.ExpressionBody;
             var expressionChain = expression as MemberAccessExpressionSyntax;
 
             while (expressionChain != null)
             {
-                members.Add(expressionChain.Name.ToString());
+                var name = expressionChain.Name.ToString();
+                var inputType = model.GetTypeInfo(expressionChain.ChildNodes().ElementAt(0)).Type as INamedTypeSymbol;
+                var outputType = model.GetTypeInfo(expressionChain.ChildNodes().ElementAt(1)).Type as INamedTypeSymbol;
+
+                members.Add((name, inputType.ToDisplayString(), outputType.ToDisplayString()));
+
                 expression = expressionChain.Expression;
                 expressionChain = expression as MemberAccessExpressionSyntax;
             }

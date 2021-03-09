@@ -34,9 +34,9 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             foreach (var entry in methodDatum.Map.Entries)
             {
                 var valueChainSb = new StringBuilder();
-                foreach (var memberName in entry.MemberNames)
+                foreach ((var name, var inputType, var outputType) in entry.Members)
                 {
-                    valueChainSb.Append(StringBuilderSourceCreatorHelper.GetMapEntryChain(memberName));
+                    valueChainSb.Append(StringBuilderSourceCreatorHelper.GetMapEntryChain(inputType, outputType, name));
                 }
 
                 mapEntrySb.Append(StringBuilderSourceCreatorHelper.GetMapEntry(entry.Key, valueChainSb.ToString()));
@@ -51,12 +51,12 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         public string Create(SingleExpressionOptimizedImplMethodDatum methodDatum)
         {
             var sb = new StringBuilder();
-            foreach (var memberName in methodDatum.MemberNames)
+            foreach ((var name, var inputType, var outputType) in methodDatum.Members)
             {
-                sb.Append(StringBuilderSourceCreatorHelper.GetMapEntryChain(memberName));
+                sb.Append(StringBuilderSourceCreatorHelper.GetMapEntryChain(inputType, outputType, name));
             }
 
-            return StringBuilderSourceCreatorHelper.GetPartialClassWhenChangedMethodForDirectReturn(methodDatum.InputTypeName, methodDatum.OutputTypeName, methodDatum.AccessModifier, sb.ToString());
+            return StringBuilderSourceCreatorHelper.GetPartialClassWhenChangedMethodForDirectReturn(methodDatum.InputTypeName, methodDatum.OutputTypeName, methodDatum.AccessModifier, methodDatum.Members);
         }
 
         public string Create(MultiExpressionMethodDatum methodDatum)

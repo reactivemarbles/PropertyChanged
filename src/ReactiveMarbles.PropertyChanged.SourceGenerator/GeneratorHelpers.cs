@@ -61,8 +61,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         {
             MethodDatum methodDatum = null;
 
-            var (lambdaBodyString, expressionChain, inputTypeSymbol, outputTypeSymbol, containsPrivateOrProtectedMember) = outputTypeGroup.ExpressionArguments.First();
-            var (inputTypeName, outputTypeName) = (inputTypeSymbol.ToDisplayString(), outputTypeSymbol.ToDisplayString());
+            (var lambdaBodyString, var expressionChain, var inputTypeSymbol, var outputTypeSymbol, var containsPrivateOrProtectedMember) = outputTypeGroup.ExpressionArguments.First();
+            (var inputTypeName, var outputTypeName) = (inputTypeSymbol.ToDisplayString(), outputTypeSymbol.ToDisplayString());
 
             var accessModifier = inputTypeSymbol.DeclaredAccessibility;
             if (outputTypeSymbol.DeclaredAccessibility < inputTypeSymbol.DeclaredAccessibility)
@@ -76,7 +76,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             }
             else if (outputTypeGroup.ExpressionArguments.Count > 1)
             {
-                var mapName = $"{outputTypeSymbol.ToDisplayParts().Where(x => x.Kind != SymbolDisplayPartKind.Punctuation).Select(x => x.ToString()).Aggregate((a, b) => a + b)}Map";
+                var mapName = $"__generated{inputTypeSymbol.GetVariableName()}{outputTypeSymbol.GetVariableName()}Map";
 
                 var entries = new List<MapEntryDatum>(outputTypeGroup.ExpressionArguments.Count);
                 foreach (var argumentDatum in outputTypeGroup.ExpressionArguments)

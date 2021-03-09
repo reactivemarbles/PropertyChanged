@@ -13,12 +13,12 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
     /// </summary>
     internal sealed record SingleExpressionOptimizedImplMethodDatum : MethodDatum
     {
-        public SingleExpressionOptimizedImplMethodDatum(string inputType, string outputType, Accessibility accessModifier, List<string> memberNames)
+        public SingleExpressionOptimizedImplMethodDatum(string inputType, string outputType, Accessibility accessModifier, List<(string Name, string InputType, string OutputType)> members)
         {
             InputTypeName = inputType;
             OutputTypeName = outputType;
             AccessModifier = accessModifier;
-            MemberNames = memberNames;
+            Members = members;
         }
 
         public string InputTypeName { get; }
@@ -27,7 +27,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
         public Accessibility AccessModifier { get; }
 
-        public List<string> MemberNames { get; }
+        public List<(string Name, string InputType, string OutputType)> Members { get; }
 
         public override string CreateSource(ISourceCreator sourceCreator)
         {
