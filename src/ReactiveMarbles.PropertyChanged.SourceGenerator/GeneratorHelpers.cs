@@ -31,7 +31,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             members.Reverse();
             var inputTypeSymbol = model.GetTypeInfo(expression).ConvertedType;
 
-            for (int i = members.Count - 1; i > 0; i--)
+            for (var i = members.Count - 1; i > 0; i--)
             {
                 var parent = members[i - 1];
                 var child = members[i];

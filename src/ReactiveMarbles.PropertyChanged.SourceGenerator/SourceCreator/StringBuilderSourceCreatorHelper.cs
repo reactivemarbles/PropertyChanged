@@ -24,13 +24,13 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             var sb = new StringBuilder();
             var counter = tempReturnTypes.Count;
 
-            for (int i = 0; i < counter; i++)
+            for (var i = 0; i < counter; i++)
             {
                 sb.AppendLine($"        Expression<Func<{inputType}, {tempReturnTypes[i]}>> propertyExpression{i + 1},");
             }
 
             sb.Append("        Func<");
-            for (int i = 0; i < counter; i++)
+            for (var i = 0; i < counter; i++)
             {
                 sb.Append($"{tempReturnTypes[i]}, ");
             }
@@ -43,13 +43,13 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         public static string GetMultiExpressionMethodBody(int counter)
         {
             var sb = new StringBuilder();
-            for (int i = 0; i < counter; i++)
+            for (var i = 0; i < counter; i++)
             {
                 sb.AppendLine($"        var obs{i + 1} = objectToMonitor.WhenChanged(propertyExpression{i + 1});");
             }
 
             sb.Append("        return obs1.CombineLatest(");
-            for (int i = 1; i < counter; i++)
+            for (var i = 1; i < counter; i++)
             {
                 sb.Append($"obs{i + 1}, ");
             }
@@ -62,13 +62,13 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         public static string GetMultiExpressionMethodBodyForPartialClass(int counter)
         {
             var sb = new StringBuilder();
-            for (int i = 0; i < counter; i++)
+            for (var i = 0; i < counter; i++)
             {
                 sb.AppendLine($"        var obs{i + 1} = this.WhenChanged(propertyExpression{i + 1});");
             }
 
             sb.Append("        return obs1.CombineLatest(");
-            for (int i = 1; i < counter; i++)
+            for (var i = 1; i < counter; i++)
             {
                 sb.Append($"obs{i + 1}, ");
             }
@@ -254,8 +254,8 @@ using System.Reactive.Linq;
             var assembly = Assembly.GetExecutingAssembly();
             const string resourceName = "ReactiveMarbles.PropertyChanged.SourceGenerator.NotifyPropertyChangedExtensions.cs";
 
-            using Stream stream = assembly.GetManifestResourceStream(resourceName);
-            using StreamReader reader = new StreamReader(stream);
+            using var stream = assembly.GetManifestResourceStream(resourceName);
+            using var reader = new StreamReader(stream);
             return reader.ReadToEnd();
         }
 
@@ -264,8 +264,8 @@ using System.Reactive.Linq;
             var assembly = Assembly.GetExecutingAssembly();
             const string resourceName = "ReactiveMarbles.PropertyChanged.SourceGenerator.BindExtensions.cs";
 
-            using Stream stream = assembly.GetManifestResourceStream(resourceName);
-            using StreamReader reader = new StreamReader(stream);
+            using var stream = assembly.GetManifestResourceStream(resourceName);
+            using var reader = new StreamReader(stream);
             return reader.ReadToEnd();
         }
     }

@@ -20,7 +20,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
         public static void GenerateWhenChanged(GeneratorExecutionContext context, Compilation compilation, SyntaxReceiver syntaxReceiver)
         {
-            WhenChangedInvocationInfo whenChangedInvocationInfo = ExtractWhenChangedInvocationInfo(context, compilation, syntaxReceiver);
+            var whenChangedInvocationInfo = ExtractWhenChangedInvocationInfo(context, compilation, syntaxReceiver);
 
             if (!whenChangedInvocationInfo.AllExpressionArgumentsAreValid)
             {
@@ -72,14 +72,14 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 .ToList();
 
             var extensionClassCreator = new StringBuilderExtensionClassCreator();
-            for (int i = 0; i < extensionClassData.Count; i++)
+            for (var i = 0; i < extensionClassData.Count; i++)
             {
                 var source = extensionClassCreator.Create(extensionClassData[i]);
                 context.AddSource($"WhenChanged.{extensionClassData[i].Name}{i}.g.cs", SourceText.From(source, Encoding.UTF8));
             }
 
             var partialClassCreator = new StringBuilderPartialClassCreator();
-            for (int i = 0; i < partialClassData.Count; i++)
+            for (var i = 0; i < partialClassData.Count; i++)
             {
                 var source = partialClassCreator.Create(partialClassData[i]);
                 context.AddSource($"{partialClassData[i].Name}{i}.WhenChanged.g.cs", SourceText.From(source, Encoding.UTF8));
@@ -242,7 +242,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             members.Reverse();
             var inputTypeSymbol = model.GetTypeInfo(expression).ConvertedType;
 
-            for (int i = members.Count - 1; i > 0; i--)
+            for (var i = members.Count - 1; i > 0; i--)
             {
                 var parent = members[i - 1];
                 var child = members[i];
