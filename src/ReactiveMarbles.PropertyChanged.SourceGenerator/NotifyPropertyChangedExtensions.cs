@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.Linq.Expressions;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Runtime.CompilerServices;
 
 /// <summary>
 /// Provides extension methods for the notify property changed extensions.
@@ -18,10 +19,18 @@ public static partial class NotifyPropertyChangedExtensions
     /// </summary>
     /// <param name="objectToMonitor">The object to monitor.</param>
     /// <param name="propertyExpression">The expression to the object.</param>
+    /// <param name="callerMemberName">The caller of the method.</param>
+    /// <param name="callerFilePath">The caller file path.</param>
+    /// <param name="callerLineNumber">The caller line number.</param>
     /// <typeparam name="TObj">The type of initial object.</typeparam>
     /// <typeparam name="TReturn">The eventual return value.</typeparam>
     /// <returns>An observable that signals when the property specified in the expression has changed.</returns>
-    public static IObservable<TReturn> WhenChanged<TObj, TReturn>(this TObj objectToMonitor, Expression<Func<TObj, TReturn>> propertyExpression)
+    public static IObservable<TReturn> WhenChanged<TObj, TReturn>(
+        this TObj objectToMonitor, 
+        Expression<Func<TObj, TReturn>> propertyExpression,
+        [CallerMemberName]string callerMemberName = null,
+        [CallerFilePath]string callerFilePath = null,
+        [CallerLineNumber]int callerLineNumber = 0)
         where TObj : INotifyPropertyChanged
     {
         throw new Exception("The impementation should have been generated.");
@@ -34,6 +43,9 @@ public static partial class NotifyPropertyChangedExtensions
     /// <param name="propertyExpression1">A expression to the value1.</param>
     /// <param name="propertyExpression2">A expression to the value2.</param>
     /// <param name="conversionFunc">Parameter which converts into the end value.</param>
+    /// <param name="callerMemberName">The caller of the method.</param>
+    /// <param name="callerFilePath">The caller file path.</param>
+    /// <param name="callerLineNumber">The caller line number.</param>
     /// <typeparam name="TObj">The type of initial object.</typeparam>
     /// <typeparam name="TTempReturn1">The return type of the value1.</typeparam>
     /// <typeparam name="TTempReturn2">The return type of the value2.</typeparam>
@@ -43,7 +55,10 @@ public static partial class NotifyPropertyChangedExtensions
         this TObj objectToMonitor,
         Expression<Func<TObj, TTempReturn1>> propertyExpression1,
         Expression<Func<TObj, TTempReturn2>> propertyExpression2,
-        Func<TTempReturn1, TTempReturn2, TReturn> conversionFunc)
+        Func<TTempReturn1, TTempReturn2, TReturn> conversionFunc,
+        [CallerMemberName]string callerMemberName = null,
+        [CallerFilePath]string callerFilePath = null,
+        [CallerLineNumber]int callerLineNumber = 0)
             where TObj : class, INotifyPropertyChanged
     {
         throw new NotImplementedException("The impementation should have been generated.");
@@ -57,6 +72,9 @@ public static partial class NotifyPropertyChangedExtensions
     /// <param name="propertyExpression2">A expression to the value2.</param>
     /// <param name="propertyExpression3">A expression to the value3.</param>
     /// <param name="conversionFunc">Parameter which converts into the end value.</param>
+    /// <param name="callerMemberName">The caller of the method.</param>
+    /// <param name="callerFilePath">The caller file path.</param>
+    /// <param name="callerLineNumber">The caller line number.</param>
     /// <typeparam name="TObj">The type of initial object.</typeparam>
     /// <typeparam name="TTempReturn1">The return type of the value1.</typeparam>
     /// <typeparam name="TTempReturn2">The return type of the value2.</typeparam>
@@ -68,7 +86,10 @@ public static partial class NotifyPropertyChangedExtensions
         Expression<Func<TObj, TTempReturn1>> propertyExpression1,
         Expression<Func<TObj, TTempReturn2>> propertyExpression2,
         Expression<Func<TObj, TTempReturn3>> propertyExpression3,
-        Func<TTempReturn1, TTempReturn2, TTempReturn3, TReturn> conversionFunc)
+        Func<TTempReturn1, TTempReturn2, TTempReturn3, TReturn> conversionFunc,
+        [CallerMemberName]string callerMemberName = null,
+        [CallerFilePath]string callerFilePath = null,
+        [CallerLineNumber]int callerLineNumber = 0)
             where TObj : class, INotifyPropertyChanged
     {
         throw new NotImplementedException("The impementation should have been generated.");
@@ -83,6 +104,9 @@ public static partial class NotifyPropertyChangedExtensions
     /// <param name="propertyExpression3">A expression to the value3.</param>
     /// <param name="propertyExpression4">A expression to the value4.</param>
     /// <param name="conversionFunc">Parameter which converts into the end value.</param>
+    /// <param name="callerMemberName">The caller of the method.</param>
+    /// <param name="callerFilePath">The caller file path.</param>
+    /// <param name="callerLineNumber">The caller line number.</param>
     /// <typeparam name="TObj">The type of initial object.</typeparam>
     /// <typeparam name="TTempReturn1">The return type of the value1.</typeparam>
     /// <typeparam name="TTempReturn2">The return type of the value2.</typeparam>
@@ -96,7 +120,10 @@ public static partial class NotifyPropertyChangedExtensions
         Expression<Func<TObj, TTempReturn2>> propertyExpression2,
         Expression<Func<TObj, TTempReturn3>> propertyExpression3,
         Expression<Func<TObj, TTempReturn4>> propertyExpression4,
-        Func<TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TReturn> conversionFunc)
+        Func<TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TReturn> conversionFunc,
+        [CallerMemberName]string callerMemberName = null,
+        [CallerFilePath]string callerFilePath = null,
+        [CallerLineNumber]int callerLineNumber = 0)
             where TObj : class, INotifyPropertyChanged
     {
         throw new NotImplementedException("The impementation should have been generated.");
@@ -112,6 +139,9 @@ public static partial class NotifyPropertyChangedExtensions
     /// <param name="propertyExpression4">A expression to the value4.</param>
     /// <param name="propertyExpression5">A expression to the value5.</param>
     /// <param name="conversionFunc">Parameter which converts into the end value.</param>
+    /// <param name="callerMemberName">The caller of the method.</param>
+    /// <param name="callerFilePath">The caller file path.</param>
+    /// <param name="callerLineNumber">The caller line number.</param>
     /// <typeparam name="TObj">The type of initial object.</typeparam>
     /// <typeparam name="TTempReturn1">The return type of the value1.</typeparam>
     /// <typeparam name="TTempReturn2">The return type of the value2.</typeparam>
@@ -127,7 +157,10 @@ public static partial class NotifyPropertyChangedExtensions
         Expression<Func<TObj, TTempReturn3>> propertyExpression3,
         Expression<Func<TObj, TTempReturn4>> propertyExpression4,
         Expression<Func<TObj, TTempReturn5>> propertyExpression5,
-        Func<TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TReturn> conversionFunc)
+        Func<TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TReturn> conversionFunc,
+        [CallerMemberName]string callerMemberName = null,
+        [CallerFilePath]string callerFilePath = null,
+        [CallerLineNumber]int callerLineNumber = 0)
             where TObj : class, INotifyPropertyChanged
     {
         throw new NotImplementedException("The impementation should have been generated.");
@@ -144,6 +177,9 @@ public static partial class NotifyPropertyChangedExtensions
     /// <param name="propertyExpression5">A expression to the value5.</param>
     /// <param name="propertyExpression6">A expression to the value6.</param>
     /// <param name="conversionFunc">Parameter which converts into the end value.</param>
+    /// <param name="callerMemberName">The caller of the method.</param>
+    /// <param name="callerFilePath">The caller file path.</param>
+    /// <param name="callerLineNumber">The caller line number.</param>
     /// <typeparam name="TObj">The type of initial object.</typeparam>
     /// <typeparam name="TTempReturn1">The return type of the value1.</typeparam>
     /// <typeparam name="TTempReturn2">The return type of the value2.</typeparam>
@@ -161,7 +197,10 @@ public static partial class NotifyPropertyChangedExtensions
         Expression<Func<TObj, TTempReturn4>> propertyExpression4,
         Expression<Func<TObj, TTempReturn5>> propertyExpression5,
         Expression<Func<TObj, TTempReturn6>> propertyExpression6,
-        Func<TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TReturn> conversionFunc)
+        Func<TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TReturn> conversionFunc,
+        [CallerMemberName]string callerMemberName = null,
+        [CallerFilePath]string callerFilePath = null,
+        [CallerLineNumber]int callerLineNumber = 0)
             where TObj : class, INotifyPropertyChanged
     {
         throw new NotImplementedException("The impementation should have been generated.");
@@ -179,6 +218,9 @@ public static partial class NotifyPropertyChangedExtensions
     /// <param name="propertyExpression6">A expression to the value6.</param>
     /// <param name="propertyExpression7">A expression to the value7.</param>
     /// <param name="conversionFunc">Parameter which converts into the end value.</param>
+    /// <param name="callerMemberName">The caller of the method.</param>
+    /// <param name="callerFilePath">The caller file path.</param>
+    /// <param name="callerLineNumber">The caller line number.</param>
     /// <typeparam name="TObj">The type of initial object.</typeparam>
     /// <typeparam name="TTempReturn1">The return type of the value1.</typeparam>
     /// <typeparam name="TTempReturn2">The return type of the value2.</typeparam>
@@ -198,7 +240,10 @@ public static partial class NotifyPropertyChangedExtensions
         Expression<Func<TObj, TTempReturn5>> propertyExpression5,
         Expression<Func<TObj, TTempReturn6>> propertyExpression6,
         Expression<Func<TObj, TTempReturn7>> propertyExpression7,
-        Func<TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TTempReturn7, TReturn> conversionFunc)
+        Func<TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TTempReturn7, TReturn> conversionFunc,
+        [CallerMemberName]string callerMemberName = null,
+        [CallerFilePath]string callerFilePath = null,
+        [CallerLineNumber]int callerLineNumber = 0)
             where TObj : class, INotifyPropertyChanged
     {
         throw new NotImplementedException("The impementation should have been generated.");
@@ -217,6 +262,9 @@ public static partial class NotifyPropertyChangedExtensions
     /// <param name="propertyExpression7">A expression to the value7.</param>
     /// <param name="propertyExpression8">A expression to the value8.</param>
     /// <param name="conversionFunc">Parameter which converts into the end value.</param>
+    /// <param name="callerMemberName">The caller of the method.</param>
+    /// <param name="callerFilePath">The caller file path.</param>
+    /// <param name="callerLineNumber">The caller line number.</param>
     /// <typeparam name="TObj">The type of initial object.</typeparam>
     /// <typeparam name="TTempReturn1">The return type of the value1.</typeparam>
     /// <typeparam name="TTempReturn2">The return type of the value2.</typeparam>
@@ -238,7 +286,10 @@ public static partial class NotifyPropertyChangedExtensions
         Expression<Func<TObj, TTempReturn6>> propertyExpression6,
         Expression<Func<TObj, TTempReturn7>> propertyExpression7,
         Expression<Func<TObj, TTempReturn8>> propertyExpression8,
-        Func<TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TTempReturn7, TTempReturn8, TReturn> conversionFunc)
+        Func<TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TTempReturn7, TTempReturn8, TReturn> conversionFunc,
+        [CallerMemberName]string callerMemberName = null,
+        [CallerFilePath]string callerFilePath = null,
+        [CallerLineNumber]int callerLineNumber = 0)
             where TObj : class, INotifyPropertyChanged
     {
         throw new NotImplementedException("The impementation should have been generated.");
@@ -258,6 +309,9 @@ public static partial class NotifyPropertyChangedExtensions
     /// <param name="propertyExpression8">A expression to the value8.</param>
     /// <param name="propertyExpression9">A expression to the value9.</param>
     /// <param name="conversionFunc">Parameter which converts into the end value.</param>
+    /// <param name="callerMemberName">The caller of the method.</param>
+    /// <param name="callerFilePath">The caller file path.</param>
+    /// <param name="callerLineNumber">The caller line number.</param>
     /// <typeparam name="TObj">The type of initial object.</typeparam>
     /// <typeparam name="TTempReturn1">The return type of the value1.</typeparam>
     /// <typeparam name="TTempReturn2">The return type of the value2.</typeparam>
@@ -281,7 +335,10 @@ public static partial class NotifyPropertyChangedExtensions
         Expression<Func<TObj, TTempReturn7>> propertyExpression7,
         Expression<Func<TObj, TTempReturn8>> propertyExpression8,
         Expression<Func<TObj, TTempReturn9>> propertyExpression9,
-        Func<TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TTempReturn7, TTempReturn8, TTempReturn9, TReturn> conversionFunc)
+        Func<TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TTempReturn7, TTempReturn8, TTempReturn9, TReturn> conversionFunc,
+        [CallerMemberName]string callerMemberName = null,
+        [CallerFilePath]string callerFilePath = null,
+        [CallerLineNumber]int callerLineNumber = 0)
             where TObj : class, INotifyPropertyChanged
     {
         throw new NotImplementedException("The impementation should have been generated.");
@@ -302,6 +359,9 @@ public static partial class NotifyPropertyChangedExtensions
     /// <param name="propertyExpression9">A expression to the value9.</param>
     /// <param name="propertyExpression10">A expression to the value10.</param>
     /// <param name="conversionFunc">Parameter which converts into the end value.</param>
+    /// <param name="callerMemberName">The caller of the method.</param>
+    /// <param name="callerFilePath">The caller file path.</param>
+    /// <param name="callerLineNumber">The caller line number.</param>
     /// <typeparam name="TObj">The type of initial object.</typeparam>
     /// <typeparam name="TTempReturn1">The return type of the value1.</typeparam>
     /// <typeparam name="TTempReturn2">The return type of the value2.</typeparam>
@@ -327,7 +387,10 @@ public static partial class NotifyPropertyChangedExtensions
         Expression<Func<TObj, TTempReturn8>> propertyExpression8,
         Expression<Func<TObj, TTempReturn9>> propertyExpression9,
         Expression<Func<TObj, TTempReturn10>> propertyExpression10,
-        Func<TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TTempReturn7, TTempReturn8, TTempReturn9, TTempReturn10, TReturn> conversionFunc)
+        Func<TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TTempReturn7, TTempReturn8, TTempReturn9, TTempReturn10, TReturn> conversionFunc,
+        [CallerMemberName]string callerMemberName = null,
+        [CallerFilePath]string callerFilePath = null,
+        [CallerLineNumber]int callerLineNumber = 0)
             where TObj : class, INotifyPropertyChanged
     {
         throw new NotImplementedException("The impementation should have been generated.");
@@ -349,6 +412,9 @@ public static partial class NotifyPropertyChangedExtensions
     /// <param name="propertyExpression10">A expression to the value10.</param>
     /// <param name="propertyExpression11">A expression to the value11.</param>
     /// <param name="conversionFunc">Parameter which converts into the end value.</param>
+    /// <param name="callerMemberName">The caller of the method.</param>
+    /// <param name="callerFilePath">The caller file path.</param>
+    /// <param name="callerLineNumber">The caller line number.</param>
     /// <typeparam name="TObj">The type of initial object.</typeparam>
     /// <typeparam name="TTempReturn1">The return type of the value1.</typeparam>
     /// <typeparam name="TTempReturn2">The return type of the value2.</typeparam>
@@ -376,7 +442,10 @@ public static partial class NotifyPropertyChangedExtensions
         Expression<Func<TObj, TTempReturn9>> propertyExpression9,
         Expression<Func<TObj, TTempReturn10>> propertyExpression10,
         Expression<Func<TObj, TTempReturn11>> propertyExpression11,
-        Func<TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TTempReturn7, TTempReturn8, TTempReturn9, TTempReturn10, TTempReturn11, TReturn> conversionFunc)
+        Func<TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TTempReturn7, TTempReturn8, TTempReturn9, TTempReturn10, TTempReturn11, TReturn> conversionFunc,
+        [CallerMemberName]string callerMemberName = null,
+        [CallerFilePath]string callerFilePath = null,
+        [CallerLineNumber]int callerLineNumber = 0)
             where TObj : class, INotifyPropertyChanged
     {
         throw new NotImplementedException("The impementation should have been generated.");
@@ -399,6 +468,9 @@ public static partial class NotifyPropertyChangedExtensions
     /// <param name="propertyExpression11">A expression to the value11.</param>
     /// <param name="propertyExpression12">A expression to the value12.</param>
     /// <param name="conversionFunc">Parameter which converts into the end value.</param>
+    /// <param name="callerMemberName">The caller of the method.</param>
+    /// <param name="callerFilePath">The caller file path.</param>
+    /// <param name="callerLineNumber">The caller line number.</param>
     /// <typeparam name="TObj">The type of initial object.</typeparam>
     /// <typeparam name="TTempReturn1">The return type of the value1.</typeparam>
     /// <typeparam name="TTempReturn2">The return type of the value2.</typeparam>
@@ -428,7 +500,10 @@ public static partial class NotifyPropertyChangedExtensions
         Expression<Func<TObj, TTempReturn10>> propertyExpression10,
         Expression<Func<TObj, TTempReturn11>> propertyExpression11,
         Expression<Func<TObj, TTempReturn12>> propertyExpression12,
-        Func<TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TTempReturn7, TTempReturn8, TTempReturn9, TTempReturn10, TTempReturn11, TTempReturn12, TReturn> conversionFunc)
+        Func<TTempReturn1, TTempReturn2, TTempReturn3, TTempReturn4, TTempReturn5, TTempReturn6, TTempReturn7, TTempReturn8, TTempReturn9, TTempReturn10, TTempReturn11, TTempReturn12, TReturn> conversionFunc,
+        [CallerMemberName]string callerMemberName = null,
+        [CallerFilePath]string callerFilePath = null,
+        [CallerLineNumber]int callerLineNumber = 0)
             where TObj : class, INotifyPropertyChanged
     {
         throw new NotImplementedException("The impementation should have been generated.");

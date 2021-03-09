@@ -16,7 +16,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             _inputType = inputType;
             OutputTypeGroups = outputTypeGroups;
 
-            var containingNamespace = _inputType.ContainingNamespace;
+            INamespaceSymbol containingNamespace = _inputType.ContainingNamespace;
             if (string.IsNullOrEmpty(containingNamespace?.Name))
             {
                 NamespaceName = string.Empty;
@@ -27,7 +27,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             }
 
             var ancestorClasses = new List<AncestorClassInfo>();
-            var containingType = _inputType.ContainingType;
+            INamedTypeSymbol containingType = _inputType.ContainingType;
             while (containingType != null)
             {
                 ancestorClasses.Add(new(containingType.Name, containingType.DeclaredAccessibility));

@@ -19,7 +19,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             AccessModifier = accessModifier;
             ContainsPrivateOrProtectedTypeArgument = containsPrivateOrProtectedTypeArgument;
 
-            var list = typeNames.ToArray();
+            string[] list = typeNames.ToArray();
             InputTypeFullName = list[0];
             OutputTypeFullName = list[list.Length - 1];
             TempReturnTypes = new List<string>(list.Length - 2);
@@ -51,7 +51,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 return false;
             }
 
-            var result =
+            bool result =
                 InputTypeFullName == other.InputTypeFullName &&
                 OutputTypeFullName == other.OutputTypeFullName &&
                 TempReturnTypes.Count == other.TempReturnTypes.Count;
@@ -75,7 +75,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             hashCode = (hashCode * -1521134295) + EqualityComparer<string>.Default.GetHashCode(InputTypeFullName);
             hashCode = (hashCode * -1521134295) + EqualityComparer<string>.Default.GetHashCode(OutputTypeFullName);
 
-            foreach (var typeName in TempReturnTypes)
+            foreach (string typeName in TempReturnTypes)
             {
                 hashCode = (hashCode * -1521134295) + EqualityComparer<string>.Default.GetHashCode(typeName);
             }

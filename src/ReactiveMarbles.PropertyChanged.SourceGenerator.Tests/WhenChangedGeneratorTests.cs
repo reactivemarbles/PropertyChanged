@@ -62,9 +62,12 @@ namespace Foo
     }    
 }";
 
-            var generatedSource = GetGeneratedOutput(source);
+            Compilation compilation = CreateCompilation(source);
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator());
+            var diagnostics = newCompilation.GetDiagnostics();
 
-            Assert.NotNull(generatedSource);
+            Assert.Empty(diagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
+            Assert.Empty(generatorDiagnostics);
         }
 
         /// <summary>
@@ -97,9 +100,12 @@ namespace Foo
     }    
 }";
 
-            var generatedSource = GetGeneratedOutput(source);
+            Compilation compilation = CreateCompilation(source);
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator());
+            var diagnostics = newCompilation.GetDiagnostics();
 
-            Assert.NotNull(generatedSource);
+            Assert.Empty(diagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
+            Assert.Empty(generatorDiagnostics);
         }
 
         /// <summary>
@@ -128,9 +134,14 @@ namespace Foo
     }
 }";
 
-            var generatedSource = GetGeneratedOutput(source);
+            Compilation compilation = CreateCompilation(source);
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator());
+            var diagnostics = newCompilation.GetDiagnostics();
+            string output = string.Join(Environment.NewLine, newCompilation.SyntaxTrees.Select(x => x.ToString()));
 
-            Assert.NotNull(generatedSource);
+            Assert.Empty(diagnostics.Where(x => x.Severity > DiagnosticSeverity.Warning));
+            Assert.Empty(generatorDiagnostics);
+            Assert.False(string.IsNullOrWhiteSpace(output));
         }
 
         /// <summary>
@@ -152,6 +163,8 @@ namespace Foo
             this.WhenChanged(x => x.BValue.MyString1, x => x.BValue.Child.Child.MyString2, (x, y) => x + ' ' + y).Subscribe(Console.WriteLine);
         }
 
+        public event PropertyChangedEventHandler PropertyChanged;
+
         public B BValue { get; set; }
     }
     
@@ -171,9 +184,15 @@ namespace Foo
     }
 }";
 
-            var generatedSource = GetGeneratedOutput(source);
+            Compilation compilation = CreateCompilation(source);
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator());
+            var diagnostics = newCompilation.GetDiagnostics();
 
-            Assert.NotNull(generatedSource);
+            string output = string.Join(Environment.NewLine, newCompilation.SyntaxTrees.Select(x => x.ToString()));
+
+            Assert.Empty(diagnostics.Where(x => x.Severity > DiagnosticSeverity.Warning));
+            Assert.Empty(generatorDiagnostics);
+            Assert.False(string.IsNullOrWhiteSpace(output));
         }
 
         /// <summary>
@@ -374,10 +393,14 @@ namespace Foo
             var observable = GetWhenChangedObservable(target);
 
             var valueInstance = CreateInstance(outputType);
-            SetProperty(target, "Value", valueInstance);
 
             object testValue = null;
             observable.Subscribe(x => testValue = x);
+
+            Assert.Null(testValue);
+
+            SetProperty(target, "Value", valueInstance);
+
             Assert.Equal(valueInstance, testValue);
 
             SetProperty(target, "Value", null);
@@ -838,13 +861,15 @@ namespace Foo
                     MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "mscorlib.dll")),
                     MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "System.dll")),
                     MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "System.Core.dll")),
+                    MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "System.Console.dll")),
                     MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "System.Runtime.dll")),
                     MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "netstandard.dll")),
                     MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "System.Linq.Expressions.dll")),
                     MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "System.ObjectModel.dll")),
                     MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "System.Private.CoreLib.dll")),
                 },
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+                    .WithSpecificDiagnosticOptions(new[] { new KeyValuePair<string, ReportDiagnostic>("1061", ReportDiagnostic.Suppress) }));
         }
 
         private static GeneratorDriver CreateDriver(Compilation compilation, params ISourceGenerator[] generators) =>
@@ -858,36 +883,6 @@ namespace Foo
         {
             CreateDriver(compilation, generators).RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out diagnostics);
             return outputCompilation;
-        }
-
-        private static string GetGeneratedOutput(string source)
-        {
-            var syntaxTree = CSharpSyntaxTree.ParseText(source);
-
-            var references = new List<MetadataReference>();
-            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            foreach (var assembly in assemblies)
-            {
-                if (!assembly.IsDynamic && !string.IsNullOrWhiteSpace(assembly.Location))
-                {
-                    references.Add(MetadataReference.CreateFromFile(assembly.Location));
-                }
-            }
-
-            var compilation = CreateCompilation(source);
-
-            //// TODO: Uncomment this line if you want to fail tests when the injected program isn't valid _before_ running generators
-            ////var compileDiagnostics = compilation.GetDiagnostics();
-            ////Assert.False(compileDiagnostics.Any(d => d.Severity == DiagnosticSeverity.Error), "Failed: " + compileDiagnostics.FirstOrDefault()?.GetMessage());
-            ISourceGenerator generator = new Generator();
-
-            var driver = CSharpGeneratorDriver.Create(generator);
-            driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var generateDiagnostics);
-            Assert.False(generateDiagnostics.Any(d => d.Severity == DiagnosticSeverity.Error), "Failed: " + generateDiagnostics.FirstOrDefault()?.GetMessage());
-
-            string output = string.Join(Environment.NewLine, outputCompilation.SyntaxTrees.Select(x => x.ToString()));
-
-            return output;
         }
     }
 }

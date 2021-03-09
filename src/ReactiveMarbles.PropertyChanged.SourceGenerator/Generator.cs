@@ -27,7 +27,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             var options = (context.Compilation as CSharpCompilation).SyntaxTrees[0].Options as CSharpParseOptions;
             var whenChangedStub = SourceText.From(StringBuilderSourceCreatorHelper.GetWhenChangedStubClass(), Encoding.UTF8);
             var bindingStub = SourceText.From(StringBuilderSourceCreatorHelper.GetBindingStubClass(), Encoding.UTF8);
-            var compilation = context.Compilation.AddSyntaxTrees(CSharpSyntaxTree.ParseText(whenChangedStub, options), CSharpSyntaxTree.ParseText(bindingStub, options));
+            Compilation compilation = context.Compilation.AddSyntaxTrees(CSharpSyntaxTree.ParseText(whenChangedStub, options), CSharpSyntaxTree.ParseText(bindingStub, options));
             context.AddSource("WhenChanged.Stubs.g.cs", whenChangedStub);
             context.AddSource("Binding.Stubs.g.cs", bindingStub);
 

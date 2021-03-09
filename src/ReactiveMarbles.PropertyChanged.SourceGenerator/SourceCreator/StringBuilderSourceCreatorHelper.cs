@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 
@@ -23,11 +24,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         public static string GetMultiExpressionMethodParameters(string inputType, string outputType, List<string> tempReturnTypes)
         {
             var sb = new StringBuilder();
-            var counter = tempReturnTypes.Count;
+            int counter = tempReturnTypes.Count;
 
             for (int i = 0; i < counter; i++)
             {
-                sb.Append("        Func<").Append(inputType).Append(", ").Append(tempReturnTypes[i]).Append("> propertyExpression").Append(i + 1).AppendLine(",");
+                sb.Append("        Expression<Func<").Append(inputType).Append(", ").Append(tempReturnTypes[i]).Append(">> propertyExpression").Append(i + 1).AppendLine(",");
             }
 
             sb.Append("        Func<");
@@ -36,7 +37,10 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 sb.Append(tempReturnTypes[i]).Append(", ");
             }
 
-            sb.Append(outputType).Append("> conversionFunc)");
+            sb.Append(outputType).AppendLine("> conversionFunc,")
+                .Append(@"        [CallerMemberName]string callerMemberName = null,
+        [CallerFilePath]string callerFilePath = null,
+        [CallerLineNumber]int callerLineNumber = 0)");
 
             return sb.ToString();
         }
@@ -46,7 +50,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             var sb = new StringBuilder();
             for (int i = 0; i < counter; i++)
             {
-                sb.Append("        var obs").Append(i + 1).Append(" = objectToMonitor.WhenChanged(propertyExpression").Append(i + 1).AppendLine(");");
+                sb.Append("        var obs").Append(i + 1).Append(" = objectToMonitor.WhenChanged(propertyExpression").Append(i + 1).AppendLine(", callerMemberName, callerFilePath, callerLineNumber);");
             }
 
             sb.Append("        return obs1.CombineLatest(");
@@ -65,7 +69,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             var sb = new StringBuilder();
             for (int i = 0; i < counter; i++)
             {
-                sb.Append("        var obs").Append(i + 1).Append(" = this.WhenChanged(propertyExpression").Append(i + 1).AppendLine(");");
+                sb.Append("        var obs").Append(i + 1).Append(" = this.WhenChanged(propertyExpression").Append(i + 1).AppendLine(", callerMemberName, callerFilePath, callerLineNumber);");
             }
 
             sb.Append("        return obs1.CombineLatest(");
@@ -105,7 +109,12 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         public static string GetWhenChangedMethodForMap(string inputType, string outputType, Accessibility accessModifier, string mapName)
         {
             return $@"
-    {accessModifier.ToFriendlyString()} static IObservable<{outputType}> WhenChanged(this {inputType} source, Expression<Func<{inputType}, {outputType}>> propertyExpression)
+    {accessModifier.ToFriendlyString()} static IObservable<{outputType}> WhenChanged(
+        this {inputType} source,
+        Expression<Func<{inputType}, {outputType}>> propertyExpression,
+        [CallerMemberName]string callerMemberName = null,
+        [CallerFilePath]string callerFilePath = null,
+        [CallerLineNumber]int callerLineNumber = 0)
     {{
         return {mapName}[propertyExpression.Body.ToString()].Invoke(source);
     }}
@@ -117,6 +126,13 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             return $@"Observable.Create<{outputType}>(
                 observer =>
                 {{
+                    if ({inputName} == null)
+                    {{
+                        return Disposable.Empty;
+                    }}
+
+                    observer.OnNext({inputName}.{memberName});
+
                     PropertyChangedEventHandler handler = (object sender, PropertyChangedEventArgs e) =>
                     {{
                         var input = ({inputType}){inputName};
@@ -129,8 +145,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                     {inputName}.PropertyChanged += handler;
 
                     return Disposable.Create((parent: {inputName}, handler), x => x.parent.PropertyChanged -= x.handler);
-                }})
-            .StartWith({inputName}.{memberName})";
+                }})";
         }
 
         public static string GetWhenChangedMethodForDirectReturn(string inputType, string outputType, Accessibility accessModifier, string valueChain)
@@ -142,7 +157,12 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
     /// <param name=""source"">The source of the property changes.</param>
     /// <param name=""propertyExpression"">The property.</param>
     /// <returns>The observable which signals with updates.</returns>
-    {accessModifier.ToFriendlyString()} static IObservable<{outputType}> WhenChanged(this {inputType} source, Expression<Func<{inputType}, {outputType}>> propertyExpression)
+    {accessModifier.ToFriendlyString()} static IObservable<{outputType}> WhenChanged(
+        this {inputType} source,
+        Expression<Func<{inputType}, {outputType}>> propertyExpression,
+        [CallerMemberName]string callerMemberName = null,
+        [CallerFilePath]string callerFilePath = null,
+        [CallerLineNumber]int callerLineNumber = 0)
     {{
         return Observable.Return(source){valueChain};
     }}
@@ -152,7 +172,6 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         public static string GetMapEntryChain(string inputType, string outputType, string memberName)
         {
             return $@"
-                .Where(x => x != null)
                 .Select(x => {GetObservableCreation(inputType, "x", outputType, memberName)})
                 .Switch()";
         }
@@ -179,12 +198,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         public static string GetClass(string body)
         {
             return $@"
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq.Expressions;
-using System.Reactive.Disposables;
-using System.Reactive.Linq;
+{GetUsingStatements()}
 
 public static partial class NotifyPropertyChangedExtensions
 {{
@@ -193,16 +207,29 @@ public static partial class NotifyPropertyChangedExtensions
 ";
         }
 
+        public static string GetUsingStatements()
+        {
+            return @"
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq.Expressions;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
+using System.Runtime.CompilerServices;
+";
+        }
+
         public static string GetPartialClass(string namespaceName, string className, Accessibility accessModifier, IEnumerable<AncestorClassInfo> ancestorClasses, string body)
         {
-            var source = $@"
+            string source = $@"
 {accessModifier.ToFriendlyString()} partial class {className}
 {{
     {body}
 }}
 ";
 
-            foreach (var ancestorClass in ancestorClasses)
+            foreach (AncestorClassInfo ancestorClass in ancestorClasses)
             {
                 source = $@"
 {ancestorClass.AccessModifier.ToFriendlyString()} partial class {ancestorClass.Name}
@@ -222,35 +249,41 @@ namespace {namespaceName}
 ";
             }
 
-            var usingClauses = @"
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq.Expressions;
-using System.Reactive.Disposables;
-using System.Reactive.Linq;
-";
-
-            return source.Insert(0, usingClauses);
+            return source.Insert(0, GetUsingStatements());
         }
 
         public static string GetPartialClassWhenChangedMethodForMap(string inputType, string outputType, Accessibility accessModifier, string mapName)
         {
             return $@"
-    {accessModifier.ToFriendlyString()} IObservable<{outputType}> WhenChanged(Expression<Func<{inputType}, {outputType}>> propertyExpression)
+    {accessModifier.ToFriendlyString()} IObservable<{outputType}> WhenChanged(
+        Expression<Func<{inputType}, {outputType}>> propertyExpression, 
+        [CallerMemberName]string callerMemberName = null,
+        [CallerFilePath]string callerFilePath = null,
+        [CallerLineNumber]int callerLineNumber = 0)
     {{
         return {mapName}[propertyExpression.Body.ToString()].Invoke(this);
     }}
 ";
         }
 
-        public static string GetPartialClassWhenChangedMethodForDirectReturn(string inputType, string outputType, Accessibility accessModifier, string valueChain)
+        public static string GetPartialClassWhenChangedMethodForDirectReturn(string inputType, string outputType, Accessibility accessModifier, List<(string Name, string InputType, string OutputType)> members)
         {
+            var observableChainStringBuilder = new StringBuilder(GetObservableCreation(members[0].InputType, "this", members[0].OutputType, members[0].Name));
+
+            foreach (var member in members.Skip(1))
+            {
+                observableChainStringBuilder.Append(GetMapEntryChain(member.InputType, member.OutputType, member.Name));
+            }
+
             // Making the access modifier public so multi-expression extensions will able to access it, if needed.
             return $@"
-    {accessModifier.ToFriendlyString()} IObservable<{outputType}> WhenChanged(Expression<Func<{inputType}, {outputType}>> propertyExpression)
+    {accessModifier.ToFriendlyString()} IObservable<{outputType}> WhenChanged(
+        Expression<Func<{inputType}, {outputType}>> propertyExpression,
+        [CallerMemberName]string callerMemberName = null,
+        [CallerFilePath]string callerFilePath = null,
+        [CallerLineNumber]int callerLineNumber = 0)
     {{
-        return {GetObservableCreation(inputType, "x", outputType, valueChain)};
+        return {observableChainStringBuilder};
     }}
 ";
         }
