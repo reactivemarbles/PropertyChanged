@@ -139,17 +139,6 @@ namespace Foo
             var diagnostics = newCompilation.GetDiagnostics();
             string output = string.Join(Environment.NewLine, newCompilation.SyntaxTrees.Select(x => x.ToString()));
 
-            var rootFolder = @"C:\Users\Glenn\source\repos\ConsoleApp8\ConsoleApp8";
-
-            int i = 0;
-            foreach (var tree in newCompilation.SyntaxTrees)
-            {
-                var fileName = string.IsNullOrWhiteSpace(tree.FilePath) ? "File" + i + ".cs" : Path.GetFileName(tree.FilePath);
-                var fileWrite = Path.Combine(rootFolder, fileName);
-                File.WriteAllText(fileWrite, tree.ToString());
-                i++;
-            }
-
             Assert.Empty(diagnostics.Where(x => x.Severity > DiagnosticSeverity.Warning));
             Assert.Empty(generatorDiagnostics);
             Assert.False(string.IsNullOrWhiteSpace(output));
