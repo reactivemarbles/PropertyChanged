@@ -11,20 +11,13 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
     {
         private readonly ITypeSymbol _inputType;
 
-        public InputTypeGroup(ITypeSymbol inputType, IEnumerable<OutputTypeGroup> outputTypeGroups)
+        public InputTypeGroup(ITypeSymbol inputType, List<OutputTypeGroup> outputTypeGroups)
         {
             _inputType = inputType;
             OutputTypeGroups = outputTypeGroups;
 
             var containingNamespace = _inputType.ContainingNamespace;
-            if (string.IsNullOrEmpty(containingNamespace?.Name))
-            {
-                NamespaceName = string.Empty;
-            }
-            else
-            {
-                NamespaceName = containingNamespace.ToDisplayString();
-            }
+            NamespaceName = string.IsNullOrEmpty(containingNamespace?.Name) ? string.Empty : containingNamespace.ToDisplayString();
 
             var ancestorClasses = new List<AncestorClassInfo>();
             var containingType = _inputType.ContainingType;
@@ -43,10 +36,10 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
         public string FullName => _inputType.ToDisplayString();
 
-        public IEnumerable<AncestorClassInfo> AncestorClasses { get; }
+        public List<AncestorClassInfo> AncestorClasses { get; }
 
         public Accessibility AccessModifier => _inputType.DeclaredAccessibility;
 
-        public IEnumerable<OutputTypeGroup> OutputTypeGroups { get; }
+        public List<OutputTypeGroup> OutputTypeGroups { get; }
     }
 }

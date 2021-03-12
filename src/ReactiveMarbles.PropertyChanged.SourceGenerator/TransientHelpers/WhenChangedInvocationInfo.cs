@@ -3,11 +3,14 @@
 // See the LICENSE file in the project root for full license information.
 
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
     internal sealed record WhenChangedInvocationInfo(
         bool AllExpressionArgumentsAreValid,
-        HashSet<ExpressionArgument> ExpressionArguments,
-        HashSet<MultiExpressionMethodDatum> MultiExpressionMethodData);
+        SortedList<ITypeSymbol, HashSet<ExpressionArgument>> PrivateExpressionArguments,
+        SortedList<ITypeSymbol, HashSet<ExpressionArgument>> PublicExpressionArguments,
+        SortedList<ITypeSymbol, HashSet<MultiExpressionMethodDatum>> PrivateMultiExpressionMethodData,
+        SortedList<ITypeSymbol, HashSet<MultiExpressionMethodDatum>> PublicMultiExpressionMethodData);
 }

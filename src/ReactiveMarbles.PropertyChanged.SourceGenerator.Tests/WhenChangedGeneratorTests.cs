@@ -18,7 +18,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
     /// <summary>
     /// Source generator tets.
     /// </summary>
-    public class WhenChangedGeneratorTests
+    public class WhenChangedGeneratorTests : GeneratorTestBase
     {
         /// <summary>
         /// Gets the testing data.
@@ -189,6 +189,17 @@ namespace Foo
             var diagnostics = newCompilation.GetDiagnostics();
 
             string output = string.Join(Environment.NewLine, newCompilation.SyntaxTrees.Select(x => x.ToString()));
+
+            var rootFolder = @"C:\Users\Glenn\source\repos\ConsoleApp8\ConsoleApp8";
+
+            int i = 0;
+            foreach (var tree in newCompilation.SyntaxTrees)
+            {
+                var fileName = string.IsNullOrWhiteSpace(tree.FilePath) ? "File" + i + ".cs" : Path.GetFileName(tree.FilePath);
+                var fileWrite = Path.Combine(rootFolder, fileName);
+                File.WriteAllText(fileWrite, tree.ToString());
+                i++;
+            }
 
             Assert.Empty(diagnostics.Where(x => x.Severity > DiagnosticSeverity.Warning));
             Assert.Empty(generatorDiagnostics);
@@ -631,6 +642,17 @@ namespace Foo
             Compilation compilation = CreateCompilation(userSource);
             var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator());
 
+            var rootFolder = @"C:\Users\Glenn\source\repos\ConsoleApp8\ConsoleApp8";
+
+            int i = 0;
+            foreach (var tree in newCompilation.SyntaxTrees)
+            {
+                var fileName = string.IsNullOrWhiteSpace(tree.FilePath) ? "File" + i + ".cs" : Path.GetFileName(tree.FilePath);
+                var fileWrite = Path.Combine(rootFolder, fileName);
+                File.WriteAllText(fileWrite, tree.ToString());
+                i++;
+            }
+
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
             Assert.Empty(newCompilation.GetDiagnostics().Where(x => x.Severity >= DiagnosticSeverity.Warning));
 
@@ -804,11 +826,6 @@ namespace Foo
             Assert.Equal(DiagnosticWarnings.OnlyPropertyAndFieldAccessAllowed, generatorDiagnostics[0].Descriptor);
         }
 
-        private static object CreateInstance(Type type)
-        {
-            return Activator.CreateInstance(type, bindingAttr: BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, null, null);
-        }
-
         private static IObservable<T> GetWhenChangedObservable<T>(object target)
         {
             return target.GetType().InvokeMember(
@@ -827,62 +844,6 @@ namespace Foo
                 null,
                 target,
                 Array.Empty<object>()) as IObservable<dynamic>;
-        }
-
-        private static void SetProperty(object target, string propertyName, object value)
-        {
-            target.GetType().InvokeMember(
-                propertyName,
-                BindingFlags.SetProperty | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public,
-                null,
-                target,
-                new object[] { value });
-        }
-
-        private static Assembly GetAssembly(Compilation compilation)
-        {
-            using var ms = new MemoryStream();
-            var result = compilation.Emit(ms);
-            ms.Seek(0, SeekOrigin.Begin);
-            return Assembly.Load(ms.ToArray());
-        }
-
-        private static Compilation CreateCompilation(params string[] sources)
-        {
-            var assemblyPath = Path.GetDirectoryName(typeof(object).Assembly.Location);
-
-            return CSharpCompilation.Create(
-                assemblyName: "compilation",
-                syntaxTrees: sources.Select(x => CSharpSyntaxTree.ParseText(x, new CSharpParseOptions(LanguageVersion.Latest))),
-                references: new[]
-                {
-                    MetadataReference.CreateFromFile(typeof(Observable).GetTypeInfo().Assembly.Location),
-                    MetadataReference.CreateFromFile(typeof(WhenChangedGenerator).GetTypeInfo().Assembly.Location),
-                    MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "mscorlib.dll")),
-                    MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "System.dll")),
-                    MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "System.Core.dll")),
-                    MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "System.Console.dll")),
-                    MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "System.Runtime.dll")),
-                    MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "netstandard.dll")),
-                    MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "System.Linq.Expressions.dll")),
-                    MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "System.ObjectModel.dll")),
-                    MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "System.Private.CoreLib.dll")),
-                },
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
-                    .WithSpecificDiagnosticOptions(new[] { new KeyValuePair<string, ReportDiagnostic>("1061", ReportDiagnostic.Suppress) }));
-        }
-
-        private static GeneratorDriver CreateDriver(Compilation compilation, params ISourceGenerator[] generators) =>
-            CSharpGeneratorDriver.Create(
-                generators: ImmutableArray.Create(generators),
-                additionalTexts: ImmutableArray<AdditionalText>.Empty,
-                parseOptions: (CSharpParseOptions)compilation.SyntaxTrees.First().Options,
-                optionsProvider: null);
-
-        private static Compilation RunGenerators(Compilation compilation, out ImmutableArray<Diagnostic> diagnostics, params ISourceGenerator[] generators)
-        {
-            CreateDriver(compilation, generators).RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out diagnostics);
-            return outputCompilation;
         }
     }
 }

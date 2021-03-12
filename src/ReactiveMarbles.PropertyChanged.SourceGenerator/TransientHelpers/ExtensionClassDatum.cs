@@ -8,7 +8,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
     internal sealed record ExtensionClassDatum : ClassDatum
     {
-        public ExtensionClassDatum(string name, IEnumerable<MethodDatum> methodData)
+        public ExtensionClassDatum(string name, List<MethodDatum> methodData)
             : base(name, methodData)
         {
         }

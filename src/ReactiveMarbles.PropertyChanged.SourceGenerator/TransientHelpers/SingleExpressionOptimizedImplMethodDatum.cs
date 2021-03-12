@@ -29,9 +29,6 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
         public List<(string Name, string InputType, string OutputType)> Members { get; }
 
-        public override string CreateSource(ISourceCreator sourceCreator)
-        {
-            return sourceCreator.Create(this);
-        }
+        public override string CreateSource(ISourceCreator sourceCreator) => sourceCreator.Create(this);
     }
 }

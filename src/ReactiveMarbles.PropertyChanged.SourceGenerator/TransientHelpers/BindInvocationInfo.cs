@@ -6,11 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace ReactiveMarbles.PropertyChanged.SourceGenerator.TransientHelpers
+using Microsoft.CodeAnalysis;
+
+namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
     internal sealed record BindInvocationInfo(
         bool AllExpressionArgumentsAreValid,
-        HashSet<ExpressionArgument> ViewModelExpressionArguments,
-        HashSet<ExpressionArgument> ViewExpressionArguments,
-        HashSet<MultiExpressionMethodDatum> MultiExpressionMethodData);
+        SortedList<ITypeSymbol, HashSet<(ExpressionArgument ViewModel, ExpressionArgument View)>> ExpressionArguments);
 }

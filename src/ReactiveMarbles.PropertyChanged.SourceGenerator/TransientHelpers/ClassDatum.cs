@@ -9,7 +9,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
     internal abstract record ClassDatum
     {
-        public ClassDatum(string name, IEnumerable<MethodDatum> methodData)
+        public ClassDatum(string name, List<MethodDatum> methodData)
         {
             Name = name;
             MethodData = methodData;
@@ -17,6 +17,6 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
         public string Name { get; }
 
-        public IEnumerable<MethodDatum> MethodData { get; }
+        public List<MethodDatum> MethodData { get; }
     }
 }

@@ -17,7 +17,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         private string _valuePropertyTypeName;
         private CustomTypeInfoForValueProperty _customTypeInfoForValueProperty;
         private string _outerClassAccessModifier;
-        private List<string> _invocations;
+        private List<string> _whenAnyInvocations;
+        private List<string> _bindInvocations;
 
         public MockUserSourceBuilder(InvocationKind invocationKind, ReceiverKind receiverKind, ExpressionForm expressionForm, int depth)
         {
@@ -26,9 +27,23 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             _className = "SampleClass";
             _propertyAccessModifier = "public";
             _valuePropertyTypeName = "string";
-            _invocations = new List<string>();
+            _bindInvocations = new List<string>();
+            _whenAnyInvocations = new List<string>();
 
             AndWhenChanged(invocationKind, receiverKind, expressionForm, depth);
+        }
+
+        public MockUserSourceBuilder(InvocationKind invocationKind, ReceiverKind receiverKind, ExpressionForm viewModelExpressionForm, ExpressionForm viewExpressionForm, int viewModelDepth, int viewDepth)
+        {
+            _classAccessModifier = "public";
+            _namespaceName = "Sample";
+            _className = "SampleClass";
+            _propertyAccessModifier = "public";
+            _valuePropertyTypeName = "string";
+            _bindInvocations = new List<string>();
+            _whenAnyInvocations = new List<string>();
+
+            AndBind(invocationKind, receiverKind, viewModelExpressionForm, viewExpressionForm, viewModelDepth, viewDepth);
         }
 
         public MockUserSourceBuilder ClassAccessModifier(string value)
@@ -113,7 +128,47 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 invocation = $"NotifyPropertyChangedExtensions.WhenChanged({receiver}, {expression})";
             }
 
-            _invocations.Add(invocation);
+            _whenAnyInvocations.Add(invocation);
+
+            return this;
+        }
+
+        public MockUserSourceBuilder AndBind(InvocationKind invocationKind, ReceiverKind receiverKind, ExpressionForm viewModelExpressionForm, ExpressionForm viewExpressionForm, int viewModelDepth, int viewDepth)
+        {
+            var receiver = receiverKind == ReceiverKind.This ? "this" : "instance";
+            var viewExpression = viewExpressionForm switch
+            {
+                ExpressionForm.Inline => string.Join(".", Enumerable.Range(1, viewDepth - 1).Select(_ => "Child").Prepend("x => x").Append("Value")),
+                ExpressionForm.Property => "MyExpression",
+                ExpressionForm.Method => "GetExpression()",
+                ExpressionForm.BodyIncludesIndexer => viewDepth < 2 ? "x => x.Values[0]" : string.Join(".", Enumerable.Range(1, viewDepth - 2).Select(_ => "Child").Prepend("x => x.Children[0]").Append("Value")),
+                ExpressionForm.BodyIncludesMethodInvocation => viewDepth < 2 ? "x => x.GetValue()" : string.Join(".", Enumerable.Range(1, viewDepth - 2).Select(_ => "Child").Prepend("x => x.GetChild()").Append("Value")),
+                ExpressionForm.BodyExcludesLambdaParam => viewDepth < 2 ? "x => Value" : "x => " + string.Join(".", Enumerable.Range(1, viewDepth - 2).Select(_ => "Child").Append("Value")),
+                _ => throw new InvalidOperationException($"{nameof(ExpressionForm)} [{viewExpressionForm}] is not supported."),
+            };
+
+            var viewModelExpression = viewModelExpressionForm switch
+            {
+                ExpressionForm.Inline => string.Join(".", Enumerable.Range(1, viewModelDepth - 1).Select(_ => "Child").Prepend("x => x").Append("Value")),
+                ExpressionForm.Property => "MyExpression",
+                ExpressionForm.Method => "GetExpression()",
+                ExpressionForm.BodyIncludesIndexer => viewModelDepth < 2 ? "x => x.Values[0]" : string.Join(".", Enumerable.Range(1, viewModelDepth - 2).Select(_ => "Child").Prepend("x => x.Children[0]").Append("Value")),
+                ExpressionForm.BodyIncludesMethodInvocation => viewModelDepth < 2 ? "x => x.GetValue()" : string.Join(".", Enumerable.Range(1, viewModelDepth - 2).Select(_ => "Child").Prepend("x => x.GetChild()").Append("Value")),
+                ExpressionForm.BodyExcludesLambdaParam => viewModelDepth < 2 ? "x => Value" : "x => " + string.Join(".", Enumerable.Range(1, viewModelDepth - 2).Select(_ => "Child").Append("Value")),
+                _ => throw new InvalidOperationException($"{nameof(ExpressionForm)} [{viewModelExpressionForm}] is not supported."),
+            };
+
+            string invocation;
+            if (invocationKind == InvocationKind.MemberAccess)
+            {
+                invocation = $"{receiver}.Bind({viewModelExpression}, {viewExpression})";
+            }
+            else
+            {
+                invocation = $"BindExtensions.Bind({receiver}, {viewModelExpression}, {viewExpression})";
+            }
+
+            _bindInvocations.Add(invocation);
 
             return this;
         }
@@ -127,6 +182,38 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
 
             var customValuePropertyTypeSource = string.Empty;
             var customValuePropertyNestedTypeSource = string.Empty;
+            var whenAnyObservables = string.Empty;
+            var bind = string.Empty;
+
+            if (_whenAnyInvocations.Count != 0)
+            {
+                whenAnyObservables = $@"        {_propertyAccessModifier} IObservable<{_valuePropertyTypeName}> GetWhenChangedObservable()
+        {{
+            var instance = this;
+            return GetWhenChangedObservables()[0];
+        }}
+
+        {_propertyAccessModifier} IObservable<{_valuePropertyTypeName}>[] GetWhenChangedObservables()
+        {{
+            var instance = this;
+            return new IObservable<{_valuePropertyTypeName}>[]
+            {{
+                {string.Join(",\n", _whenAnyInvocations)},
+            }};
+        }}";
+            }
+
+            if (_bindInvocations.Count != 0)
+            {
+                bind = $@"        {_propertyAccessModifier} IDisposable[] GetBinds()
+        {{
+            var instance = this;
+            return new IDisposable[]
+            {{
+                {string.Join(",\n", _bindInvocations)},
+            }};
+        }}";
+            }
 
             if (_customTypeInfoForValueProperty != null)
             {
@@ -198,21 +285,6 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
 
         {_propertyAccessModifier} {_valuePropertyTypeName} GetValue() => Value;
 
-        {_propertyAccessModifier} IObservable<{_valuePropertyTypeName}> GetWhenChangedObservable()
-        {{
-            var instance = this;
-            return GetWhenChangedObservables()[0];
-        }}
-
-        {_propertyAccessModifier} IObservable<{_valuePropertyTypeName}>[] GetWhenChangedObservables()
-        {{
-            var instance = this;
-            return new IObservable<{_valuePropertyTypeName}>[]
-            {{
-                {string.Join(",\n", _invocations)},
-            }};
-        }}
-
         protected void RaiseAndSetIfChanged<T>(ref T fieldValue, T value, [CallerMemberName] string propertyName = null)
         {{
             if (EqualityComparer<T>.Default.Equals(fieldValue, value))
@@ -229,6 +301,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }}
 {customValuePropertyNestedTypeSource}
+{whenAnyObservables}
+{bind}
     }}
 ";
 
@@ -474,6 +548,35 @@ public partial class SampleClass : INotifyPropertyChanged
 
         private string BuildNested()
         {
+            var whenAny = string.Empty;
+
+            if (_whenAnyInvocations.Count > 0)
+            {
+                whenAny = @$"    {_propertyAccessModifier} IObservable<{_valuePropertyTypeName}>[] GetWhenChangedObservables()
+    {{
+        var instance = this;
+        return new IObservable<{_valuePropertyTypeName}>[]
+        {{
+            {string.Join(",\n", _whenAnyInvocations)},
+        }};
+    }}
+";
+            }
+
+            var bind = string.Empty;
+
+            if (_bindInvocations.Count != 0)
+            {
+                bind = $@"        {_propertyAccessModifier} IDisposable[] GetBinds()
+        {{
+            var instance = this;
+            return new IDisposable[]
+            {{
+                {string.Join(",\n", _bindInvocations)},
+            }};
+        }}";
+            }
+
             var source = $@"
 {_classAccessModifier} partial class {_className} : INotifyPropertyChanged
 {{
@@ -500,14 +603,9 @@ public partial class SampleClass : INotifyPropertyChanged
         return GetWhenChangedObservables()[0];
     }}
 
-    {_propertyAccessModifier} IObservable<{_valuePropertyTypeName}>[] GetWhenChangedObservables()
-    {{
-        var instance = this;
-        return new IObservable<{_valuePropertyTypeName}>[]
-        {{
-            {string.Join(",\n", _invocations)},
-        }};
-    }}
+    {whenAny}
+
+    {bind}
 
     protected void RaiseAndSetIfChanged<T>(ref T fieldValue, T value, [CallerMemberName] string propertyName = null)
     {{

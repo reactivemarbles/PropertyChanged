@@ -24,7 +24,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         /// <inheritdoc/>
         public void Execute(GeneratorExecutionContext context)
         {
-            var options = (context.Compilation as CSharpCompilation).SyntaxTrees[0].Options as CSharpParseOptions;
+            var options = (context.Compilation as CSharpCompilation)?.SyntaxTrees[0].Options as CSharpParseOptions;
             var whenChangedStub = SourceText.From(StringBuilderSourceCreatorHelper.GetWhenChangedStubClass(), Encoding.UTF8);
             var bindingStub = SourceText.From(StringBuilderSourceCreatorHelper.GetBindingStubClass(), Encoding.UTF8);
             var compilation = context.Compilation.AddSyntaxTrees(CSharpSyntaxTree.ParseText(whenChangedStub, options), CSharpSyntaxTree.ParseText(bindingStub, options));
@@ -37,6 +37,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             }
 
             WhenChangedGenerator.GenerateWhenChanged(context, compilation, syntaxReceiver);
+            BindGenerator.GenerateWhenChanged(context, compilation, syntaxReceiver);
         }
     }
 }

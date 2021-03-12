@@ -14,24 +14,24 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
     /// </summary>
     internal sealed record MultiExpressionMethodDatum : MethodDatum
     {
-        public MultiExpressionMethodDatum(Accessibility accessModifier, IEnumerable<string> typeNames, bool containsPrivateOrProtectedTypeArgument)
+        public MultiExpressionMethodDatum(Accessibility accessModifier, IEnumerable<ITypeSymbol> types, bool containsPrivateOrProtectedTypeArgument)
         {
             AccessModifier = accessModifier;
             ContainsPrivateOrProtectedTypeArgument = containsPrivateOrProtectedTypeArgument;
 
-            var list = typeNames.ToArray();
-            InputTypeFullName = list[0];
-            OutputTypeFullName = list[list.Length - 1];
+            var list = types.ToArray();
+            InputType = list[0];
+            OutputType = list[list.Length - 1];
             TempReturnTypes = new List<string>(list.Length - 2);
             for (var i = 1; i < list.Length - 1; i++)
             {
-                TempReturnTypes.Add(list[i]);
+                TempReturnTypes.Add(list[i].ToDisplayString());
             }
         }
 
-        public string InputTypeFullName { get; }
+        public ITypeSymbol InputType { get; }
 
-        public string OutputTypeFullName { get; }
+        public ITypeSymbol OutputType { get; }
 
         public Accessibility AccessModifier { get; }
 
@@ -39,10 +39,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
         public bool ContainsPrivateOrProtectedTypeArgument { get; }
 
-        public override string CreateSource(ISourceCreator sourceCreator)
-        {
-            return sourceCreator.Create(this);
-        }
+        public override string CreateSource(ISourceCreator sourceCreator) => sourceCreator.Create(this);
 
         public bool Equals(MultiExpressionMethodDatum other)
         {
@@ -52,8 +49,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             }
 
             var result =
-                InputTypeFullName == other.InputTypeFullName &&
-                OutputTypeFullName == other.OutputTypeFullName &&
+                SymbolEqualityComparer.Default.Equals(InputType, other.InputType) &&
+                SymbolEqualityComparer.Default.Equals(OutputType, other.OutputType) &&
                 TempReturnTypes.Count == other.TempReturnTypes.Count;
 
             if (!result)
@@ -72,8 +69,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         public override int GetHashCode()
         {
             var hashCode = 1230885993;
-            hashCode = (hashCode * -1521134295) + EqualityComparer<string>.Default.GetHashCode(InputTypeFullName);
-            hashCode = (hashCode * -1521134295) + EqualityComparer<string>.Default.GetHashCode(OutputTypeFullName);
+            hashCode = (hashCode * -1521134295) + SymbolEqualityComparer.Default.GetHashCode(InputType);
+            hashCode = (hashCode * -1521134295) + SymbolEqualityComparer.Default.GetHashCode(OutputType);
 
             foreach (var typeName in TempReturnTypes)
             {

@@ -9,14 +9,8 @@ namespace ReactiveMarbles.PropertyChanged
 {
     internal sealed class MemberFuncCacheKeyComparer : IEqualityComparer<MemberInfo>
     {
-        public bool Equals(MemberInfo x, MemberInfo y)
-        {
-            return (x.DeclaringType, x.Name) == (y.DeclaringType, y.Name);
-        }
+        public bool Equals(MemberInfo x, MemberInfo y) => (x.DeclaringType, x.Name) == (y.DeclaringType, y.Name);
 
-        public int GetHashCode(MemberInfo obj)
-        {
-            return (obj.DeclaringType, obj.Name).GetHashCode();
-        }
+        public int GetHashCode(MemberInfo obj) => (obj.DeclaringType, obj.Name).GetHashCode();
     }
 }

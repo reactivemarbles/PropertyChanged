@@ -257,18 +257,32 @@ namespace {namespaceName}
             return source.Insert(0, GetUsingStatements());
         }
 
-        public static string GetPartialClassWhenChangedMethodForMap(string inputType, string outputType, Accessibility accessModifier, string mapName)
+        public static string GetWhenChangedMapMethod(string inputType, string outputType, bool isExtension, Accessibility accessModifier, string mapName)
         {
-            return $@"
-    {accessModifier.ToFriendlyString()} IObservable<{outputType}> WhenChanged(
-        Expression<Func<{inputType}, {outputType}>> propertyExpression, 
+            var staticExpression = isExtension ? "static" : string.Empty;
+
+            var sb = new StringBuilder($"   {accessModifier.ToFriendlyString()} {staticExpression} IObservable<{outputType}> WhenChanged(").AppendLine();
+
+            string invokeName;
+            if (isExtension)
+            {
+                invokeName = "source";
+                sb.AppendLine($"        this {inputType} source,");
+            }
+            else
+            {
+                invokeName = "this";
+            }
+
+            sb.AppendLine($@"        Expression<Func<{inputType}, {outputType}>> propertyExpression, 
         [CallerMemberName]string callerMemberName = null,
         [CallerFilePath]string callerFilePath = null,
         [CallerLineNumber]int callerLineNumber = 0)
     {{
-        return {mapName}[propertyExpression.Body.ToString()].Invoke(this);
-    }}
-";
+        return {mapName}[propertyExpression.Body.ToString()].Invoke({invokeName});
+    }}");
+
+            return sb.ToString();
         }
 
         public static string GetPartialClassWhenChangedMethodForDirectReturn(string inputType, string outputType, Accessibility accessModifier, List<(string Name, string InputType, string OutputType)> members)

@@ -10,7 +10,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
     internal sealed record PartialClassDatum : ClassDatum
     {
-        public PartialClassDatum(string namespaceName, string name, Accessibility accessModifier, IEnumerable<AncestorClassInfo> ancestorClasses, IEnumerable<MethodDatum> methodData)
+        public PartialClassDatum(string namespaceName, string name, Accessibility accessModifier, List<AncestorClassInfo> ancestorClasses, List<MethodDatum> methodData)
             : base(name, methodData)
         {
             NamespaceName = namespaceName;
@@ -22,6 +22,6 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
         public Accessibility AccessModifier { get; }
 
-        public IEnumerable<AncestorClassInfo> AncestorClasses { get; }
+        public List<AncestorClassInfo> AncestorClasses { get; }
     }
 }

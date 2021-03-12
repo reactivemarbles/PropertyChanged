@@ -35,5 +35,13 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             category: "Compiler",
             defaultSeverity: DiagnosticSeverity.Error,
             isEnabledByDefault: true);
+
+        internal static readonly DiagnosticDescriptor BindingIncorrectNumberParameters = new DiagnosticDescriptor(
+            id: "RXM004",
+            title: "Must be both ViewModel and View expressions for Bind method",
+            messageFormat: "Must be both ViewModel and View expressions for Bind method",
+            category: "Compiler",
+            defaultSeverity: DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
     }
 }
