@@ -16,6 +16,10 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
         public string Key { get; }
 
+        /// <summary>
+        /// Gets the members.
+        /// This would be the Expression's Input and Output.
+        /// </summary>
         public List<(string Name, string InputType, string OutputType)> Members { get; }
     }
 }
