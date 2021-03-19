@@ -176,12 +176,17 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 .Switch()";
         }
 
+        public static string GetMapEntryObservableReturn(string key, string valueChain)
+        {
+            return GetMapEntry(key, $"Observable.Return(source){valueChain}");
+        }
+
         public static string GetMapEntry(string key, string valueChain)
         {
             return $@"
         {{
             ""{key}"",
-            source => Observable.Return(source){valueChain}
+            source => {valueChain}
         }},";
         }
 

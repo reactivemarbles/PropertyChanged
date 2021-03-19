@@ -34,12 +34,20 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             foreach (var entry in methodDatum.Map.Entries)
             {
                 var valueChainSb = new StringBuilder();
-                foreach ((var name, var inputType, var outputType) in entry.Members)
+                if (entry.Members.Count == 1)
                 {
-                    valueChainSb.Append(StringBuilderSourceCreatorHelper.GetMapEntryChain(inputType, outputType, name));
+                    var (name, inputType, outputType) = entry.Members[0];
+                    mapEntrySb.Append(StringBuilderSourceCreatorHelper.GetMapEntry(entry.Key, StringBuilderSourceCreatorHelper.GetObservableCreation(inputType, "source", outputType, name)));
                 }
+                else
+                {
+                    foreach ((var name, var inputType, var outputType) in entry.Members)
+                    {
+                        valueChainSb.Append(StringBuilderSourceCreatorHelper.GetMapEntryChain(inputType, outputType, name));
+                    }
 
-                mapEntrySb.Append(StringBuilderSourceCreatorHelper.GetMapEntry(entry.Key, valueChainSb.ToString()));
+                    mapEntrySb.Append(StringBuilderSourceCreatorHelper.GetMapEntryObservableReturn(entry.Key, valueChainSb.ToString()));
+                }
             }
 
             var map = StringBuilderSourceCreatorHelper.GetMap(methodDatum.InputTypeName, methodDatum.OutputTypeName, methodDatum.Map.MapName, mapEntrySb.ToString());
