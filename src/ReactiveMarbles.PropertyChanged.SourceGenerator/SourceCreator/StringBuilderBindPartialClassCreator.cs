@@ -8,9 +8,9 @@ using System.Text;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
-    internal class StringBuilderBindExtensionClassCreator : ISourceCreator
+    internal class StringBuilderBindPartialClassCreator : ISourceCreator
     {
-        public string Create(ExtensionClassDatum classDatum) => throw new NotImplementedException();
+        public string Create(PartialClassDatum classDatum) => throw new NotImplementedException();
 
         public string Create(MultiExpressionMethodDatum methodDatum) => throw new NotImplementedException();
 

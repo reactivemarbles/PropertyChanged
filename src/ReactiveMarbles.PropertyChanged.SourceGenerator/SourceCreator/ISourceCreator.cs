@@ -2,6 +2,8 @@
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
+using System.Collections.Generic;
+
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
     /// <summary>
@@ -10,24 +12,10 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
     internal interface ISourceCreator
     {
         /// <summary>
-        /// Creates the source for a multi-expression method.
+        /// Creates the source code for the specified source datums.
         /// </summary>
-        /// <param name="methodDatum">The method datum.</param>
-        /// <returns>The source code.</returns>
-        string Create(MultiExpressionMethodDatum methodDatum);
-
-        /// <summary>
-        /// Creates the source for a single expression method with a dictionary implementation.
-        /// </summary>
-        /// <param name="methodDatum">The method datum.</param>
-        /// <returns>The source code.</returns>
-        string Create(SingleExpressionDictionaryImplMethodDatum methodDatum);
-
-        /// <summary>
-        /// Creates the source for a single expression method with a 'direct return' implementation.
-        /// </summary>
-        /// <param name="methodDatum">The method datum.</param>
-        /// <returns>The source code.</returns>
-        string Create(SingleExpressionOptimizedImplMethodDatum methodDatum);
+        /// <param name="sourceDatums">The source datums.</param>
+        /// <returns>The source.</returns>
+        string Create(IEnumerable<IDatum> sourceDatums);
     }
 }

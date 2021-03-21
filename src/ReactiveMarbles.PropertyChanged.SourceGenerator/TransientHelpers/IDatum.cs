@@ -2,9 +2,16 @@
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
+using System;
+using System.Collections.Generic;
+using System.Text;
+
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
-    internal abstract record MethodDatum : IDatum
+    /// <summary>
+    /// A datum which is used to generate source.
+    /// </summary>
+    internal interface IDatum
     {
     }
 }

@@ -6,11 +6,13 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
+using Microsoft.CodeAnalysis;
+
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
     internal static class SourceCreatorHelpers
     {
-        public static string GetMapMembers(SingleExpressionDictionaryImplMethodDatum methodDatum, bool isExtension)
+        public static string GetMapMembers(SingleExpressionDictionaryImplMethodDatum methodDatum, bool isExtension, Func<string, string, bool, Accessibility, string, string> sourceGenerator)
         {
             var initialSource = isExtension ? "source" : "this";
 
@@ -36,7 +38,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             }
 
             var map = StringBuilderSourceCreatorHelper.GetMap(methodDatum.InputTypeName, methodDatum.OutputTypeName, methodDatum.Map.MapName, mapEntrySb.ToString());
-            var method = StringBuilderSourceCreatorHelper.GetWhenChangedMapMethod(methodDatum.InputTypeName, methodDatum.OutputTypeName, isExtension, methodDatum.AccessModifier, methodDatum.Map.MapName);
+            var method = sourceGenerator.Invoke(methodDatum.InputTypeName, methodDatum.OutputTypeName, isExtension, methodDatum.AccessModifier, methodDatum.Map.MapName);
 
             return map + "\n" + method;
         }

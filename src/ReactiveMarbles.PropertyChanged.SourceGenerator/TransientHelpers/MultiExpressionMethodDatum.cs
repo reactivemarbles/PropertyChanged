@@ -39,8 +39,6 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
         public bool ContainsPrivateOrProtectedTypeArgument { get; }
 
-        public override string CreateSource(ISourceCreator sourceCreator) => sourceCreator.Create(this);
-
         public bool Equals(MultiExpressionMethodDatum other)
         {
             if (other is null)

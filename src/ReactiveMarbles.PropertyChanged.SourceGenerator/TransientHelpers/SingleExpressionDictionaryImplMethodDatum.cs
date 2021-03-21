@@ -28,7 +28,5 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         public Accessibility AccessModifier { get; }
 
         public MapDatum Map { get; }
-
-        public override string CreateSource(ISourceCreator sourceCreator) => sourceCreator.Create(this);
     }
 }

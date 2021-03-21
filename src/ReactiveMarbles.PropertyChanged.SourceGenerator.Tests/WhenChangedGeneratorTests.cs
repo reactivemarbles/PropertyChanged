@@ -190,17 +190,6 @@ namespace Foo
 
             string output = string.Join(Environment.NewLine, newCompilation.SyntaxTrees.Select(x => x.ToString()));
 
-            var rootFolder = @"C:\Users\Glenn\source\repos\ConsoleApp8\ConsoleApp8";
-
-            int i = 0;
-            foreach (var tree in newCompilation.SyntaxTrees)
-            {
-                var fileName = string.IsNullOrWhiteSpace(tree.FilePath) ? "File" + i + ".cs" : Path.GetFileName(tree.FilePath);
-                var fileWrite = Path.Combine(rootFolder, fileName);
-                File.WriteAllText(fileWrite, tree.ToString());
-                i++;
-            }
-
             Assert.Empty(diagnostics.Where(x => x.Severity > DiagnosticSeverity.Warning));
             Assert.Empty(generatorDiagnostics);
             Assert.False(string.IsNullOrWhiteSpace(output));
@@ -215,7 +204,7 @@ namespace Foo
         [MemberData(nameof(Data))]
         public void NoDiagnosticsAreReported_When_InvokedViaThis_Chain(InvocationKind invocationKind, ReceiverKind receiverKind)
         {
-            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 3)
+            string userSource = new WhenChangedMockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 3)
                 .GetTypeName(out var typeName)
                 .Build();
 
@@ -269,9 +258,9 @@ namespace Foo
         [InlineData(InvocationKind.MemberAccess, ReceiverKind.Instance)]
         public void NoDiagnosticsAreReported_When_PropertyAccessModifierIsProtected(InvocationKind invocationKind, ReceiverKind receiverKind)
         {
-            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
-                .ClassAccessModifier("public")
-                .PropertyAccessModifier("protected")
+            string userSource = new WhenChangedMockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
+                .ClassAccessModifier(Accessibility.Public)
+                .PropertyAccessModifier(Accessibility.Protected)
                 .GetTypeName(out var typeName)
                 .Build();
 
@@ -307,9 +296,9 @@ namespace Foo
         [InlineData(InvocationKind.MemberAccess, ReceiverKind.Instance)]
         public void NoDiagnosticsAreReported_When_PropertyAccessModifierIsPrivate(InvocationKind invocationKind, ReceiverKind receiverKind)
         {
-            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
-                .ClassAccessModifier("public")
-                .PropertyAccessModifier("private")
+            string userSource = new WhenChangedMockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
+                .ClassAccessModifier(Accessibility.Public)
+                .PropertyAccessModifier(Accessibility.Private)
                 .GetTypeName(out var typeName)
                 .Build();
 
@@ -345,9 +334,9 @@ namespace Foo
         [InlineData(InvocationKind.MemberAccess, ReceiverKind.Instance)]
         public void NoDiagnosticsAreReported_When_ClassIsNestedAndProtectedAndOuterClassIsInternal(InvocationKind invocationKind, ReceiverKind receiverKind)
         {
-            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
-                .ClassAccessModifier("protected")
-                .OuterClassAccessModifier("internal")
+            string userSource = new WhenChangedMockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
+                .ClassAccessModifier(Accessibility.Protected)
+                .OuterClassAccessModifier(Accessibility.Internal)
                 .GetTypeName(out var typeName)
                 .Build();
 
@@ -383,16 +372,42 @@ namespace Foo
         [InlineData(InvocationKind.MemberAccess, ReceiverKind.Instance)]
         public void NoDiagnosticsAreReported_When_ClassAccessModifierIsPublicAndNoNamespaceAndCustomType(InvocationKind invocationKind, ReceiverKind receiverKind)
         {
-            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
-                .ClassAccessModifier("public")
+            string userSource = new WhenChangedMockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
+                .ClassAccessModifier(Accessibility.Public)
                 .NamespaceName(string.Empty) // TODO: Fix this temporal coupling. It breaks if this line is swapped with the next.
-                .AddCustomTypeForValueProperty("CustomClass", "public", out var outputTypeName)
-                .PropertyAccessModifier("protected")
+                .AddCustomTypeForValueProperty("CustomClass", Accessibility.Public, out var outputTypeName)
+                .PropertyAccessModifier(Accessibility.Protected)
                 .GetTypeName(out var typeName)
                 .Build();
 
             Compilation compilation = CreateCompilation(userSource);
             var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator());
+
+            var rootFolder = @"C:\Users\Glenn\source\repos\ConsoleApp8\ConsoleApp8";
+
+            foreach (var file in Directory.GetFiles(rootFolder))
+            {
+                if (!Path.GetExtension(file).Equals(".cs", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                if (Path.GetFileName(file).Equals("program.cs", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                File.Delete(file);
+            }
+
+            int i = 0;
+            foreach (var tree in newCompilation.SyntaxTrees)
+            {
+                var fileName = string.IsNullOrWhiteSpace(tree.FilePath) ? "File" + i + ".cs" : Path.GetFileName(tree.FilePath);
+                var fileWrite = Path.Combine(rootFolder, fileName);
+                File.WriteAllText(fileWrite, tree.ToString());
+                i++;
+            }
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
             Assert.Empty(newCompilation.GetDiagnostics().Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -427,8 +442,8 @@ namespace Foo
         [MemberData(nameof(Data))]
         public void NoDiagnosticsAreReported_When_ClassAccessModifierIsPublic(InvocationKind invocationKind, ReceiverKind receiverKind)
         {
-            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
-                .ClassAccessModifier("public")
+            string userSource = new WhenChangedMockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
+                .ClassAccessModifier(Accessibility.Public)
                 .GetTypeName(out var typeName)
                 .Build();
 
@@ -463,8 +478,8 @@ namespace Foo
         [MemberData(nameof(Data))]
         public void NoDiagnosticsAreReported_When_ClassAccessModifierIsInternal(InvocationKind invocationKind, ReceiverKind receiverKind)
         {
-            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
-                .ClassAccessModifier("internal")
+            string userSource = new WhenChangedMockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
+                .ClassAccessModifier(Accessibility.Internal)
                 .GetTypeName(out var typeName)
                 .Build();
 
@@ -499,9 +514,9 @@ namespace Foo
         [MemberData(nameof(Data))]
         public void NoDiagnosticsAreReported_When_OutputTypeIsInternal(InvocationKind invocationKind, ReceiverKind receiverKind)
         {
-            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
-                .ClassAccessModifier("public")
-                .AddCustomTypeForValueProperty("OutputTypeClass", "internal", out var outputTypeName)
+            string userSource = new WhenChangedMockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
+                .ClassAccessModifier(Accessibility.Public)
+                .AddCustomTypeForValueProperty("OutputTypeClass", Accessibility.Internal, out var outputTypeName)
                 .GetTypeName(out var typeName)
                 .Build();
 
@@ -538,9 +553,9 @@ namespace Foo
         [InlineData(InvocationKind.MemberAccess, ReceiverKind.Instance)]
         public void NoDiagnosticsAreReported_When_OutputTypeIsNestedAndPrivate(InvocationKind invocationKind, ReceiverKind receiverKind)
         {
-            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
-                .ClassAccessModifier("public")
-                .AddCustomNestedTypeForValueProperty("OutputTypeClass", "private", out var outputTypeName)
+            string userSource = new WhenChangedMockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
+                .ClassAccessModifier(Accessibility.Public)
+                .AddCustomNestedTypeForValueProperty("OutputTypeClass", Accessibility.Private, out var outputTypeName)
                 .GetTypeName(out var typeName)
                 .Build();
 
@@ -576,11 +591,11 @@ namespace Foo
         [MemberData(nameof(Data))]
         public void NoDiagnosticsAreReported_When_TwoClassesExistWithTheSameName(InvocationKind invocationKind, ReceiverKind receiverKind)
         {
-            string userSource1 = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
+            string userSource1 = new WhenChangedMockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
                 .NamespaceName("Sample1")
                 .GetTypeName(out var typeName1)
                 .Build();
-            string userSource2 = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
+            string userSource2 = new WhenChangedMockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
                 .NamespaceName("Sample2")
                 .GetTypeName(out var typeName2)
                 .Build();
@@ -633,25 +648,14 @@ namespace Foo
         [MemberData(nameof(Data))]
         public void NoDiagnosticsAreReported_When_TwoInvocationsWithAUniqueExpressionAndSameOutputTypeExist(InvocationKind invocationKind, ReceiverKind receiverKind)
         {
-            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
-                .ClassAccessModifier("public")
+            string userSource = new WhenChangedMockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
+                .ClassAccessModifier(Accessibility.Public)
                 .AndWhenChanged(invocationKind, receiverKind, ExpressionForm.Inline, depth: 2)
                 .GetTypeName(out var typeName)
                 .Build();
 
             Compilation compilation = CreateCompilation(userSource);
             var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator());
-
-            var rootFolder = @"C:\Users\Glenn\source\repos\ConsoleApp8\ConsoleApp8";
-
-            int i = 0;
-            foreach (var tree in newCompilation.SyntaxTrees)
-            {
-                var fileName = string.IsNullOrWhiteSpace(tree.FilePath) ? "File" + i + ".cs" : Path.GetFileName(tree.FilePath);
-                var fileWrite = Path.Combine(rootFolder, fileName);
-                File.WriteAllText(fileWrite, tree.ToString());
-                i++;
-            }
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
             Assert.Empty(newCompilation.GetDiagnostics().Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -681,7 +685,7 @@ namespace Foo
         [MemberData(nameof(Data))]
         public void NoDiagnosticsAreReported_When_MultipleOutputTypesExistWithSameName_And_MultipleUniqueInvocationsInvolvingEachExist(InvocationKind invocationKind, ReceiverKind receiverKind)
         {
-            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
+            string userSource = new WhenChangedMockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
                 .BuildMultiExpressionVersion();
 
             Compilation compilation = CreateCompilation(userSource);
@@ -700,7 +704,7 @@ namespace Foo
         [MemberData(nameof(Data))]
         public void NoDiagnosticsAreReported_When_MultiExpressionWithNestedProtectedOutputType(InvocationKind invocationKind, ReceiverKind receiverKind)
         {
-            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
+            string userSource = new WhenChangedMockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
                 .BuildMultiExpressionVersionNestedOutputType();
 
             Compilation compilation = CreateCompilation(userSource);
@@ -726,7 +730,7 @@ namespace Foo
         public void DiagnosticIsReported_When_PropertyIsUsedAsAnExpressionArgument(InvocationKind invocationKind, ReceiverKind receiverKind)
         {
             // this.WhenChanged(MyExpression)
-            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Property, depth: 1)
+            string userSource = new WhenChangedMockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Property, depth: 1)
                 .Build();
 
             Compilation compilation = CreateCompilation(userSource);
@@ -748,7 +752,7 @@ namespace Foo
         public void DiagnosticIsReported_When_MethodInvocationIsUsedAsAnExpressionArgument(InvocationKind invocationKind, ReceiverKind receiverKind)
         {
             // this.WhenChanged(GetExpression())
-            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Method, depth: 1)
+            string userSource = new WhenChangedMockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Method, depth: 1)
                 .Build();
 
             Compilation compilation = CreateCompilation(userSource);
@@ -770,7 +774,7 @@ namespace Foo
         public void DiagnosticIsReported_When_ExpressionExcludesLambdaParameter(InvocationKind invocationKind, ReceiverKind receiverKind)
         {
             // this.WhenChanged(GetExpression())
-            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.BodyExcludesLambdaParam, depth: 1)
+            string userSource = new WhenChangedMockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.BodyExcludesLambdaParam, depth: 1)
                 .Build();
 
             Compilation compilation = CreateCompilation(userSource);
@@ -792,7 +796,7 @@ namespace Foo
         public void DiagnosticIsReported_When_ExpressionIncludesArrayAccess(InvocationKind invocationKind, ReceiverKind receiverKind)
         {
             // this.WhenChanged(GetExpression())
-            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.BodyIncludesIndexer, depth: 1)
+            string userSource = new WhenChangedMockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.BodyIncludesIndexer, depth: 1)
                 .Build();
 
             Compilation compilation = CreateCompilation(userSource);
@@ -814,7 +818,7 @@ namespace Foo
         public void DiagnosticIsReported_When_ExpressionIncludesMethodInvocation(InvocationKind invocationKind, ReceiverKind receiverKind)
         {
             // this.WhenChanged(GetExpression())
-            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.BodyIncludesMethodInvocation, depth: 1)
+            string userSource = new WhenChangedMockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.BodyIncludesMethodInvocation, depth: 1)
                 .Build();
 
             Compilation compilation = CreateCompilation(userSource);
@@ -828,12 +832,7 @@ namespace Foo
 
         private static IObservable<T> GetWhenChangedObservable<T>(object target)
         {
-            return target.GetType().InvokeMember(
-                "GetWhenChangedObservable",
-                BindingFlags.InvokeMethod | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public,
-                null,
-                target,
-                Array.Empty<object>()) as IObservable<T>;
+            return GetWhenChangedObservable(target).Cast<T>();
         }
 
         private static IObservable<dynamic> GetWhenChangedObservable(object target)

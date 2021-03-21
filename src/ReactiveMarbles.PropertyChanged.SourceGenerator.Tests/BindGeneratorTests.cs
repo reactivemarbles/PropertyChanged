@@ -38,9 +38,9 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         [InlineData(InvocationKind.MemberAccess, ReceiverKind.Instance)]
         public void NoDiagnosticsAreReported_When_PropertyAccessModifierIsProtected(InvocationKind invocationKind, ReceiverKind receiverKind)
         {
-            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
-                .ClassAccessModifier("public")
-                .PropertyAccessModifier("protected")
+            string userSource = new WhenChangedMockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
+                .ClassAccessModifier(Accessibility.Public)
+                .PropertyAccessModifier(Accessibility.Protected)
                 .GetTypeName(out var typeName)
                 .Build();
 
@@ -76,8 +76,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         [InlineData(InvocationKind.MemberAccess, ReceiverKind.Instance)]
         public void NoDiagnosticsAreReported_When_PropertyAccessModifierIsPrivate(InvocationKind invocationKind, ReceiverKind receiverKind)
         {
-            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
-                .ClassAccessModifier("public")
+            string userSource = new WhenChangedMockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
+                .ClassAccessModifier(Accessibility.Public)
                 .PropertyAccessModifier("private")
                 .GetTypeName(out var typeName)
                 .Build();
@@ -114,9 +114,9 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         [InlineData(InvocationKind.MemberAccess, ReceiverKind.Instance)]
         public void NoDiagnosticsAreReported_When_ClassIsNestedAndProtectedAndOuterClassIsInternal(InvocationKind invocationKind, ReceiverKind receiverKind)
         {
-            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
-                .ClassAccessModifier("protected")
-                .OuterClassAccessModifier("internal")
+            string userSource = new WhenChangedMockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
+                .ClassAccessModifier(Accessibility.Protected)
+                .OuterClassAccessModifier(Accessibility.Internal)
                 .GetTypeName(out var typeName)
                 .Build();
 
@@ -152,11 +152,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         [InlineData(InvocationKind.MemberAccess, ReceiverKind.Instance)]
         public void NoDiagnosticsAreReported_When_ClassAccessModifierIsPublicAndNoNamespaceAndCustomType(InvocationKind invocationKind, ReceiverKind receiverKind)
         {
-            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
-                .ClassAccessModifier("public")
+            string userSource = new WhenChangedMockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
+                .ClassAccessModifier(Accessibility.Public)
                 .NamespaceName(string.Empty) // TODO: Fix this temporal coupling. It breaks if this line is swapped with the next.
-                .AddCustomTypeForValueProperty("CustomClass", "public", out var outputTypeName)
-                .PropertyAccessModifier("protected")
+                .AddCustomTypeForValueProperty("CustomClass", Accessibility.Public, out var outputTypeName)
+                .PropertyAccessModifier(Accessibility.Protected)
                 .GetTypeName(out var typeName)
                 .Build();
 
@@ -196,8 +196,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         [MemberData(nameof(Data))]
         public void NoDiagnosticsAreReported_When_ClassAccessModifierIsPublic(InvocationKind invocationKind, ReceiverKind receiverKind)
         {
-            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
-                .ClassAccessModifier("public")
+            string userSource = new WhenChangedMockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
+                .ClassAccessModifier(Accessibility.Public)
                 .GetTypeName(out var typeName)
                 .Build();
 
@@ -232,8 +232,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         [MemberData(nameof(Data))]
         public void NoDiagnosticsAreReported_When_ClassAccessModifierIsInternal(InvocationKind invocationKind, ReceiverKind receiverKind)
         {
-            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
-                .ClassAccessModifier("internal")
+            string userSource = new WhenChangedMockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
+                .ClassAccessModifier(Accessibility.Internal)
                 .GetTypeName(out var typeName)
                 .Build();
 
@@ -268,9 +268,9 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         [MemberData(nameof(Data))]
         public void NoDiagnosticsAreReported_When_OutputTypeIsInternal(InvocationKind invocationKind, ReceiverKind receiverKind)
         {
-            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
-                .ClassAccessModifier("public")
-                .AddCustomTypeForValueProperty("OutputTypeClass", "internal", out var outputTypeName)
+            string userSource = new WhenChangedMockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
+                .ClassAccessModifier(Accessibility.Public)
+                .AddCustomTypeForValueProperty("OutputTypeClass", Accessibility.Internal, out var outputTypeName)
                 .GetTypeName(out var typeName)
                 .Build();
 
@@ -307,8 +307,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         [InlineData(InvocationKind.MemberAccess, ReceiverKind.Instance)]
         public void NoDiagnosticsAreReported_When_OutputTypeIsNestedAndPrivate(InvocationKind invocationKind, ReceiverKind receiverKind)
         {
-            string userSource = new MockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, ExpressionForm.Inline, 1, 1)
-                .ClassAccessModifier("public")
+            string userSource = new WhenChangedMockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, ExpressionForm.Inline, 1, 1)
+                .ClassAccessModifier(Accessibility.Public)
                 .AddCustomNestedTypeForValueProperty("OutputTypeClass", "private", out var outputTypeName)
                 .GetTypeName(out var typeName)
                 .Build();

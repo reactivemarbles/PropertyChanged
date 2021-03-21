@@ -9,6 +9,7 @@ using System.Text;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
@@ -25,7 +26,22 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 return;
             }
 
+            var extensionClassData = CreateDatum(bindInfo.PublicExpressionArguments, (inputTypeGroup, methods) => new ExtensionClassDatum(inputTypeGroup.Name, methods));
+            var partialClassData = CreateDatum(bindInfo.PrivateExpressionArguments, (inputTypeGroup, methods) => new PartialClassDatum(inputTypeGroup.NamespaceName, inputTypeGroup.Name, inputTypeGroup.AccessModifier, inputTypeGroup.AncestorClasses, methods));
 
+            var extensionClassCreator = new StringBuilderBindExtensionClassCreator();
+            for (var i = 0; i < extensionClassData.Count; i++)
+            {
+                var source = extensionClassCreator.Create(extensionClassData[i]);
+                context.AddSource($"Bind.{extensionClassData[i].Name}{i}.g.cs", SourceText.From(source, Encoding.UTF8));
+            }
+
+            var partialClassCreator = new StringBuilderBindPartialClassCreator();
+            for (var i = 0; i < partialClassData.Count; i++)
+            {
+                var source = partialClassCreator.Create(partialClassData[i]);
+                context.AddSource($"{partialClassData[i].Name}{i}.Bind.g.cs", SourceText.From(source, Encoding.UTF8));
+            }
         }
 
         private static List<T> CreateDatum<T>(SortedList<ITypeSymbol, HashSet<(ExpressionArgument ViewModel, ExpressionArgument View)>> argumentGroupings, Func<InputTypeGroup, List<MethodDatum>, T> createFunc)
@@ -34,25 +50,27 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
             foreach (var grouping in argumentGroupings)
             {
-                var arguments = new SortedList<ITypeSymbol, OutputTypeGroup>();
-
-                foreach (var argument in grouping.Value)
+                var viewGroups = new SortedList<ITypeSymbol, OutputTypeGroup>();
+                var viewModelGroups = new SortedList<ITypeSymbol, OutputTypeGroup>();
+                foreach (var (viewModel, view) in grouping.Value)
                 {
-                    arguments.InsertOutputGroup(argument., argument);
+                    viewGroups.InsertOutputGroup(view.OutputType, view);
+                    viewModelGroups.InsertOutputGroup(viewModel.OutputType, viewModel);
                 }
 
-                if (arguments.Count == 0)
+                if (viewGroups.Count == 0 && viewModelGroups.Count == 0)
                 {
                     continue;
                 }
 
-                var inputGroup = arguments.Select(x => x.Value).ToInputTypeGroup(grouping.Key);
+                var viewInputGroups = viewGroups.Select(x => x.Value).ToInputTypeGroup(grouping.Key);
+                var viewModelInputGroups = viewModelGroups.Select(x => x.Value).ToInputTypeGroup(grouping.Key);
 
-                var allMethodData = inputGroup.OutputTypeGroups.Select(CreateSingleExpressionMethodDatum).Concat(multiMethods).ToList();
+                ////var allMethodData = inputGroup.OutputTypeGroups.Select(CreateSingleExpressionMethodDatum).Concat(multiMethods).ToList();
 
-                var datum = createFunc(inputGroup, allMethodData);
+                ////var datum = createFunc(inputGroup, allMethodData);
 
-                datumData.Add(datum);
+                ////datumData.Add(datum);
             }
 
             return datumData;
@@ -61,7 +79,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         private static BindInvocationInfo ExtractBindInvocationInfo(GeneratorExecutionContext context, Compilation compilation, SyntaxReceiver syntaxReceiver)
         {
             var allExpressionArgumentsAreValid = true;
-            var expressionArguments = new SortedList<ITypeSymbol, HashSet<(ExpressionArgument ViewModel, ExpressionArgument View)>>(TypeSymbolComparer.Default);
+            var publicExpressionArguments = new SortedList<ITypeSymbol, HashSet<(ExpressionArgument ViewModel, ExpressionArgument View)>>(TypeSymbolComparer.Default);
+            var privateExpressionArguments = new SortedList<ITypeSymbol, HashSet<(ExpressionArgument ViewModel, ExpressionArgument View)>>(TypeSymbolComparer.Default);
 
             foreach (var invocationExpression in syntaxReceiver.WhenChangedMethods)
             {
@@ -107,10 +126,13 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 allExpressionArgumentsAreValid &= GeneratorHelpers.GetExpression(context, methodSymbol, viewModelExpression, compilation, model, out var viewModelExpressionArgument);
                 allExpressionArgumentsAreValid &= GeneratorHelpers.GetExpression(context, methodSymbol, viewExpression, compilation, model, out var viewExpressionArgument);
 
-                expressionArguments.ListInsert(viewExpressionArgument.InputType, (viewModelExpressionArgument, viewExpressionArgument));
+                var list = viewExpressionArgument.ContainsPrivateOrProtectedMember || viewModelExpressionArgument.ContainsPrivateOrProtectedMember ?
+                    privateExpressionArguments :
+                    publicExpressionArguments;
+                list.ListInsert(viewExpressionArgument.InputType, (viewModelExpressionArgument, viewExpressionArgument));
             }
 
-            return new BindInvocationInfo(allExpressionArgumentsAreValid, expressionArguments);
+            return new BindInvocationInfo(allExpressionArgumentsAreValid, publicExpressionArguments, privateExpressionArguments);
         }
     }
 }

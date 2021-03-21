@@ -7,7 +7,7 @@ using System.Text;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
-    internal abstract record ClassDatum
+    internal abstract record ClassDatum : IDatum
     {
         public ClassDatum(string name, List<MethodDatum> methodData)
         {

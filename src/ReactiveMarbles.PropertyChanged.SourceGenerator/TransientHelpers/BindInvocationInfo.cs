@@ -12,5 +12,6 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
     internal sealed record BindInvocationInfo(
         bool AllExpressionArgumentsAreValid,
-        SortedList<ITypeSymbol, HashSet<(ExpressionArgument ViewModel, ExpressionArgument View)>> ExpressionArguments);
+        SortedList<ITypeSymbol, HashSet<(ExpressionArgument ViewModel, ExpressionArgument View)>> PublicExpressionArguments,
+        SortedList<ITypeSymbol, HashSet<(ExpressionArgument ViewModel, ExpressionArgument View)>> PrivateExpressionArguments);
 }

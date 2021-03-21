@@ -28,7 +28,5 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         public Accessibility AccessModifier { get; }
 
         public List<(string Name, string InputType, string OutputType)> Members { get; }
-
-        public override string CreateSource(ISourceCreator sourceCreator) => sourceCreator.Create(this);
     }
 }
