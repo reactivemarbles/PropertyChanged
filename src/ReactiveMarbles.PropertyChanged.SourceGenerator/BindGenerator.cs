@@ -50,8 +50,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
             foreach (var grouping in argumentGroupings)
             {
-                var viewGroups = new SortedList<ITypeSymbol, OutputTypeGroup>();
-                var viewModelGroups = new SortedList<ITypeSymbol, OutputTypeGroup>();
+                var viewGroups = new SortedList<ITypeSymbol, OutputTypeGroup>(TypeSymbolComparer.Default);
+                var viewModelGroups = new SortedList<ITypeSymbol, OutputTypeGroup>(TypeSymbolComparer.Default);
                 foreach (var (viewModel, view) in grouping.Value)
                 {
                     viewGroups.InsertOutputGroup(view.OutputType, view);

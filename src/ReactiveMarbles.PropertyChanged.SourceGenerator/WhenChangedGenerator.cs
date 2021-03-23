@@ -63,7 +63,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                     multiMethods = EmptyMulti;
                 }
 
-                var arguments = new SortedList<ITypeSymbol, OutputTypeGroup>();
+                var arguments = new SortedList<ITypeSymbol, OutputTypeGroup>(TypeSymbolComparer.Default);
 
                 foreach (var argument in grouping.Value)
                 {
