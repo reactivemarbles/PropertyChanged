@@ -85,7 +85,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.SourceCreator
 
         private static IEnumerable<MemberDeclarationSyntax> Create(MultiExpressionMethodDatum methodDatum)
         {
-            var whenChanged = RoslynHelpers.WhenChangedWithoutBody(methodDatum.InputType.ToDisplayString(), methodDatum.OutputType.ToDisplayString(), false, methodDatum.AccessModifier);
+            ////var dictionaryCalls = Enumerable.Range(1, methodDatum.TempReturnTypes.Count).Select(x => RoslynHelpers.MapInvokeExpression())
+            ////var whenChanged = RoslynHelpers.WhenChangedConversionWithoutBody(methodDatum.InputType.ToDisplayString(), methodDatum.OutputType.ToDisplayString(), methodDatum.TempReturnTypes, false, methodDatum.AccessModifier)
+            ////    .WithExpressionBody(ArrowExpressionClause(;
+
+            return Enumerable.Empty<MemberDeclarationSyntax>();
         }
     }
 }
