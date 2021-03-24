@@ -10,10 +10,10 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
     internal sealed record StringBuilderWhenChangedPartialClassCreator : ISourceCreator
     {
-        public string Create(IEnumerable<IDatum> sourceDatums)
+        public string Create(IEnumerable<IDatum> sources)
         {
             var sb = new StringBuilder();
-            foreach (var datum in sourceDatums)
+            foreach (var datum in sources)
             {
                 sb.AppendLine(datum switch
                 {
@@ -21,7 +21,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                     SingleExpressionDictionaryImplMethodDatum methodDatum => Create(methodDatum),
                     SingleExpressionOptimizedImplMethodDatum methodDatum => Create(methodDatum),
                     MultiExpressionMethodDatum methodDatum => Create(methodDatum),
-                    _ => throw new NotImplementedException("Unknown type of datum."),
+                    _ => throw new InvalidOperationException("Unknown type of datum."),
                 });
             }
 
@@ -44,9 +44,9 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 methodSource);
         }
 
-        public string Create(SingleExpressionDictionaryImplMethodDatum methodDatum) => SourceCreatorHelpers.GetMapMembers(methodDatum, false, StringBuilderWhenChangedSourceCreatorHelper.GetWhenChangedMapMethod);
+        public static string Create(SingleExpressionDictionaryImplMethodDatum methodDatum) => SourceCreatorHelpers.GetMapMembers(methodDatum, false, StringBuilderWhenChangedSourceCreatorHelper.GetWhenChangedMapMethod);
 
-        public string Create(SingleExpressionOptimizedImplMethodDatum methodDatum)
+        public static string Create(SingleExpressionOptimizedImplMethodDatum methodDatum)
         {
             var sb = new StringBuilder();
             foreach (var (name, inputType, outputType) in methodDatum.Members)
@@ -57,7 +57,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             return StringBuilderWhenChangedSourceCreatorHelper.GetPartialClassWhenChangedMethodForDirectReturn(methodDatum.InputTypeName, methodDatum.OutputTypeName, methodDatum.AccessModifier, methodDatum.Members);
         }
 
-        public string Create(MultiExpressionMethodDatum methodDatum)
+        public static string Create(MultiExpressionMethodDatum methodDatum)
         {
             var expressionParameters = StringBuilderSourceCreatorHelper.GetMultiExpressionMethodParameters(methodDatum.InputType.ToDisplayString(), methodDatum.OutputType.ToDisplayString(), methodDatum.TempReturnTypes);
             var body = StringBuilderSourceCreatorHelper.GetMultiExpressionMethodBodyForPartialClass(methodDatum.TempReturnTypes.Count);

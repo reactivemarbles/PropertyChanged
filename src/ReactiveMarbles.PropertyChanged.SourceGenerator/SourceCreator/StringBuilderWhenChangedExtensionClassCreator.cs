@@ -10,10 +10,10 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
     internal sealed record StringBuilderWhenChangedExtensionClassCreator : ISourceCreator
     {
-        public string Create(IEnumerable<IDatum> sourceDatums)
+        public string Create(IEnumerable<IDatum> sources)
         {
             var sb = new StringBuilder();
-            foreach (var datum in sourceDatums)
+            foreach (var datum in sources)
             {
                 sb.AppendLine(datum switch
                     {

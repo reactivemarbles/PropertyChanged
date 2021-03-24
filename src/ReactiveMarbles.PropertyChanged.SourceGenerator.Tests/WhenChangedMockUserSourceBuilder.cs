@@ -142,7 +142,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 _valuePropertyTypeName = className;
 
                 var customTypeClass = ClassDeclaration(className)
-                    .WithModifiers(accessModifier.GetToken());
+                    .WithModifiers(TokenList(accessModifier.GetAccessibilityTokens()));
 
                 if (isNested)
                 {
@@ -316,7 +316,7 @@ public partial class SampleClass : INotifyPropertyChanged
         private static ClassDeclarationSyntax GetClass(string className, Accessibility accessibility, IEnumerable<MemberDeclarationSyntax> members, bool isNotifyable)
         {
             var outputClass = ClassDeclaration(className)
-                .WithModifiers(accessibility.GetToken().Add(Token(SyntaxKind.PartialKeyword)))
+                .WithModifiers(TokenList(accessibility.GetAccessibilityTokens().Concat(new[] { Token(SyntaxKind.PartialKeyword) })))
                 .WithMembers(List(members));
 
             if (isNotifyable)
@@ -408,7 +408,7 @@ public partial class SampleClass : INotifyPropertyChanged
                                                     SyntaxKind.ArrayInitializerExpression,
                                                     SeparatedList<ExpressionSyntax>(_whenAnyInvocations)))),
                                     })))
-                .WithModifiers(_propertyAccessModifier.GetToken());
+                .WithModifiers(TokenList(_propertyAccessModifier.GetAccessibilityTokens()));
 
         private MethodDeclarationSyntax GetWhenChangedObservable() =>
             MethodDeclaration(
@@ -419,7 +419,7 @@ public partial class SampleClass : INotifyPropertyChanged
                                 SingletonSeparatedList<TypeSyntax>(
                                     IdentifierName(_valuePropertyTypeName)))),
                         Identifier("GetWhenChangedObservable"))
-                    .WithModifiers(_propertyAccessModifier.GetToken())
+                    .WithModifiers(TokenList(_propertyAccessModifier.GetAccessibilityTokens()))
                     .WithExpressionBody(
                         ArrowExpressionClause(
                             ElementAccessExpression(
