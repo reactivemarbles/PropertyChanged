@@ -26,17 +26,24 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         public static IEnumerable<object[]> Data =>
             new List<object[]>
             {
-                new object[] { InvocationKind.MemberAccess, ReceiverKind.This },
-                new object[] { InvocationKind.MemberAccess, ReceiverKind.Instance },
-                new object[] { InvocationKind.Explicit, ReceiverKind.This },
-                new object[] { InvocationKind.Explicit, ReceiverKind.Instance },
+                new object[] { InvocationKind.MemberAccess, ReceiverKind.This, true },
+                new object[] { InvocationKind.MemberAccess, ReceiverKind.This, false },
+                new object[] { InvocationKind.MemberAccess, ReceiverKind.Instance, true },
+                new object[] { InvocationKind.MemberAccess, ReceiverKind.Instance, false },
+                new object[] { InvocationKind.Explicit, ReceiverKind.This, true },
+                new object[] { InvocationKind.Explicit, ReceiverKind.This, false },
+                new object[] { InvocationKind.Explicit, ReceiverKind.Instance, true },
+                new object[] { InvocationKind.Explicit, ReceiverKind.Instance, false },
             };
 
         /// <summary>
         /// Tests the basic generation works.
         /// </summary>
-        [Fact]
-        public void TestBasicGenerationWorks()
+        /// <param name="useRoslyn">Indicate if the use the roslyn source generator.</param>
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void TestBasicGenerationWorks(bool useRoslyn)
         {
             string source = @"
 using System;
@@ -63,7 +70,7 @@ namespace Foo
 }";
 
             Compilation compilation = CreateCompilation(source);
-            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator());
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator() { UseRoslyn = useRoslyn });
             var diagnostics = newCompilation.GetDiagnostics();
 
             Assert.Empty(diagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -73,8 +80,11 @@ namespace Foo
         /// <summary>
         /// Tests the basic generation explicit works.
         /// </summary>
-        [Fact]
-        public void TestBasicGenerationExplicitWorks()
+        /// <param name="useRoslyn">Indicate if the use the roslyn source generator.</param>
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void TestBasicGenerationExplicitWorks(bool useRoslyn)
         {
             string source = @"
 using System;
@@ -101,7 +111,7 @@ namespace Foo
 }";
 
             Compilation compilation = CreateCompilation(source);
-            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator());
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator() { UseRoslyn = useRoslyn });
             var diagnostics = newCompilation.GetDiagnostics();
 
             Assert.Empty(diagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -111,8 +121,11 @@ namespace Foo
         /// <summary>
         /// Tests the basic generation explicit works.
         /// </summary>
-        [Fact]
-        public void TestBasicGenerationWithMultipleWorks()
+        /// <param name="useRoslyn">Indicate if the use the roslyn source generator.</param>
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void TestBasicGenerationWithMultipleWorks(bool useRoslyn)
         {
             string source = @"
 using System;
@@ -135,7 +148,7 @@ namespace Foo
 }";
 
             Compilation compilation = CreateCompilation(source);
-            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator());
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator() { UseRoslyn = useRoslyn });
             var diagnostics = newCompilation.GetDiagnostics();
             string output = string.Join(Environment.NewLine, newCompilation.SyntaxTrees.Select(x => x.ToString()));
 
@@ -147,8 +160,11 @@ namespace Foo
         /// <summary>
         /// Tests the basic generation explicit works.
         /// </summary>
-        [Fact]
-        public void TestBasicGenerationWithMultipleNestedWorks()
+        /// <param name="useRoslyn">Indicate if the use the roslyn source generator.</param>
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void TestBasicGenerationWithMultipleNestedWorks(bool useRoslyn)
         {
             string source = @"
 using System;
@@ -185,7 +201,7 @@ namespace Foo
 }";
 
             Compilation compilation = CreateCompilation(source);
-            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator());
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator() { UseRoslyn = useRoslyn });
             var diagnostics = newCompilation.GetDiagnostics();
 
             string output = string.Join(Environment.NewLine, newCompilation.SyntaxTrees.Select(x => x.ToString()));
@@ -200,16 +216,17 @@ namespace Foo
         /// </summary>
         /// <param name="invocationKind">Kind of the invocation.</param>
         /// <param name="receiverKind">Kind of the receiver.</param>
+        /// <param name="useRoslyn">Indicate if the use the roslyn source generator.</param>
         [Theory]
         [MemberData(nameof(Data))]
-        public void NoDiagnosticsAreReported_When_InvokedViaThis_Chain(InvocationKind invocationKind, ReceiverKind receiverKind)
+        public void NoDiagnosticsAreReported_When_InvokedViaThis_Chain(InvocationKind invocationKind, ReceiverKind receiverKind, bool useRoslyn)
         {
             string userSource = new WhenChangedMockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 3)
                 .GetTypeName(out var typeName)
                 .Build();
 
             Compilation compilation = CreateCompilation(userSource);
-            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator());
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator() { UseRoslyn = useRoslyn });
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
             Assert.Empty(newCompilation.GetDiagnostics().Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -253,10 +270,13 @@ namespace Foo
         /// </summary>
         /// <param name="invocationKind">Kind of the invocation.</param>
         /// <param name="receiverKind">Kind of the receiver.</param>
+        /// <param name="useRoslyn">Indicate if the use the roslyn source generator.</param>
         [Theory]
-        [InlineData(InvocationKind.MemberAccess, ReceiverKind.This)]
-        [InlineData(InvocationKind.MemberAccess, ReceiverKind.Instance)]
-        public void NoDiagnosticsAreReported_When_PropertyAccessModifierIsProtected(InvocationKind invocationKind, ReceiverKind receiverKind)
+        [InlineData(InvocationKind.MemberAccess, ReceiverKind.This, true)]
+        [InlineData(InvocationKind.MemberAccess, ReceiverKind.This, false)]
+        [InlineData(InvocationKind.MemberAccess, ReceiverKind.Instance, true)]
+        [InlineData(InvocationKind.MemberAccess, ReceiverKind.Instance, false)]
+        public void NoDiagnosticsAreReported_When_PropertyAccessModifierIsProtected(InvocationKind invocationKind, ReceiverKind receiverKind, bool useRoslyn)
         {
             string userSource = new WhenChangedMockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
                 .ClassAccessModifier(Accessibility.Public)
@@ -265,7 +285,7 @@ namespace Foo
                 .Build();
 
             Compilation compilation = CreateCompilation(userSource);
-            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator());
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator() { UseRoslyn = useRoslyn });
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
             Assert.Empty(newCompilation.GetDiagnostics().Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -291,10 +311,13 @@ namespace Foo
         /// </summary>
         /// <param name="invocationKind">Kind of the invocation.</param>
         /// <param name="receiverKind">Kind of the receiver.</param>
+        /// <param name="useRoslyn">Indicate if the use the roslyn source generator.</param>
         [Theory]
-        [InlineData(InvocationKind.MemberAccess, ReceiverKind.This)]
-        [InlineData(InvocationKind.MemberAccess, ReceiverKind.Instance)]
-        public void NoDiagnosticsAreReported_When_PropertyAccessModifierIsPrivate(InvocationKind invocationKind, ReceiverKind receiverKind)
+        [InlineData(InvocationKind.MemberAccess, ReceiverKind.This, true)]
+        [InlineData(InvocationKind.MemberAccess, ReceiverKind.This, false)]
+        [InlineData(InvocationKind.MemberAccess, ReceiverKind.Instance, true)]
+        [InlineData(InvocationKind.MemberAccess, ReceiverKind.Instance, false)]
+        public void NoDiagnosticsAreReported_When_PropertyAccessModifierIsPrivate(InvocationKind invocationKind, ReceiverKind receiverKind, bool useRoslyn)
         {
             string userSource = new WhenChangedMockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
                 .ClassAccessModifier(Accessibility.Public)
@@ -303,7 +326,7 @@ namespace Foo
                 .Build();
 
             Compilation compilation = CreateCompilation(userSource);
-            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator());
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator() { UseRoslyn = useRoslyn });
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
             Assert.Empty(newCompilation.GetDiagnostics().Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -329,10 +352,13 @@ namespace Foo
         /// </summary>
         /// <param name="invocationKind">Kind of the invocation.</param>
         /// <param name="receiverKind">Kind of the receiver.</param>
+        /// <param name="useRoslyn">Indicate if the use the roslyn source generator.</param>
         [Theory]
-        [InlineData(InvocationKind.MemberAccess, ReceiverKind.This)]
-        [InlineData(InvocationKind.MemberAccess, ReceiverKind.Instance)]
-        public void NoDiagnosticsAreReported_When_ClassIsNestedAndProtectedAndOuterClassIsInternal(InvocationKind invocationKind, ReceiverKind receiverKind)
+        [InlineData(InvocationKind.MemberAccess, ReceiverKind.This, true)]
+        [InlineData(InvocationKind.MemberAccess, ReceiverKind.This, false)]
+        [InlineData(InvocationKind.MemberAccess, ReceiverKind.Instance, true)]
+        [InlineData(InvocationKind.MemberAccess, ReceiverKind.Instance, false)]
+        public void NoDiagnosticsAreReported_When_ClassIsNestedAndProtectedAndOuterClassIsInternal(InvocationKind invocationKind, ReceiverKind receiverKind, bool useRoslyn)
         {
             string userSource = new WhenChangedMockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
                 .ClassAccessModifier(Accessibility.Protected)
@@ -341,7 +367,7 @@ namespace Foo
                 .Build();
 
             Compilation compilation = CreateCompilation(userSource);
-            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator());
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator() { UseRoslyn = useRoslyn });
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
             Assert.Empty(newCompilation.GetDiagnostics().Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -367,10 +393,13 @@ namespace Foo
         /// </summary>
         /// <param name="invocationKind">Kind of the invocation.</param>
         /// <param name="receiverKind">Kind of the receiver.</param>
+        /// <param name="useRoslyn">Indicate if the use the roslyn source generator.</param>
         [Theory]
-        [InlineData(InvocationKind.MemberAccess, ReceiverKind.This)]
-        [InlineData(InvocationKind.MemberAccess, ReceiverKind.Instance)]
-        public void NoDiagnosticsAreReported_When_ClassAccessModifierIsPublicAndNoNamespaceAndCustomType(InvocationKind invocationKind, ReceiverKind receiverKind)
+        [InlineData(InvocationKind.MemberAccess, ReceiverKind.This, true)]
+        [InlineData(InvocationKind.MemberAccess, ReceiverKind.This, false)]
+        [InlineData(InvocationKind.MemberAccess, ReceiverKind.Instance, true)]
+        [InlineData(InvocationKind.MemberAccess, ReceiverKind.Instance, false)]
+        public void NoDiagnosticsAreReported_When_ClassAccessModifierIsPublicAndNoNamespaceAndCustomType(InvocationKind invocationKind, ReceiverKind receiverKind, bool useRoslyn)
         {
             string userSource = new WhenChangedMockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
                 .ClassAccessModifier(Accessibility.Public)
@@ -381,33 +410,7 @@ namespace Foo
                 .Build();
 
             Compilation compilation = CreateCompilation(userSource);
-            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator());
-
-            var rootFolder = @"C:\Users\Glenn\source\repos\ConsoleApp8\ConsoleApp8";
-
-            foreach (var file in Directory.GetFiles(rootFolder))
-            {
-                if (!Path.GetExtension(file).Equals(".cs", StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                if (Path.GetFileName(file).Equals("program.cs", StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                File.Delete(file);
-            }
-
-            int i = 0;
-            foreach (var tree in newCompilation.SyntaxTrees)
-            {
-                var fileName = string.IsNullOrWhiteSpace(tree.FilePath) ? "File" + i + ".cs" : Path.GetFileName(tree.FilePath);
-                var fileWrite = Path.Combine(rootFolder, fileName);
-                File.WriteAllText(fileWrite, tree.ToString());
-                i++;
-            }
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator() { UseRoslyn = useRoslyn });
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
             Assert.Empty(newCompilation.GetDiagnostics().Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -438,9 +441,10 @@ namespace Foo
         /// </summary>
         /// <param name="invocationKind">Kind of the invocation.</param>
         /// <param name="receiverKind">Kind of the receiver.</param>
+        /// <param name="useRoslyn">Indicate if the use the roslyn source generator.</param>
         [Theory]
         [MemberData(nameof(Data))]
-        public void NoDiagnosticsAreReported_When_ClassAccessModifierIsPublic(InvocationKind invocationKind, ReceiverKind receiverKind)
+        public void NoDiagnosticsAreReported_When_ClassAccessModifierIsPublic(InvocationKind invocationKind, ReceiverKind receiverKind, bool useRoslyn)
         {
             string userSource = new WhenChangedMockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
                 .ClassAccessModifier(Accessibility.Public)
@@ -448,7 +452,7 @@ namespace Foo
                 .Build();
 
             Compilation compilation = CreateCompilation(userSource);
-            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator());
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator() { UseRoslyn = useRoslyn });
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
             Assert.Empty(newCompilation.GetDiagnostics().Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -474,9 +478,10 @@ namespace Foo
         /// </summary>
         /// <param name="invocationKind">Kind of the invocation.</param>
         /// <param name="receiverKind">Kind of the receiver.</param>
+        /// <param name="useRoslyn">Indicate if the use the roslyn source generator.</param>
         [Theory]
         [MemberData(nameof(Data))]
-        public void NoDiagnosticsAreReported_When_ClassAccessModifierIsInternal(InvocationKind invocationKind, ReceiverKind receiverKind)
+        public void NoDiagnosticsAreReported_When_ClassAccessModifierIsInternal(InvocationKind invocationKind, ReceiverKind receiverKind, bool useRoslyn)
         {
             string userSource = new WhenChangedMockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
                 .ClassAccessModifier(Accessibility.Internal)
@@ -484,7 +489,7 @@ namespace Foo
                 .Build();
 
             Compilation compilation = CreateCompilation(userSource);
-            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator());
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator() { UseRoslyn = useRoslyn });
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
             Assert.Empty(newCompilation.GetDiagnostics().Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -510,9 +515,10 @@ namespace Foo
         /// </summary>
         /// <param name="invocationKind">Kind of the invocation.</param>
         /// <param name="receiverKind">Kind of the receiver.</param>
+        /// <param name="useRoslyn">Indicate if the use the roslyn source generator.</param>
         [Theory]
         [MemberData(nameof(Data))]
-        public void NoDiagnosticsAreReported_When_OutputTypeIsInternal(InvocationKind invocationKind, ReceiverKind receiverKind)
+        public void NoDiagnosticsAreReported_When_OutputTypeIsInternal(InvocationKind invocationKind, ReceiverKind receiverKind, bool useRoslyn)
         {
             string userSource = new WhenChangedMockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
                 .ClassAccessModifier(Accessibility.Public)
@@ -521,7 +527,7 @@ namespace Foo
                 .Build();
 
             Compilation compilation = CreateCompilation(userSource);
-            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator());
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator() { UseRoslyn = useRoslyn });
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
             Assert.Empty(newCompilation.GetDiagnostics().Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -548,10 +554,13 @@ namespace Foo
         /// </summary>
         /// <param name="invocationKind">Kind of the invocation.</param>
         /// <param name="receiverKind">Kind of the receiver.</param>
+        /// <param name="useRoslyn">Indicate if the use the roslyn source generator.</param>
         [Theory]
-        [InlineData(InvocationKind.MemberAccess, ReceiverKind.This)]
-        [InlineData(InvocationKind.MemberAccess, ReceiverKind.Instance)]
-        public void NoDiagnosticsAreReported_When_OutputTypeIsNestedAndPrivate(InvocationKind invocationKind, ReceiverKind receiverKind)
+        [InlineData(InvocationKind.MemberAccess, ReceiverKind.This, true)]
+        [InlineData(InvocationKind.MemberAccess, ReceiverKind.This, false)]
+        [InlineData(InvocationKind.MemberAccess, ReceiverKind.Instance, true)]
+        [InlineData(InvocationKind.MemberAccess, ReceiverKind.Instance, false)]
+        public void NoDiagnosticsAreReported_When_OutputTypeIsNestedAndPrivate(InvocationKind invocationKind, ReceiverKind receiverKind, bool useRoslyn)
         {
             string userSource = new WhenChangedMockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
                 .ClassAccessModifier(Accessibility.Public)
@@ -560,7 +569,7 @@ namespace Foo
                 .Build();
 
             Compilation compilation = CreateCompilation(userSource);
-            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator());
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator() { UseRoslyn = useRoslyn });
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
             Assert.Empty(newCompilation.GetDiagnostics().Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -587,9 +596,10 @@ namespace Foo
         /// </summary>
         /// <param name="invocationKind">Kind of the invocation.</param>
         /// <param name="receiverKind">Kind of the receiver.</param>
+        /// <param name="useRoslyn">Indicate if the use the roslyn source generator.</param>
         [Theory]
         [MemberData(nameof(Data))]
-        public void NoDiagnosticsAreReported_When_TwoClassesExistWithTheSameName(InvocationKind invocationKind, ReceiverKind receiverKind)
+        public void NoDiagnosticsAreReported_When_TwoClassesExistWithTheSameName(InvocationKind invocationKind, ReceiverKind receiverKind, bool useRoslyn)
         {
             string userSource1 = new WhenChangedMockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
                 .NamespaceName("Sample1")
@@ -601,7 +611,7 @@ namespace Foo
                 .Build();
 
             Compilation compilation = CreateCompilation(userSource1, userSource2);
-            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator());
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator() { UseRoslyn = useRoslyn });
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
             Assert.Empty(newCompilation.GetDiagnostics().Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -644,9 +654,10 @@ namespace Foo
         /// </summary>
         /// <param name="invocationKind">Kind of the invocation.</param>
         /// <param name="receiverKind">Kind of the receiver.</param>
+        /// <param name="useRoslyn">Indicate if the use the roslyn source generator.</param>
         [Theory]
         [MemberData(nameof(Data))]
-        public void NoDiagnosticsAreReported_When_TwoInvocationsWithAUniqueExpressionAndSameOutputTypeExist(InvocationKind invocationKind, ReceiverKind receiverKind)
+        public void NoDiagnosticsAreReported_When_TwoInvocationsWithAUniqueExpressionAndSameOutputTypeExist(InvocationKind invocationKind, ReceiverKind receiverKind, bool useRoslyn)
         {
             string userSource = new WhenChangedMockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
                 .ClassAccessModifier(Accessibility.Public)
@@ -655,7 +666,7 @@ namespace Foo
                 .Build();
 
             Compilation compilation = CreateCompilation(userSource);
-            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator());
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator() { UseRoslyn = useRoslyn });
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
             Assert.Empty(newCompilation.GetDiagnostics().Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -681,15 +692,16 @@ namespace Foo
         /// </summary>
         /// <param name="invocationKind">Kind of the invocation.</param>
         /// <param name="receiverKind">Kind of the receiver.</param>
+        /// <param name="useRoslyn">Indicate if the use the roslyn source generator.</param>
         [Theory]
         [MemberData(nameof(Data))]
-        public void NoDiagnosticsAreReported_When_MultipleOutputTypesExistWithSameName_And_MultipleUniqueInvocationsInvolvingEachExist(InvocationKind invocationKind, ReceiverKind receiverKind)
+        public void NoDiagnosticsAreReported_When_MultipleOutputTypesExistWithSameName_And_MultipleUniqueInvocationsInvolvingEachExist(InvocationKind invocationKind, ReceiverKind receiverKind, bool useRoslyn)
         {
             string userSource = new WhenChangedMockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
                 .BuildMultiExpressionVersion();
 
             Compilation compilation = CreateCompilation(userSource);
-            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator());
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator() { UseRoslyn = useRoslyn });
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
             Assert.Empty(newCompilation.GetDiagnostics().Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -700,15 +712,16 @@ namespace Foo
         /// </summary>
         /// <param name="invocationKind">Kind of the invocation.</param>
         /// <param name="receiverKind">Kind of the receiver.</param>
+        /// <param name="useRoslyn">Indicate if the use the roslyn source generator.</param>
         [Theory]
         [MemberData(nameof(Data))]
-        public void NoDiagnosticsAreReported_When_MultiExpressionWithNestedProtectedOutputType(InvocationKind invocationKind, ReceiverKind receiverKind)
+        public void NoDiagnosticsAreReported_When_MultiExpressionWithNestedProtectedOutputType(InvocationKind invocationKind, ReceiverKind receiverKind, bool useRoslyn)
         {
             string userSource = new WhenChangedMockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Inline, depth: 1)
                 .BuildMultiExpressionVersionNestedOutputType();
 
             Compilation compilation = CreateCompilation(userSource);
-            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator());
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator() { UseRoslyn = useRoslyn });
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
             Assert.Empty(newCompilation.GetDiagnostics().Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -725,16 +738,17 @@ namespace Foo
         /// </summary>
         /// <param name="invocationKind">Kind of the invocation.</param>
         /// <param name="receiverKind">Kind of the receiver.</param>
+        /// <param name="useRoslyn">Indicate if the use the roslyn source generator.</param>
         [Theory]
         [MemberData(nameof(Data))]
-        public void DiagnosticIsReported_When_PropertyIsUsedAsAnExpressionArgument(InvocationKind invocationKind, ReceiverKind receiverKind)
+        public void DiagnosticIsReported_When_PropertyIsUsedAsAnExpressionArgument(InvocationKind invocationKind, ReceiverKind receiverKind, bool useRoslyn)
         {
             // this.WhenChanged(MyExpression)
             string userSource = new WhenChangedMockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Property, depth: 1)
                 .Build();
 
             Compilation compilation = CreateCompilation(userSource);
-            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator());
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator() { UseRoslyn = useRoslyn });
             var diagnostics = newCompilation.GetDiagnostics();
 
             Assert.Empty(diagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -747,16 +761,17 @@ namespace Foo
         /// </summary>
         /// <param name="invocationKind">Kind of the invocation.</param>
         /// <param name="receiverKind">Kind of the receiver.</param>
+        /// <param name="useRoslyn">Indicate if the use the roslyn source generator.</param>
         [Theory]
         [MemberData(nameof(Data))]
-        public void DiagnosticIsReported_When_MethodInvocationIsUsedAsAnExpressionArgument(InvocationKind invocationKind, ReceiverKind receiverKind)
+        public void DiagnosticIsReported_When_MethodInvocationIsUsedAsAnExpressionArgument(InvocationKind invocationKind, ReceiverKind receiverKind, bool useRoslyn)
         {
             // this.WhenChanged(GetExpression())
             string userSource = new WhenChangedMockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.Method, depth: 1)
                 .Build();
 
             Compilation compilation = CreateCompilation(userSource);
-            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator());
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator() { UseRoslyn = useRoslyn });
             var diagnostics = newCompilation.GetDiagnostics();
 
             Assert.Empty(diagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -769,16 +784,17 @@ namespace Foo
         /// </summary>
         /// <param name="invocationKind">Kind of the invocation.</param>
         /// <param name="receiverKind">Kind of the receiver.</param>
+        /// <param name="useRoslyn">Indicate if the use the roslyn source generator.</param>
         [Theory]
         [MemberData(nameof(Data))]
-        public void DiagnosticIsReported_When_ExpressionExcludesLambdaParameter(InvocationKind invocationKind, ReceiverKind receiverKind)
+        public void DiagnosticIsReported_When_ExpressionExcludesLambdaParameter(InvocationKind invocationKind, ReceiverKind receiverKind, bool useRoslyn)
         {
             // this.WhenChanged(GetExpression())
             string userSource = new WhenChangedMockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.BodyExcludesLambdaParam, depth: 1)
                 .Build();
 
             Compilation compilation = CreateCompilation(userSource);
-            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator());
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator() { UseRoslyn = useRoslyn });
             var diagnostics = newCompilation.GetDiagnostics();
 
             Assert.Empty(diagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -791,16 +807,17 @@ namespace Foo
         /// </summary>
         /// <param name="invocationKind">Kind of the invocation.</param>
         /// <param name="receiverKind">Kind of the receiver.</param>
+        /// <param name="useRoslyn">Indicate if the use the roslyn source generator.</param>
         [Theory]
         [MemberData(nameof(Data))]
-        public void DiagnosticIsReported_When_ExpressionIncludesArrayAccess(InvocationKind invocationKind, ReceiverKind receiverKind)
+        public void DiagnosticIsReported_When_ExpressionIncludesArrayAccess(InvocationKind invocationKind, ReceiverKind receiverKind, bool useRoslyn)
         {
             // this.WhenChanged(GetExpression())
             string userSource = new WhenChangedMockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.BodyIncludesIndexer, depth: 1)
                 .Build();
 
             Compilation compilation = CreateCompilation(userSource);
-            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator());
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator() { UseRoslyn = useRoslyn });
             var diagnostics = newCompilation.GetDiagnostics();
 
             Assert.Empty(diagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -813,16 +830,17 @@ namespace Foo
         /// </summary>
         /// <param name="invocationKind">Kind of the invocation.</param>
         /// <param name="receiverKind">Kind of the receiver.</param>
+        /// <param name="useRoslyn">Indicate if the use the roslyn source generator.</param>
         [Theory]
         [MemberData(nameof(Data))]
-        public void DiagnosticIsReported_When_ExpressionIncludesMethodInvocation(InvocationKind invocationKind, ReceiverKind receiverKind)
+        public void DiagnosticIsReported_When_ExpressionIncludesMethodInvocation(InvocationKind invocationKind, ReceiverKind receiverKind, bool useRoslyn)
         {
             // this.WhenChanged(GetExpression())
             string userSource = new WhenChangedMockUserSourceBuilder(invocationKind, receiverKind, ExpressionForm.BodyIncludesMethodInvocation, depth: 1)
                 .Build();
 
             Compilation compilation = CreateCompilation(userSource);
-            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator());
+            var newCompilation = RunGenerators(compilation, out var generatorDiagnostics, new Generator() { UseRoslyn = useRoslyn });
             var diagnostics = newCompilation.GetDiagnostics();
 
             Assert.Empty(diagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));

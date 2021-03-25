@@ -18,6 +18,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
     [Generator]
     public class Generator : ISourceGenerator
     {
+        /// <summary>
+        /// Gets or sets a value indicating whether roslyn generators should be used.
+        /// </summary>
+        public bool UseRoslyn { get; set; }
+
         /// <inheritdoc/>
         public void Initialize(GeneratorInitializationContext context) => context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
 
@@ -36,7 +41,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 return;
             }
 
-            WhenChangedGenerator.GenerateWhenChanged(context, compilation, syntaxReceiver);
+            WhenChangedGenerator.GenerateWhenChanged(context, compilation, syntaxReceiver, UseRoslyn);
             BindGenerator.GenerateWhenChanged(context, compilation, syntaxReceiver);
         }
     }

@@ -43,6 +43,28 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             InvocationExpression(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, instance, IdentifierName(methodName)))
                 .WithArgumentList(ArgumentList(SeparatedList(arguments)));
 
+        public static InvocationExpressionSyntax InvokeMethod(string methodName, params ArgumentSyntax[] arguments) =>
+            InvocationExpression(IdentifierName(methodName))
+                .WithArgumentList(ArgumentList(SeparatedList(arguments)));
+
+        public static InvocationExpressionSyntax InvokeMethod(string methodName, IEnumerable<ArgumentSyntax> arguments) =>
+    InvocationExpression(IdentifierName(methodName))
+        .WithArgumentList(ArgumentList(SeparatedList(arguments)));
+
+        public static InvocationExpressionSyntax InvokeWhenChanged(string expressionName, string source) =>
+             InvocationExpression(
+                 MemberAccessExpression(
+                     SyntaxKind.SimpleMemberAccessExpression,
+                     source == "this" ? ThisExpression() : IdentifierName(source),
+                     IdentifierName("WhenChanged")))
+            .WithArgumentList(ArgumentList(SeparatedList(new[]
+            {
+                    Argument(IdentifierName(expressionName)),
+                    Argument(IdentifierName("callerMemberName")),
+                    Argument(IdentifierName("callerFilePath")),
+                    Argument(IdentifierName("callerLineNumber"))
+            })));
+
         public static ArgumentSyntax PropertyArgument(string argument) => Argument(IdentifierName(argument));
 
         public static ArgumentSyntax MethodArgument(string methodName) => Argument(InvocationExpression(IdentifierName(methodName)));
@@ -397,7 +419,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                                         .WithInitializer(
                                             InitializerExpression(
                                                 SyntaxKind.ObjectInitializerExpression,
-                                                SeparatedList<ExpressionSyntax>(initializerMembers))))))))
+                                                SeparatedList(initializerMembers))))))))
                     .WithModifiers(
                         TokenList(
                             new[]
@@ -446,7 +468,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                                     ArgumentList(
                                         SingletonSeparatedList(
                                             Argument(SimpleLambdaExpression(Parameter(Identifier(inputName)))
-                                                .WithExpressionBody(InvocationExpression(ObservableNotifyPropertyChanged(returnType, inputName, memberName))))))),
+                                                .WithExpressionBody(ObservableNotifyPropertyChanged(returnType, inputName, memberName)))))),
                     IdentifierName("Switch")));
 
         public static InvocationExpressionSyntax GetObservableChain(string inputName, List<(string Name, string InputType, string OutputType)> members)
@@ -454,15 +476,15 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             InvocationExpressionSyntax observable = null;
             for (int i = 0; i < members.Count; ++i)
             {
-                var member = members[i];
+                var (name, _, outputType) = members[i];
 
                 if (i == 0)
                 {
-                    observable = ObservableNotifyPropertyChanged(member.OutputType, inputName, member.Name);
+                    observable = ObservableNotifyPropertyChanged(outputType, inputName, name);
                 }
                 else
                 {
-                    observable = SelectObservableNotifyPropertyChangedSwitch(observable, member.OutputType, "source", member.Name);
+                    observable = SelectObservableNotifyPropertyChangedSwitch(observable, outputType, "source", name);
                 }
             }
 
@@ -579,15 +601,14 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                                                                 {
                                                                     Argument(
                                                                         TupleExpression(
-                                                                            SeparatedList<ArgumentSyntax>(
-                                                                                new SyntaxNodeOrToken[]
+                                                                            SeparatedList(
+                                                                                new[]
                                                                                 {
                                                                                     Argument(
-                                                                                        IdentifierName(memberName))
+                                                                                        IdentifierName(inputName))
                                                                                     .WithNameColon(
                                                                                         NameColon(
                                                                                             IdentifierName("Parent"))),
-                                                                                    Token(SyntaxKind.CommaToken),
                                                                                     Argument(
                                                                                         IdentifierName("handler"))
                                                                                     .WithNameColon(

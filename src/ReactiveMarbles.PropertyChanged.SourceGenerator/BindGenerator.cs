@@ -29,19 +29,19 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             var extensionClassData = CreateDatum(bindInfo.PublicExpressionArguments, (inputTypeGroup, methods) => new ExtensionClassDatum(inputTypeGroup.Name, methods));
             var partialClassData = CreateDatum(bindInfo.PrivateExpressionArguments, (inputTypeGroup, methods) => new PartialClassDatum(inputTypeGroup.NamespaceName, inputTypeGroup.Name, inputTypeGroup.AccessModifier, inputTypeGroup.AncestorClasses, methods));
 
-            var extensionClassCreator = new StringBuilderBindExtensionClassCreator();
-            for (var i = 0; i < extensionClassData.Count; i++)
-            {
-                var source = extensionClassCreator.Create(extensionClassData[i]);
-                context.AddSource($"Bind.{extensionClassData[i].Name}{i}.g.cs", SourceText.From(source, Encoding.UTF8));
-            }
+            ////var extensionClassCreator = new StringBuilderBindExtensionClassCreator();
+            ////for (var i = 0; i < extensionClassData.Count; i++)
+            ////{
+            ////    var source = extensionClassCreator.Create(extensionClassData[i]);
+            ////    context.AddSource($"Bind.{extensionClassData[i].Name}{i}.g.cs", SourceText.From(source, Encoding.UTF8));
+            ////}
 
-            var partialClassCreator = new StringBuilderBindPartialClassCreator();
-            for (var i = 0; i < partialClassData.Count; i++)
-            {
-                var source = partialClassCreator.Create(partialClassData[i]);
-                context.AddSource($"{partialClassData[i].Name}{i}.Bind.g.cs", SourceText.From(source, Encoding.UTF8));
-            }
+            ////var partialClassCreator = new StringBuilderBindPartialClassCreator();
+            ////for (var i = 0; i < partialClassData.Count; i++)
+            ////{
+            ////    var source = partialClassCreator.Create(partialClassData[i]);
+            ////    context.AddSource($"{partialClassData[i].Name}{i}.Bind.g.cs", SourceText.From(source, Encoding.UTF8));
+            ////}
         }
 
         private static List<T> CreateDatum<T>(SortedList<ITypeSymbol, HashSet<(ExpressionArgument ViewModel, ExpressionArgument View)>> argumentGroupings, Func<InputTypeGroup, List<MethodDatum>, T> createFunc)

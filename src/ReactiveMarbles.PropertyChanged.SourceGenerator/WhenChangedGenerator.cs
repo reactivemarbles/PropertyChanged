@@ -18,7 +18,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         private const string ExtensionClassFullName = "NotifyPropertyChangedExtensions";
         private static readonly HashSet<MultiExpressionMethodDatum> EmptyMulti = new HashSet<MultiExpressionMethodDatum>();
 
-        public static void GenerateWhenChanged(GeneratorExecutionContext context, Compilation compilation, SyntaxReceiver syntaxReceiver)
+        public static void GenerateWhenChanged(GeneratorExecutionContext context, Compilation compilation, SyntaxReceiver syntaxReceiver, bool useRoslyn)
         {
             var whenChangedInvocationInfo = ExtractWhenChangedInvocationInfo(context, compilation, syntaxReceiver);
 
@@ -37,18 +37,20 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 whenChangedInvocationInfo.PublicMultiExpressionMethodData,
                 (inputTypeGroup, allMethodData) => new ExtensionClassDatum(inputTypeGroup.Name, allMethodData));
 
-            var extensionClassCreator = new StringBuilderWhenChangedExtensionClassCreator();
-            for (var i = 0; i < extensionClassData.Count; i++)
+            ISourceCreator extensionClassCreator = !useRoslyn ? new StringBuilderWhenChangedExtensionClassCreator() : new RoslynWhenChangedExtensionCreator();
+            var extensionsSource = extensionClassCreator.Create(extensionClassData);
+
+            if (!string.IsNullOrWhiteSpace(extensionsSource))
             {
-                var source = extensionClassCreator.Create(extensionClassData[i]);
-                context.AddSource($"WhenChanged.{extensionClassData[i].Name}{i}.g.cs", SourceText.From(source, Encoding.UTF8));
+                context.AddSource("WhenChanged.extensions.g.cs", SourceText.From(extensionsSource, Encoding.UTF8));
             }
 
-            var partialClassCreator = new StringBuilderWhenChangedPartialClassCreator();
-            for (var i = 0; i < partialClassData.Count; i++)
+            ISourceCreator partialClassCreator = !useRoslyn ? new StringBuilderWhenChangedPartialClassCreator() : new RoslynWhenChangedPartialClassCreator();
+            var partialSource = partialClassCreator.Create(partialClassData);
+
+            if (!string.IsNullOrWhiteSpace(partialSource))
             {
-                var source = partialClassCreator.Create(partialClassData[i]);
-                context.AddSource($"{partialClassData[i].Name}{i}.WhenChanged.g.cs", SourceText.From(source, Encoding.UTF8));
+                context.AddSource("WhenChanged.partial.g.cs", SourceText.From(partialSource, Encoding.UTF8));
             }
         }
 

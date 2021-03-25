@@ -144,8 +144,6 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         public static string GetClass(string body)
         {
             return $@"
-{GetUsingStatements()}
-
 public static partial class NotifyPropertyChangedExtensions
 {{
     {body}
@@ -195,7 +193,7 @@ namespace {namespaceName}
 ";
             }
 
-            return source.Insert(0, GetUsingStatements());
+            return source;
         }
 
         public static string GetWhenChangedStubClass()
