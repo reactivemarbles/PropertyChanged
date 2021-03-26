@@ -7,5 +7,4 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-[assembly: InternalsVisibleTo("ReactiveMarbles.PropertyChanged.SourceGenerator.Sample")]
 [assembly: InternalsVisibleTo("ReactiveMarbles.PropertyChanged.SourceGenerator.Benchmarks")]

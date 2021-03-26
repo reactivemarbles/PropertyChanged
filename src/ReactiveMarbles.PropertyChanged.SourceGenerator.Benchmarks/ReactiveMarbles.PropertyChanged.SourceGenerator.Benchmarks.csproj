@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.12.1" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="3.8.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.8.0" />
+    <PackageReference Include="System.Reactive" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ReactiveMarbles.PropertyChanged.SourceGenerator\ReactiveMarbles.PropertyChanged.SourceGenerator.csproj" />
+  </ItemGroup>
+
+</Project>
