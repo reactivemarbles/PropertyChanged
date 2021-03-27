@@ -193,7 +193,7 @@ namespace Foo
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public string MyString1 { get; set; }
+        public int MyString1 { get; set; }
         public string MyString2 { get; set; }
 
         public B Child { get; set; }
