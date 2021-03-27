@@ -48,7 +48,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 var propertyDeclarationSymbol = propertyDeclarationModel.GetDeclaredSymbol(propertyDeclarationSyntax);
                 var propertyAccessibility = propertyDeclarationSymbol.DeclaredAccessibility;
 
-                if (propertyAccessibility <= Accessibility.Protected)
+                if (propertyAccessibility <= Accessibility.Protected || propertyAccessibility == Accessibility.ProtectedOrInternal)
                 {
                     return true;
                 }
@@ -104,6 +104,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
             var containsPrivateOrProtectedMember =
                 lambdaInputType.DeclaredAccessibility <= Accessibility.Protected ||
+                lambdaInputType.DeclaredAccessibility == Accessibility.ProtectedOrInternal ||
                 ContainsPrivateOrProtectedMember(compilation, model, lambdaExpression);
             expressionArgument = new ExpressionArgument(lambdaExpression.Body.ToString(), expressionChain, lambdaInputType, lambdaOutputType, containsPrivateOrProtectedMember);
 
