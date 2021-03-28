@@ -41,7 +41,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
 
             if (compilationErrors.Count() > 0)
             {
-                output.WriteLine(string.Join('\n', compilationErrors));
+                var sources = string.Join(Environment.NewLine, newCompilation.SyntaxTrees.Select(x => x.ToString()).Where(x => !x.Contains("The impementation should have been generated.")));
+                output.WriteLine(sources);
                 throw new XunitException(string.Join('\n', compilationErrors));
             }
 

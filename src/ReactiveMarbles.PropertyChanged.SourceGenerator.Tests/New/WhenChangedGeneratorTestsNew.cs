@@ -56,7 +56,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         /// <param name="propertyTypeAccess">outputClassAccess.</param>
         /// <param name="propertyAccess">propertyAccess.</param>
         [Theory]
-        [MemberData(nameof(GetData))]
+        [MemberData(nameof(AccessibilityTestCases.GetValidAccessModifierCombinations), MemberType = typeof(AccessibilityTestCases))]
         public void NoDiagnostics(Accessibility hostContainerTypeAccess, Accessibility hostTypeAccess, Accessibility propertyTypeAccess, Accessibility propertyAccess)
         {
             var hostPropertyTypeInfo = new EmptyClassBuilder()
