@@ -36,9 +36,17 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             }
         }
 
-        public IObservable<object> GetWhenChangedObservable()
+        public IObservable<object> GetWhenChangedObservable(Action<Exception> onError)
         {
-            return GetMethod(_source, WhenChangedHostBuilder.MethodName.GetWhenChangedObservable) as IObservable<object>;
+            try
+            {
+                return GetMethod(_source, WhenChangedHostBuilder.MethodName.GetWhenChangedObservable) as IObservable<object>;
+            }
+            catch (Exception ex)
+            {
+                onError?.Invoke(ex);
+                throw;
+            }
         }
 
         public IDisposable GetOneWayBindSubscription()

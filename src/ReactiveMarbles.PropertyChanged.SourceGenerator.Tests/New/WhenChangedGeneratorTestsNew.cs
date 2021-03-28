@@ -17,35 +17,15 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
     /// </summary>
     public class WhenChangedGeneratorTestsNew
     {
-        private readonly ITestOutputHelper _output;
+        private readonly ITestOutputHelper _testOutputHelper;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="WhenChangedGeneratorTestsNew"/> class.
         /// </summary>
-        /// <param name="output">The output provided by xUnit.</param>
-        public WhenChangedGeneratorTestsNew(ITestOutputHelper output)
+        /// <param name="testOutputHelper">The output provided by xUnit.</param>
+        public WhenChangedGeneratorTestsNew(ITestOutputHelper testOutputHelper)
         {
-            _output = output;
-        }
-
-        /// <summary>
-        /// Gets the testing data.
-        /// </summary>
-        /// <returns>The source for a data theory.</returns>
-        public static IEnumerable<object[]> GetData()
-        {
-            var hostContainerTypeAccessList = new[] { Accessibility.Public, Accessibility.Internal };
-            var hostTypeAccessList = new[] { Accessibility.Private, Accessibility.ProtectedAndInternal, Accessibility.Protected, Accessibility.Internal, Accessibility.ProtectedOrInternal, Accessibility.Public };
-            var propertyTypeAccessList = new[] { Accessibility.Private, Accessibility.ProtectedAndInternal, Accessibility.Protected, Accessibility.Internal, Accessibility.ProtectedOrInternal, Accessibility.Public };
-            var propertyAccessList = new[] { Accessibility.Private, Accessibility.ProtectedAndInternal, Accessibility.Protected, Accessibility.Internal, Accessibility.ProtectedOrInternal, Accessibility.Public };
-
-            return
-                from hostContainerTypeAccess in hostContainerTypeAccessList
-                from hostTypeAccess in hostTypeAccessList
-                from propertyTypeAccess in propertyTypeAccessList
-                from propertyAccess in propertyAccessList
-                where TestCaseUtil.ValidateAccessModifierCombination(hostContainerTypeAccess, hostTypeAccess, propertyTypeAccess, propertyAccess)
-                select new object[] { hostContainerTypeAccess, hostTypeAccess, propertyTypeAccess, propertyAccess };
+            _testOutputHelper = testOutputHelper;
         }
 
         /// <summary>
@@ -73,11 +53,22 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .WithClassAccess(hostContainerTypeAccess)
                 .AddNestedClass(hostTypeInfo);
 
-            var fixture = WhenChangedFixture.Create(hostTypeInfo);
-            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, _output);
+            var fixture = WhenChangedFixture.Create(hostTypeInfo, _testOutputHelper);
+            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics);
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
             Assert.Empty(compilationDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
+
+            var host = fixture.NewHostInstance();
+            host.Value = fixture.NewValuePropertyInstance();
+            var observable = host.GetWhenChangedObservable(_ => _testOutputHelper.WriteLine(fixture.Sources));
+            object value = null;
+            observable.Subscribe(x => value = x);
+            Assert.Equal(host.Value, value);
+            host.Value = fixture.NewValuePropertyInstance();
+            Assert.Equal(host.Value, value);
+            host.Value = null;
+            Assert.Null(value);
         }
     }
 }

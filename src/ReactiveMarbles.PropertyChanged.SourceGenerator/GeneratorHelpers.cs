@@ -54,7 +54,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 }
 
                 var childTypeSymbol = model.GetTypeInfo(child).ConvertedType;
-                if (childTypeSymbol.DeclaredAccessibility <= Accessibility.Internal || childTypeSymbol.DeclaredAccessibility == Accessibility.ProtectedOrInternal)
+                if (childTypeSymbol.DeclaredAccessibility <= Accessibility.Protected || childTypeSymbol.DeclaredAccessibility == Accessibility.ProtectedOrInternal)
                 {
                     return true;
                 }
