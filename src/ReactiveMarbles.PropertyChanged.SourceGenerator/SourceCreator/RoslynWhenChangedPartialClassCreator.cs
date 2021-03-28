@@ -5,13 +5,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+using static ReactiveMarbles.PropertyChanged.SourceGenerator.SyntaxFactoryHelpers;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
@@ -25,11 +23,10 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 .Cast<PartialClassDatum>()
                 .GroupBy(x => x.NamespaceName))
             {
-                var classes = group.Select(x => Create(x));
+                var classes = group.Select(x => Create(x)).ToList();
                 if (!string.IsNullOrWhiteSpace(group.Key))
                 {
-                    var groupNamespace = NamespaceDeclaration(IdentifierName(group.Key))
-                        .WithMembers(List<MemberDeclarationSyntax>(classes));
+                    var groupNamespace = NamespaceDeclaration(group.Key, classes, true);
                     members.Add(groupNamespace);
                 }
                 else
@@ -40,11 +37,9 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
             if (members.Count > 0)
             {
-                var compilation = CompilationUnit()
-                    .WithStandardReactiveUsings()
-                    .WithMembers(List(members));
+                var compilation = CompilationUnit(default, members, RoslynHelpers.GetReactiveExtensionUsings());
 
-                return compilation.NormalizeWhitespace().ToFullString();
+                return compilation.ToFullString();
             }
 
             return null;
@@ -52,18 +47,14 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
         private static ClassDeclarationSyntax Create(PartialClassDatum classDatum)
         {
-            var visibility = classDatum.AccessModifier.GetAccessibilityTokens().Concat(new[] { Token(SyntaxKind.PartialKeyword) });
+            var visibility = classDatum.AccessModifier.GetAccessibilityTokens().Concat(new[] { SyntaxKind.PartialKeyword }).ToList();
 
-            var currentClass = ClassDeclaration(classDatum.Name)
-                .WithMembers(List(classDatum.MethodData.SelectMany(x => Create(x))))
-                .WithModifiers(TokenList(visibility));
+            var currentClass = ClassDeclaration(classDatum.Name, visibility, classDatum.MethodData.SelectMany(x => Create(x)).ToList(), 1);
 
             foreach (var ancestor in classDatum.AncestorClasses)
             {
-                visibility = ancestor.AccessModifier.GetAccessibilityTokens().Concat(new[] { Token(SyntaxKind.PartialKeyword) });
-                currentClass = ClassDeclaration(ancestor.Name)
-                    .WithModifiers(TokenList(visibility))
-                    .WithMembers(List<MemberDeclarationSyntax>(new[] { currentClass }));
+                visibility = ancestor.AccessModifier.GetAccessibilityTokens().Concat(new[] { SyntaxKind.PartialKeyword }).ToList();
+                currentClass = ClassDeclaration(ancestor.Name, visibility, new[] { currentClass }, 0);
             }
 
             return currentClass;
@@ -89,16 +80,12 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             }
 
             yield return RoslynHelpers.MapDictionary(methodDatum.InputTypeName, methodDatum.OutputTypeName, methodDatum.Map.MapName, mapEntries);
-            yield return RoslynHelpers.WhenChangedWithoutBody(methodDatum.InputTypeName, methodDatum.OutputTypeName, false, methodDatum.AccessModifier)
-                .WithExpressionBody(ArrowExpressionClause(RoslynHelpers.MapInvokeExpression("this", methodDatum.Map.MapName, "propertyExpression")))
-                .WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
+            yield return RoslynHelpers.WhenChanged(methodDatum.InputTypeName, methodDatum.OutputTypeName, false, methodDatum.AccessModifier, ArrowExpressionClause(RoslynHelpers.MapInvokeExpression("this", methodDatum.Map.MapName, "propertyExpression")));
         }
 
         private static IEnumerable<MemberDeclarationSyntax> Create(SingleExpressionOptimizedImplMethodDatum methodDatum)
         {
-            yield return RoslynHelpers.WhenChangedWithoutBody(methodDatum.InputTypeName, methodDatum.OutputTypeName, false, methodDatum.AccessModifier)
-                .WithExpressionBody(ArrowExpressionClause(RoslynHelpers.GetObservableChain("this", methodDatum.Members)))
-                .WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
+            yield return RoslynHelpers.WhenChanged(methodDatum.InputTypeName, methodDatum.OutputTypeName, false, methodDatum.AccessModifier, ArrowExpressionClause(RoslynHelpers.GetObservableChain("this", methodDatum.Members)));
         }
 
         private static IEnumerable<MemberDeclarationSyntax> Create(MultiExpressionMethodDatum methodDatum)
@@ -110,29 +97,22 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             {
                 var type = methodDatum.TempReturnTypes[i];
                 var obsName = "obs" + (i + 1);
-                var whenChangedVariable = LocalDeclarationStatement(VariableDeclaration(IdentifierName($"IObservable<{type}>"))
-                    .WithVariables(
-                        SingletonSeparatedList(
-                            VariableDeclarator(
-                                Identifier(obsName))
-                            .WithInitializer(
-                                EqualsValueClause(RoslynHelpers.InvokeWhenChanged("propertyExpression" + (i + 1), "this"))))));
+                var whenChangedVariable = LocalDeclarationStatement(VariableDeclaration($"IObservable<{type}>", new[] { VariableDeclarator(obsName, EqualsValueClause(RoslynHelpers.InvokeWhenChanged("propertyExpression" + (i + 1), "this"))) }));
                 statements.Add(whenChangedVariable);
-                combineArguments.Add(Argument(IdentifierName(obsName)));
+                combineArguments.Add(Argument(obsName));
             }
 
-            combineArguments.Add(Argument(IdentifierName("conversionFunc")));
+            combineArguments.Add(Argument("conversionFunc"));
 
             statements.Add(ReturnStatement(
-                InvocationExpression(MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    IdentifierName("Observable"),
-                    IdentifierName("CombineLatest")))
-                        .WithArgumentList(
-                            ArgumentList(SeparatedList(combineArguments)))));
+                InvocationExpression(
+                    MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        "Observable",
+                        "CombineLatest"),
+                    combineArguments)));
 
-            yield return RoslynHelpers.WhenChangedConversionWithoutBody(methodDatum.InputType.ToDisplayString(), methodDatum.OutputType.ToDisplayString(), methodDatum.TempReturnTypes, false, methodDatum.AccessModifier)
-                .WithBody(Block(statements));
+            yield return RoslynHelpers.WhenChangedConversion(methodDatum.InputType.ToDisplayString(), methodDatum.OutputType.ToDisplayString(), methodDatum.TempReturnTypes, false, methodDatum.AccessModifier, Block(statements, 1));
         }
     }
 }

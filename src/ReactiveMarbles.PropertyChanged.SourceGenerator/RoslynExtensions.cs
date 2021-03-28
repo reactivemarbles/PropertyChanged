@@ -39,29 +39,16 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             return List<MemberDeclarationSyntax>();
         }
 
-        public static IEnumerable<SyntaxToken> GetAccessibilityTokens(this Accessibility accessibility) => accessibility switch
+        public static SyntaxKind[] GetAccessibilityTokens(this Accessibility accessibility) => accessibility switch
         {
-            Accessibility.Public => new[] { Token(SyntaxKind.PublicKeyword) },
-            Accessibility.Internal => new[] { Token(SyntaxKind.InternalKeyword) },
-            Accessibility.Private => new[] { Token(SyntaxKind.PrivateKeyword) },
-            Accessibility.NotApplicable => new SyntaxToken[] { },
-            Accessibility.ProtectedAndInternal => new[] { Token(SyntaxKind.PrivateKeyword), Token(SyntaxKind.ProtectedKeyword) },
-            Accessibility.Protected => new[] { Token(SyntaxKind.ProtectedKeyword) },
-            Accessibility.ProtectedOrInternal => new[] { Token(SyntaxKind.ProtectedKeyword), Token(SyntaxKind.InternalKeyword) },
-            _ => new SyntaxToken[] { },
+            Accessibility.Public => new[] { SyntaxKind.PublicKeyword },
+            Accessibility.Internal => new[] { SyntaxKind.InternalKeyword },
+            Accessibility.Private => new[] { SyntaxKind.PrivateKeyword },
+            Accessibility.NotApplicable => Array.Empty<SyntaxKind>(),
+            Accessibility.ProtectedAndInternal => new[] { SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword },
+            Accessibility.Protected => new[] { SyntaxKind.ProtectedKeyword },
+            Accessibility.ProtectedOrInternal => new[] { SyntaxKind.ProtectedKeyword, SyntaxKind.InternalKeyword },
+            _ => Array.Empty<SyntaxKind>(),
         };
-
-        public static CompilationUnitSyntax WithStandardReactiveUsings(this CompilationUnitSyntax compilation) =>
-            compilation.WithUsings(List(
-                    new[]
-                    {
-                        UsingDirective(IdentifierName("System")),
-                        UsingDirective(IdentifierName("System.Collections.Generic")),
-                        UsingDirective(IdentifierName("System.ComponentModel")),
-                        UsingDirective(IdentifierName("System.Linq.Expressions")),
-                        UsingDirective(IdentifierName("System.Reactive.Disposables")),
-                        UsingDirective(IdentifierName("System.Reactive.Linq")),
-                        UsingDirective(IdentifierName("System.Runtime.CompilerServices")),
-                    }));
     }
 }

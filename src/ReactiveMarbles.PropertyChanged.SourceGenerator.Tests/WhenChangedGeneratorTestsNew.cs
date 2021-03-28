@@ -38,14 +38,16 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             var hostTypeAccessList = new[] { Accessibility.Private, Accessibility.ProtectedAndInternal, Accessibility.Protected, Accessibility.Internal, Accessibility.ProtectedOrInternal, Accessibility.Public };
             var propertyTypeAccessList = new[] { Accessibility.Private, Accessibility.ProtectedAndInternal, Accessibility.Protected, Accessibility.Internal, Accessibility.ProtectedOrInternal, Accessibility.Public };
             var propertyAccessList = new[] { Accessibility.Private, Accessibility.ProtectedAndInternal, Accessibility.Protected, Accessibility.Internal, Accessibility.ProtectedOrInternal, Accessibility.Public };
+            var roslynList = new[] { true, false };
 
             return
                 from hostContainerTypeAccess in hostContainerTypeAccessList
                 from hostTypeAccess in hostTypeAccessList
                 from propertyTypeAccess in propertyTypeAccessList
                 from propertyAccess in propertyAccessList
+                from useRoslyn in roslynList
                 where TestCaseUtil.ValidateAccessModifierCombination(hostContainerTypeAccess, hostTypeAccess, propertyTypeAccess, propertyAccess)
-                select new object[] { hostContainerTypeAccess, hostTypeAccess, propertyTypeAccess, propertyAccess };
+                select new object[] { hostContainerTypeAccess, hostTypeAccess, propertyTypeAccess, propertyAccess, useRoslyn };
         }
 
         /// <summary>
@@ -55,9 +57,10 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         /// <param name="hostTypeAccess">hostClassAccess.</param>
         /// <param name="propertyTypeAccess">outputClassAccess.</param>
         /// <param name="propertyAccess">propertyAccess.</param>
+        /// <param name="useRoslyn">If we should use roslyn.</param>
         [Theory]
         [MemberData(nameof(GetData))]
-        public void NoDiagnostics(Accessibility hostContainerTypeAccess, Accessibility hostTypeAccess, Accessibility propertyTypeAccess, Accessibility propertyAccess)
+        public void NoDiagnostics(Accessibility hostContainerTypeAccess, Accessibility hostTypeAccess, Accessibility propertyTypeAccess, Accessibility propertyAccess, bool useRoslyn)
         {
             var hostPropertyTypeInfo = new EmptyClassBuilder()
                 .WithClassAccess(propertyTypeAccess);
@@ -74,7 +77,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .AddNestedClass(hostTypeInfo);
 
             var fixture = WhenChangedFixture.Create(hostTypeInfo);
-            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, _output);
+            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, _output, useRoslyn);
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
             Assert.Empty(compilationDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));

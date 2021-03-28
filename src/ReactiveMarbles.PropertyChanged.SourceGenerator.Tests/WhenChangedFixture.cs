@@ -33,13 +33,13 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             return new WhenChangedFixture(hostTypeInfo, compilation);
         }
 
-        public void RunGenerator(out ImmutableArray<Diagnostic> compilationDiagnostics, out ImmutableArray<Diagnostic> generatorDiagnostics, ITestOutputHelper output)
+        public void RunGenerator(out ImmutableArray<Diagnostic> compilationDiagnostics, out ImmutableArray<Diagnostic> generatorDiagnostics, ITestOutputHelper output, bool useRoslyn)
         {
-            var newCompilation = CompilationUtil.RunGenerators(_compilation, out generatorDiagnostics, new Generator());
+            var newCompilation = CompilationUtil.RunGenerators(_compilation, out generatorDiagnostics, new Generator() { UseRoslyn = useRoslyn });
             compilationDiagnostics = newCompilation.GetDiagnostics();
-            var compilationErrors = compilationDiagnostics.Where(x => x.Severity == DiagnosticSeverity.Error).Select(x => x.GetMessage());
+            var compilationErrors = compilationDiagnostics.Where(x => x.Severity == DiagnosticSeverity.Error).Select(x => x.GetMessage()).ToList();
 
-            if (compilationErrors.Count() > 0)
+            if (compilationErrors.Count > 0)
             {
                 output.WriteLine(string.Join('\n', compilationErrors));
                 throw new XunitException(string.Join('\n', compilationErrors));

@@ -3,7 +3,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Platform>AnyCPU</Platform>
     <IsTestProject>$(MSBuildProjectName.Contains('Tests'))</IsTestProject>
-    <DebugType>embedded</DebugType>
+    <DebugType>portable</DebugType>
     <Authors>Glenn Watson</Authors>
     <Copyright>Copyright (c) 2021 ReactiveUI Association Incorporated</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

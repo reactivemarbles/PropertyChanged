@@ -9,14 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="BindGeneratorTests.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="BindGeneratorTests.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.3" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.console" Version="2.4.1" />
@@ -29,6 +21,10 @@
   
   <ItemGroup>
     <ProjectReference Include="..\ReactiveMarbles.PropertyChanged.SourceGenerator\ReactiveMarbles.PropertyChanged.SourceGenerator.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Folder Include="New\" />
   </ItemGroup>
 
 </Project>

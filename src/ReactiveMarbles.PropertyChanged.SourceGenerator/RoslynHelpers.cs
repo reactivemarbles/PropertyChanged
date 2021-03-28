@@ -11,258 +11,120 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+using static ReactiveMarbles.PropertyChanged.SourceGenerator.SyntaxFactoryHelpers;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
     internal static class RoslynHelpers
     {
-        public static MemberAccessExpressionSyntax MemberAccess(string startVariable, params string[] identifierNames) =>
-            (MemberAccessExpressionSyntax)identifierNames.Aggregate<string, ExpressionSyntax>(IdentifierName(startVariable), (expression, name) =>
-                MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, expression, IdentifierName(name)));
-
-        public static MemberAccessExpressionSyntax MemberAccess(ExpressionSyntax startVariable, params string[] identifierNames) =>
-            (MemberAccessExpressionSyntax)identifierNames.Aggregate(startVariable, (expression, name) =>
-                MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, expression, IdentifierName(name)));
-
-        public static MemberAccessExpressionSyntax MemberAccess(ExpressionSyntax startVariable, IEnumerable<string> identifierNames) =>
-            MemberAccess(startVariable, identifierNames.ToArray());
-
-        public static MemberAccessExpressionSyntax MemberAccess(string startVariable, IEnumerable<string> identifierNames) =>
-            MemberAccess(startVariable, identifierNames.ToArray());
-
-        public static ArgumentSyntax LambdaAccessArgument(string variableName, MemberAccessExpressionSyntax members) =>
-            Argument(SimpleLambdaExpression(Parameter(Identifier(variableName)))
-                .WithExpressionBody(members));
-
-        public static InvocationExpressionSyntax InvokeExplicitMethod(string className, string methodName, params ArgumentSyntax[] arguments) =>
-            InvocationExpression(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName(className), IdentifierName(methodName)))
-                .WithArgumentList(ArgumentList(SeparatedList(arguments)));
-
-        public static InvocationExpressionSyntax InvokeMethod(string methodName, ExpressionSyntax instance, params ArgumentSyntax[] arguments) =>
-            InvocationExpression(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, instance, IdentifierName(methodName)))
-                .WithArgumentList(ArgumentList(SeparatedList(arguments)));
-
-        public static InvocationExpressionSyntax InvokeMethod(string methodName, params ArgumentSyntax[] arguments) =>
-            InvocationExpression(IdentifierName(methodName))
-                .WithArgumentList(ArgumentList(SeparatedList(arguments)));
-
-        public static InvocationExpressionSyntax InvokeMethod(string methodName, IEnumerable<ArgumentSyntax> arguments) =>
-    InvocationExpression(IdentifierName(methodName))
-        .WithArgumentList(ArgumentList(SeparatedList(arguments)));
-
         public static InvocationExpressionSyntax InvokeWhenChanged(string expressionName, string source) =>
-             InvocationExpression(
-                 MemberAccessExpression(
-                     SyntaxKind.SimpleMemberAccessExpression,
-                     source == "this" ? ThisExpression() : IdentifierName(source),
-                     IdentifierName("WhenChanged")))
-            .WithArgumentList(ArgumentList(SeparatedList(new[]
-            {
-                    Argument(IdentifierName(expressionName)),
-                    Argument(IdentifierName("callerMemberName")),
-                    Argument(IdentifierName("callerFilePath")),
-                    Argument(IdentifierName("callerLineNumber"))
-            })));
+            InvocationExpression(
+                MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    IdentifierName(source),
+                    "WhenChanged"),
+                new[]
+                {
+                        Argument(expressionName),
+                        Argument("callerMemberName"),
+                        Argument("callerFilePath"),
+                        Argument("callerLineNumber")
+                });
 
-        public static ArgumentSyntax PropertyArgument(string argument) => Argument(IdentifierName(argument));
+        public static IReadOnlyCollection<UsingDirectiveSyntax> GetReactiveExtensionUsings() =>
+            new[]
+            {
+                UsingDirective("System"),
+                UsingDirective("System.Collections.Generic"),
+                UsingDirective("System.ComponentModel"),
+                UsingDirective("System.Linq.Expressions"),
+                UsingDirective("System.Reactive.Disposables"),
+                UsingDirective("System.Reactive.Linq"),
+                UsingDirective("System.Runtime.CompilerServices"),
+            };
 
         public static ArgumentSyntax MethodArgument(string methodName) => Argument(InvocationExpression(IdentifierName(methodName)));
 
-        public static FieldDeclarationSyntax Field(string fieldType, string fieldName)
-        {
-            return FieldDeclaration(
-                VariableDeclaration(IdentifierName(fieldType))
-                    .WithVariables(
-                        SingletonSeparatedList(
-                            VariableDeclarator(
-                                Identifier(fieldName)))))
-                .WithModifiers(
-                    TokenList(
-                        Token(SyntaxKind.PrivateKeyword)));
-        }
-
         public static EventFieldDeclarationSyntax PropertyChanged() =>
-            EventFieldDeclaration(
-                        VariableDeclaration(
-                            IdentifierName("PropertyChangedEventHandler"))
-                        .WithVariables(
-                            SingletonSeparatedList(
-                                VariableDeclarator(
-                                    Identifier("PropertyChanged")))))
-                    .WithModifiers(
-                        TokenList(
-                            Token(SyntaxKind.PublicKeyword)));
+            EventFieldDeclaration(new[] { SyntaxKind.PublicKeyword }, "PropertyChangedEventHandler", "PropertyChanged", 1);
 
         public static PropertyDeclarationSyntax RaiseAndSetProperty(string typeName, string propertyName, Accessibility accessibility, string fieldName) =>
             PropertyDeclaration(
-                    IdentifierName(typeName),
-                    Identifier(propertyName))
-                .WithModifiers(TokenList(accessibility.GetAccessibilityTokens()))
-                .WithAccessorList(
-                    AccessorList(
-                        List(
-                            new AccessorDeclarationSyntax[]
-                            {
-                                            AccessorDeclaration(
-                                                SyntaxKind.GetAccessorDeclaration)
-                                            .WithExpressionBody(
-                                                ArrowExpressionClause(
-                                                    IdentifierName(fieldName)))
-                                            .WithSemicolonToken(
-                                                Token(SyntaxKind.SemicolonToken)),
-                                            AccessorDeclaration(
-                                                SyntaxKind.SetAccessorDeclaration)
-                                            .WithExpressionBody(
-                                                ArrowExpressionClause(
-                                                    InvocationExpression(
-                                                        IdentifierName("RaiseAndSetIfChanged"))
-                                                    .WithArgumentList(
-                                                        ArgumentList(
-                                                            SeparatedList<ArgumentSyntax>(
-                                                                new SyntaxNodeOrToken[]
-                                                                {
-                                                                    Argument(
-                                                                        IdentifierName(fieldName))
-                                                                    .WithRefOrOutKeyword(
-                                                                        Token(SyntaxKind.RefKeyword)),
-                                                                    Token(SyntaxKind.CommaToken),
-                                                                    Argument(
-                                                                        IdentifierName("value"))
-                                                                })))))
-                                            .WithSemicolonToken(Token(SyntaxKind.SemicolonToken))
-                            })));
+                typeName,
+                propertyName,
+                accessibility.GetAccessibilityTokens(),
+                new[]
+                {
+                    AccessorDeclaration(SyntaxKind.GetAccessorDeclaration, default, default, ArrowExpressionClause(IdentifierName(fieldName))),
+                    AccessorDeclaration(SyntaxKind.SetAccessorDeclaration, default, default, ArrowExpressionClause(InvocationExpression("RaiseAndSetIfChanged", new[] { Argument(fieldName, Token(SyntaxKind.RefKeyword)), Argument("value") })))
+                },
+                1);
 
         public static MethodDeclarationSyntax OnPropertyChanged() =>
             MethodDeclaration(
-                        PredefinedType(
-                            Token(SyntaxKind.VoidKeyword)),
-                        Identifier("OnPropertyChanged"))
-                    .WithModifiers(
-                        TokenList(
-                            new[]
-                            {
-                                Token(SyntaxKind.ProtectedKeyword),
-                                Token(SyntaxKind.VirtualKeyword)
-                            }))
-                    .WithParameterList(
-                        ParameterList(
-                            SingletonSeparatedList(
-                                Parameter(
-                                    Identifier("propertyName"))
-                                .WithType(
-                                    PredefinedType(
-                                        Token(SyntaxKind.StringKeyword))))))
-                    .WithBody(
-                        Block(
-                            SingletonList<StatementSyntax>(
-                                ExpressionStatement(
-                                    ConditionalAccessExpression(
-                                        IdentifierName("PropertyChanged"),
-                                        InvocationExpression(
-                                            MemberBindingExpression(
-                                                IdentifierName("Invoke")))
-                                        .WithArgumentList(
-                                            ArgumentList(
-                                                SeparatedList<ArgumentSyntax>(
-                                                    new SyntaxNodeOrToken[]
-                                                    {
-                                                        Argument(
-                                                            ThisExpression()),
-                                                        Token(SyntaxKind.CommaToken),
-                                                        Argument(
-                                                            ObjectCreationExpression(
-                                                                IdentifierName("PropertyChangedEventArgs"))
-                                                            .WithArgumentList(
-                                                                ArgumentList(
-                                                                    SingletonSeparatedList(
-                                                                        Argument(
-                                                                            IdentifierName("propertyName"))))))
-                                                    }))))))));
+                new[] { SyntaxKind.PropertyKeyword, SyntaxKind.VirtualKeyword },
+                "void",
+                "OnPropertyChanged",
+                new[] { Parameter("string", "propertyName") },
+                0,
+                Block(
+                    new StatementSyntax[]
+                    {
+                        ExpressionStatement(
+                            ConditionalAccessExpression(
+                                IdentifierName("PropertyChanged"),
+                                InvocationExpression(
+                                    MemberBindingExpression("Invoke"),
+                                    new[]
+                                    {
+                                        Argument("this"),
+                                        Argument(
+                                            ObjectCreationExpression("PropertyChangedEventArgs", new[] { Argument("propertyName") }, default)),
+                                    }))),
+                    },
+                    1));
 
+            ////MethodDeclaration(
         public static MethodDeclarationSyntax RaiseAndSetIfChanged() =>
             MethodDeclaration(
-                    PredefinedType(
-                        Token(SyntaxKind.VoidKeyword)),
-                    Identifier("RaiseAndSetIfChanged"))
-                .WithModifiers(
-                    TokenList(
-                        Token(SyntaxKind.ProtectedKeyword)))
-                .WithTypeParameterList(
-                    TypeParameterList(
-                        SingletonSeparatedList(
-                            TypeParameter(
-                                Identifier("T")))))
-                .WithParameterList(
-                    ParameterList(
-                        SeparatedList<ParameterSyntax>(
-                            new SyntaxNodeOrToken[]
-                            {
-                                Parameter(Identifier("fieldValue"))
-                                    .WithModifiers(TokenList(Token(SyntaxKind.RefKeyword)))
-                                    .WithType(IdentifierName("T")),
-                                Token(SyntaxKind.CommaToken),
-                                Parameter(Identifier("value"))
-                                    .WithType(
-                                        IdentifierName("T")),
-                                Token(SyntaxKind.CommaToken),
-                                Parameter(Identifier("propertyName"))
-                                    .WithAttributeLists(
-                                        SingletonList(
-                                            AttributeList(
-                                                SingletonSeparatedList(
-                                                    Attribute(
-                                                        IdentifierName("CallerMemberName"))))))
-                                .WithType(PredefinedType(Token(SyntaxKind.StringKeyword)))
-                                    .WithDefault(
-                                        EqualsValueClause(
-                                            LiteralExpression(
-                                                SyntaxKind.NullLiteralExpression)))
-                            })))
-                .WithBody(
-                    Block(
+                new[] { SyntaxKind.ProtectedKeyword },
+                "void",
+                "RaiseAndSetIfChanged",
+                new[]
+                {
+                    Parameter("T", "fieldValue", new[] { SyntaxKind.RefKeyword }),
+                    Parameter("T", "value"),
+                    Parameter(new[] { AttributeList(Attribute("CallerMemberName")) }, "string", "propertyName", EqualsValueClause(NullLiteral())),
+                },
+                0,
+                Block(
+                    new StatementSyntax[]
+                    {
                         IfStatement(
                             InvocationExpression(
                                 MemberAccessExpression(
                                     SyntaxKind.SimpleMemberAccessExpression,
                                     MemberAccessExpression(
                                         SyntaxKind.SimpleMemberAccessExpression,
-                                        GenericName(Identifier("EqualityComparer"))
-                                            .WithTypeArgumentList(
-                                                TypeArgumentList(
-                                                    SingletonSeparatedList<TypeSyntax>(
-                                                        IdentifierName("T")))),
-                                        IdentifierName("Default")),
-                                    IdentifierName("Equals")))
-                            .WithArgumentList(
-                                ArgumentList(
-                                    SeparatedList<ArgumentSyntax>(
-                                        new SyntaxNodeOrToken[]
-                                        {
-                                            Argument(
-                                                IdentifierName("fieldValue")),
-                                            Token(SyntaxKind.CommaToken),
-                                            Argument(
-                                                IdentifierName("value"))
-                                        }))),
+                                        GenericName("EqualityComparer", new[] { IdentifierName("T") }),
+                                        "Default"),
+                                    "Equals"),
+                                new ArgumentSyntax[]
+                                {
+                                    Argument("fieldValue"),
+                                    Argument("value")
+                                }),
                             Block(
-                                SingletonList<StatementSyntax>(
-                                    ReturnStatement()))),
-                        ExpressionStatement(
-                            AssignmentExpression(
-                                SyntaxKind.SimpleAssignmentExpression,
-                                IdentifierName("fieldValue"),
-                                IdentifierName("value"))),
-                        ExpressionStatement(
-                            InvocationExpression(
-                                IdentifierName("OnPropertyChanged"))
-                            .WithArgumentList(
-                                ArgumentList(
-                                    SingletonSeparatedList(
-                                        Argument(
-                                            IdentifierName("propertyName"))))))));
+                                new StatementSyntax[]
+                                {
+                                    ExpressionStatement(AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, "fieldValue", "value")),
+                                    ExpressionStatement(InvocationExpression("OnPropertyChanged", new[] { Argument("propertyName") }))
+                                },
+                                1))
+                    },
+                    0));
 
-        public static MethodDeclarationSyntax WhenChangedConversionWithoutBody(string inputType, string outputType, List<string> returnTypes, bool isExtension, Accessibility accessibility)
+        public static MethodDeclarationSyntax WhenChangedConversion(string inputType, string outputType, List<string> returnTypes, bool isExtension, Accessibility accessibility, BlockSyntax body)
         {
             var modifiers = accessibility.GetAccessibilityTokens().ToList();
 
@@ -270,164 +132,92 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
             if (isExtension)
             {
-                modifiers.Add(Token(SyntaxKind.StaticKeyword));
-                parameterList.Add(Parameter(Identifier("source"))
-                    .WithModifiers(TokenList(Token(SyntaxKind.ThisKeyword)))
-                    .WithType(IdentifierName(inputType)));
+                modifiers.Add(SyntaxKind.StaticKeyword);
+                parameterList.Add(Parameter(inputType, "source", new[] { SyntaxKind.ThisKeyword }));
             }
 
             for (int i = 0; i < returnTypes.Count; ++i)
             {
-                parameterList.Add(Parameter(Identifier("propertyExpression" + (i + 1)))
-                    .WithType(GenericName("Expression")
-                        .WithTypeArgumentList(
-                            TypeArgumentList(
-                                SingletonSeparatedList<TypeSyntax>(
-                                    GenericName(Identifier("Func")).WithTypeArgumentList(
-                                        TypeArgumentList(
-                                            SeparatedList<TypeSyntax>(new[]
-                                            {
-                                                IdentifierName(inputType),
-                                                IdentifierName(returnTypes[i])
-                                            }))))))));
+                var returnType = returnTypes[i];
+                var propertyName = "propertyExpression" + (i + 1);
+
+                var parameter = Parameter(
+                    GetExpressionFunc(inputType, returnType),
+                    propertyName);
+                parameterList.Add(parameter);
             }
 
-            var conversionTypes = SeparatedList<TypeSyntax>(returnTypes.Select(x => IdentifierName(x)).Concat(new[] { IdentifierName(outputType) }));
+            var conversionTypes = returnTypes.Select(x => IdentifierName(x)).Concat(new[] { IdentifierName(outputType) }).ToList();
 
-            parameterList.Add(Parameter(Identifier("conversionFunc"))
-                .WithType(GenericName("Func")
-                    .WithTypeArgumentList(TypeArgumentList(conversionTypes))));
+            parameterList.Add(Parameter(GenericName("Func", conversionTypes), "conversionFunc"));
 
             parameterList.AddRange(CallerMembersParameters());
 
-            return MethodDeclaration(IdentifierName($"IObservable<{outputType}>"), Identifier("WhenChanged"))
-                .WithModifiers(TokenList(modifiers))
-                .WithParameterList(ParameterList(SeparatedList(parameterList)));
+            return MethodDeclaration(modifiers, $"IObservable<{outputType}>", "WhenChanged", parameterList, 0, body);
         }
 
-        public static MethodDeclarationSyntax WhenChangedWithoutBody(string inputType, string outputType, bool isExtension, Accessibility accessibility)
+        public static GenericNameSyntax GetExpressionFunc(string inputType, string returnType) =>
+            GenericName(
+                "Expression",
+                new[]
+                {
+                    GenericName(
+                        "Func",
+                        new[]
+                        {
+                            IdentifierName(inputType),
+                            IdentifierName(returnType)
+                        })
+                });
+
+        public static MethodDeclarationSyntax WhenChanged(string inputType, string outputType, bool isExtension, Accessibility accessibility, BlockSyntax body)
         {
-            var modifiers = accessibility.GetAccessibilityTokens().ToList();
+            GetWhenChangedValues(inputType, outputType, isExtension, accessibility, out var modifiers, out var parameterList);
 
-            var parameterList = new List<ParameterSyntax>();
+            return MethodDeclaration(modifiers, $"IObservable<{outputType}>", "WhenChanged", parameterList, 0, body);
+        }
 
-            if (isExtension)
-            {
-                modifiers.Add(Token(SyntaxKind.StaticKeyword));
-                parameterList.Add(Parameter(Identifier("source"))
-                    .WithModifiers(TokenList(Token(SyntaxKind.ThisKeyword)))
-                    .WithType(IdentifierName(inputType)));
-            }
+        public static MethodDeclarationSyntax WhenChanged(string inputType, string outputType, bool isExtension, Accessibility accessibility, ArrowExpressionClauseSyntax body)
+        {
+            GetWhenChangedValues(inputType, outputType, isExtension, accessibility, out var modifiers, out var parameterList);
 
-            parameterList.Add(Parameter(Identifier("propertyExpression"))
-                .WithType(GenericName("Expression")
-                    .WithTypeArgumentList(
-                        TypeArgumentList(
-                            SingletonSeparatedList<TypeSyntax>(
-                                GenericName(Identifier("Func")).WithTypeArgumentList(
-                                    TypeArgumentList(
-                                        SeparatedList<TypeSyntax>(new SyntaxNodeOrToken[]
-                                            {
-                                                IdentifierName(inputType),
-                                                Token(SyntaxKind.CommaToken),
-                                                IdentifierName(outputType)
-                                            }))))))));
-
-            parameterList.AddRange(CallerMembersParameters());
-
-            return MethodDeclaration(IdentifierName($"IObservable<{outputType}>"), Identifier("WhenChanged"))
-                .WithModifiers(TokenList(modifiers))
-                .WithParameterList(ParameterList(SeparatedList(parameterList)));
+            return MethodDeclaration(modifiers, $"IObservable<{outputType}>", "WhenChanged", parameterList, 0, body);
         }
 
         public static AssignmentExpressionSyntax MapEntry(string keyName, InvocationExpressionSyntax observableExpression) =>
             AssignmentExpression(
                     SyntaxKind.SimpleAssignmentExpression,
-                    ImplicitElementAccess()
-                    .WithArgumentList(
-                        BracketedArgumentList(
-                            SingletonSeparatedList(
-                                Argument(
-                                    LiteralExpression(SyntaxKind.StringLiteralExpression, Literal(keyName)))))),
-                    SimpleLambdaExpression(Parameter(Identifier("source")))
-                        .WithExpressionBody(observableExpression));
+                    ImplicitElementAccess(new[]
+                        {
+                            Argument(LiteralExpression(SyntaxKind.StringLiteralExpression, Literal(keyName)))
+                        }),
+                    SimpleLambdaExpression(Parameter("source"), observableExpression));
 
-        public static FieldDeclarationSyntax MapDictionary(string inputTypeName, string outputTypeName, string mapName, IEnumerable<ExpressionSyntax> initializerMembers)
+        public static FieldDeclarationSyntax MapDictionary(string inputTypeName, string outputTypeName, string mapName, IReadOnlyCollection<ExpressionSyntax> initializerMembers)
         {
+            var dictionaryType = GenericName("Dictionary", new TypeSyntax[] { IdentifierName("string"), GenericName("IObservable", new[] { IdentifierName(outputTypeName) }) });
             return FieldDeclaration(
-                        VariableDeclaration(
-                            GenericName(
-                                Identifier("Dictionary"))
-                            .WithTypeArgumentList(
-                                TypeArgumentList(
-                                    SeparatedList<TypeSyntax>(
-                                        new SyntaxNodeOrToken[]
-                                        {
-                                            PredefinedType(Token(SyntaxKind.StringKeyword)),
-                                            Token(SyntaxKind.CommaToken),
-                                            GenericName(
-                                                Identifier("Func"))
-                                            .WithTypeArgumentList(
-                                                TypeArgumentList(
-                                                    SeparatedList<TypeSyntax>(
-                                                        new SyntaxNodeOrToken[]
-                                                        {
-                                                            IdentifierName(inputTypeName),
-                                                            Token(SyntaxKind.CommaToken),
-                                                            GenericName(
-                                                                Identifier("IObservable"))
-                                                            .WithTypeArgumentList(
-                                                                TypeArgumentList(
-                                                                    SingletonSeparatedList<TypeSyntax>(
-                                                                        IdentifierName(outputTypeName))))
-                                                        })))
-                                        }))))
-                        .WithVariables(
-                            SingletonSeparatedList(
-                                VariableDeclarator(
-                                    Identifier(mapName))
-                                .WithInitializer(
-                                    EqualsValueClause(
-                                        ObjectCreationExpression(
-                                            GenericName(
-                                                Identifier("Dictionary"))
-                                            .WithTypeArgumentList(
-                                                TypeArgumentList(
-                                                    SeparatedList<TypeSyntax>(
-                                                        new SyntaxNodeOrToken[]
-                                                        {
-                                                            PredefinedType(
-                                                                Token(SyntaxKind.StringKeyword)),
-                                                            Token(SyntaxKind.CommaToken),
-                                                            GenericName(
-                                                                Identifier("Func"))
-                                                            .WithTypeArgumentList(
-                                                                TypeArgumentList(
-                                                                    SeparatedList<TypeSyntax>(
-                                                                        new SyntaxNodeOrToken[]
-                                                                        {
-                                                                            IdentifierName(inputTypeName),
-                                                                            Token(SyntaxKind.CommaToken),
-                                                                            GenericName(
-                                                                                Identifier("IObservable"))
-                                                                            .WithTypeArgumentList(
-                                                                                TypeArgumentList(
-                                                                                    SingletonSeparatedList<TypeSyntax>(
-                                                                                        IdentifierName(outputTypeName))))
-                                                                        })))
-                                                        }))))
-                                        .WithInitializer(
-                                            InitializerExpression(
-                                                SyntaxKind.ObjectInitializerExpression,
-                                                SeparatedList(initializerMembers))))))))
-                    .WithModifiers(
-                        TokenList(
-                            new[]
+                GenericName(
+                    "Dictionary",
+                    new TypeSyntax[]
+                    {
+                        IdentifierName("string"),
+                        GenericName(
+                            "IObservable",
+                            new TypeSyntax[]
                             {
-                                Token(SyntaxKind.PrivateKeyword),
-                                Token(SyntaxKind.StaticKeyword),
-                                Token(SyntaxKind.ReadOnlyKeyword)
-                            }));
+                                IdentifierName(outputTypeName)
+                            })
+                    }),
+                mapName,
+                EqualsValueClause(ObjectCreationExpression(dictionaryType, default, InitializerExpression(SyntaxKind.ObjectInitializerExpression, initializerMembers))),
+                new[]
+                {
+                    SyntaxKind.PrivateKeyword,
+                    SyntaxKind.StaticKeyword,
+                    SyntaxKind.ReadOnlyKeyword
+                },
+                1);
         }
 
         public static InvocationExpressionSyntax MapInvokeExpression(string invokeName, string mapName, string expressionParameterName) =>
@@ -435,41 +225,33 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     ElementAccessExpression(
-                        IdentifierName(mapName))
-                    .WithArgumentList(
-                        BracketedArgumentList(
-                            SingletonSeparatedList(
-                                Argument(
-                                    InvocationExpression(
-                                        MemberAccessExpression(
-                                            SyntaxKind.SimpleMemberAccessExpression,
-                                            MemberAccessExpression(
-                                                SyntaxKind.SimpleMemberAccessExpression,
-                                                IdentifierName(expressionParameterName),
-                                                IdentifierName("Body")),
-                                            IdentifierName("ToString"))))))),
-                    IdentifierName("Invoke")))
-            .WithArgumentList(
-                ArgumentList(
-                    SingletonSeparatedList(
-                        Argument(
-                            IdentifierName(invokeName)))));
+                        mapName,
+                        new[]
+                        {
+                            Argument(InvocationExpression(MemberAccessExpression(
+                                SyntaxKind.SimpleMemberAccessExpression,
+                                MemberAccessExpression(
+                                    SyntaxKind.SimpleMemberAccessExpression,
+                                    expressionParameterName,
+                                    "Body"),
+                                "ToString")))
+                        }),
+                    "Invoke"),
+                new[]
+                {
+                    Argument(invokeName)
+                });
 
         public static InvocationExpressionSyntax SelectObservableNotifyPropertyChangedSwitch(InvocationExpressionSyntax sourceInvoke, string returnType, string inputName, string memberName) =>
             InvocationExpression(
                 MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
-                    InvocationExpression(
-                        MemberAccessExpression(
-                            SyntaxKind.SimpleMemberAccessExpression,
-                            sourceInvoke,
-                            IdentifierName("Select")))
-                                .WithArgumentList(
-                                    ArgumentList(
-                                        SingletonSeparatedList(
-                                            Argument(SimpleLambdaExpression(Parameter(Identifier(inputName)))
-                                                .WithExpressionBody(ObservableNotifyPropertyChanged(returnType, inputName, memberName)))))),
-                    IdentifierName("Switch")));
+                    sourceInvoke,
+                    "Select"),
+                new[]
+                {
+                    Argument(SimpleLambdaExpression(Parameter(inputName), ObservableNotifyPropertyChanged(returnType, inputName, memberName)))
+                });
 
         public static InvocationExpressionSyntax GetObservableChain(string inputName, List<(string Name, string InputType, string OutputType)> members)
         {
@@ -493,287 +275,112 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
         public static InvocationExpressionSyntax ObservableNotifyPropertyChanged(string returnType, string inputName, string memberName) =>
             InvocationExpression(
-                        MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName("Observable"), GenericName(Identifier("Create"))
-                            .WithTypeArgumentList(
-                                TypeArgumentList(
-                                    SingletonSeparatedList<TypeSyntax>(IdentifierName(returnType))))))
-                            .WithArgumentList(
-                                ArgumentList(SingletonSeparatedList(
-                                    Argument(
-                                        SimpleLambdaExpression(
-                                            Parameter(
-                                                Identifier("observer")))
-                                        .WithBlock(
-                                            Block(
-                                                IfStatement(
-                                                    BinaryExpression(
-                                                        SyntaxKind.EqualsExpression,
-                                                        IdentifierName(inputName),
-                                                        LiteralExpression(
-                                                            SyntaxKind.NullLiteralExpression)),
-                                                    Block(
-                                                        SingletonList<StatementSyntax>(
-                                                            ReturnStatement(
-                                                                MemberAccessExpression(
-                                                                    SyntaxKind.SimpleMemberAccessExpression,
-                                                                    IdentifierName("Disposable"),
-                                                                    IdentifierName("Empty")))))),
-                                                ExpressionStatement(
-                                                    InvocationExpression(
-                                                        MemberAccessExpression(
-                                                            SyntaxKind.SimpleMemberAccessExpression,
-                                                            IdentifierName("observer"),
-                                                            IdentifierName("OnNext")))
-                                                    .WithArgumentList(
-                                                        ArgumentList(
-                                                            SingletonSeparatedList(
-                                                                Argument(
-                                                                    MemberAccessExpression(
-                                                                        SyntaxKind.SimpleMemberAccessExpression,
-                                                                        IdentifierName(inputName),
-                                                                        IdentifierName(memberName))))))),
-                                                LocalDeclarationStatement(
-                                                    VariableDeclaration(
-                                                        IdentifierName("PropertyChangedEventHandler"))
-                                                    .WithVariables(
-                                                        SingletonSeparatedList(
-                                                            VariableDeclarator(
-                                                                Identifier("handler"))
-                                                            .WithInitializer(
-                                                                EqualsValueClause(
-                                                                    ParenthesizedLambdaExpression()
-                                                                    .WithParameterList(
-                                                                        ParameterList(
-                                                                            SeparatedList<ParameterSyntax>(
-                                                                                new SyntaxNodeOrToken[]
-                                                                                {
-                                                                                    Parameter(
-                                                                                        Identifier("sender")),
-                                                                                    Token(SyntaxKind.CommaToken),
-                                                                                    Parameter(
-                                                                                        Identifier("e"))
-                                                                                })))
-                                                                    .WithBlock(
-                                                                        Block(
-                                                                            SingletonList<StatementSyntax>(
-                                                                                IfStatement(
-                                                                                    BinaryExpression(
-                                                                                        SyntaxKind.EqualsExpression,
-                                                                                        MemberAccessExpression(
-                                                                                            SyntaxKind.SimpleMemberAccessExpression,
-                                                                                            IdentifierName("e"),
-                                                                                            IdentifierName("PropertyName")),
-                                                                                        LiteralExpression(
-                                                                                            SyntaxKind.StringLiteralExpression,
-                                                                                            Literal(memberName))),
-                                                                                    Block(
-                                                                                        SingletonList<StatementSyntax>(
-                                                                                            ExpressionStatement(
-                                                                                                InvocationExpression(
-                                                                                                    MemberAccessExpression(
-                                                                                                        SyntaxKind.SimpleMemberAccessExpression,
-                                                                                                        IdentifierName("observer"),
-                                                                                                        IdentifierName("OnNext")))
-                                                                                                .WithArgumentList(
-                                                                                                    ArgumentList(SingletonSeparatedList(
-                                                                                                            Argument(MemberAccessExpression(
-                                                                                                                    SyntaxKind.SimpleMemberAccessExpression,
-                                                                                                                    IdentifierName(inputName),
-                                                                                                                    IdentifierName(memberName)))))))))))))))))),
-                                                ExpressionStatement(
-                                                    AssignmentExpression(
-                                                        SyntaxKind.AddAssignmentExpression,
-                                                        MemberAccessExpression(
-                                                            SyntaxKind.SimpleMemberAccessExpression,
-                                                            IdentifierName(inputName),
-                                                            IdentifierName("PropertyChanged")),
-                                                        IdentifierName("handler"))),
-                                                ReturnStatement(
-                                                    InvocationExpression(
-                                                        MemberAccessExpression(
-                                                            SyntaxKind.SimpleMemberAccessExpression,
-                                                            IdentifierName("Disposable"),
-                                                            IdentifierName("Create")))
-                                                    .WithArgumentList(
-                                                        ArgumentList(
-                                                            SeparatedList<ArgumentSyntax>(
-                                                                new SyntaxNodeOrToken[]
-                                                                {
-                                                                    Argument(
-                                                                        TupleExpression(
-                                                                            SeparatedList(
-                                                                                new[]
-                                                                                {
-                                                                                    Argument(
-                                                                                        IdentifierName(inputName))
-                                                                                    .WithNameColon(
-                                                                                        NameColon(
-                                                                                            IdentifierName("Parent"))),
-                                                                                    Argument(
-                                                                                        IdentifierName("handler"))
-                                                                                    .WithNameColon(
-                                                                                        NameColon(
-                                                                                            IdentifierName("Handler")))
-                                                                                }))),
-                                                                    Token(SyntaxKind.CommaToken),
-                                                                    Argument(
-                                                                        SimpleLambdaExpression(
-                                                                            Parameter(
-                                                                                Identifier("x")))
-                                                                        .WithExpressionBody(
-                                                                            AssignmentExpression(
-                                                                                SyntaxKind.SubtractAssignmentExpression,
+                MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName("Observable"), GenericName("Create", new TypeSyntax[] { IdentifierName(returnType) })),
+                new[]
+                {
+                    Argument(
+                        SimpleLambdaExpression(
+                            Parameter("observer"),
+                            Block(
+                                new StatementSyntax[]
+                                {
+                                    IfStatement(
+                                        BinaryExpression(SyntaxKind.EqualsExpression, IdentifierName(inputName), NullLiteral()),
+                                        ReturnStatement(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, "Disposable", "Empty"))),
+                                    ExpressionStatement(InvocationExpression(
+                                        MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, "observer", "OnNext"),
+                                        new ArgumentSyntax[] { Argument(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, inputName, memberName)) })),
+                                    LocalDeclarationStatement(
+                                        VariableDeclaration(
+                                            "PropertyChangedEventHandler",
+                                            new VariableDeclaratorSyntax[]
+                                            {
+                                                VariableDeclarator(
+                                                    "handler",
+                                                    EqualsValueClause(ParenthesizedLambdaExpression(
+                                                        new[]
+                                                        {
+                                                            Parameter("sender"),
+                                                            Parameter("e")
+                                                        },
+                                                        Block(
+                                                            new StatementSyntax[]
+                                                            {
+                                                                IfStatement(
+                                                                    BinaryExpression(
+                                                                        SyntaxKind.EqualsExpression,
+                                                                        MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, "e", "PropertyName"),
+                                                                        LiteralExpression(memberName)),
+                                                                    Block(
+                                                                        new StatementSyntax[]
+                                                                        {
+                                                                            ExpressionStatement(InvocationExpression(
                                                                                 MemberAccessExpression(
                                                                                     SyntaxKind.SimpleMemberAccessExpression,
-                                                                                    MemberAccessExpression(
-                                                                                        SyntaxKind.SimpleMemberAccessExpression,
-                                                                                        IdentifierName("x"),
-                                                                                        IdentifierName("Parent")),
-                                                                                    IdentifierName("PropertyChanged")),
-                                                                                MemberAccessExpression(
-                                                                                    SyntaxKind.SimpleMemberAccessExpression,
-                                                                                    IdentifierName("x"),
-                                                                                    IdentifierName("Handler")))))
-                                                                }))))))))));
+                                                                                    "observer",
+                                                                                    "OnNext"),
+                                                                                new ArgumentSyntax[]
+                                                                                {
+                                                                                    Argument(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, inputName, memberName))
+                                                                                }))
+                                                                        },
+                                                                        3))
+                                                            },
+                                                            2))))
+                                            })),
+                                    ExpressionStatement(AssignmentExpression(SyntaxKind.AddAssignmentExpression, MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, inputName, "PropertyChanged"), IdentifierName("handler"))),
+                                    ReturnStatement(InvocationExpression(
+                                        MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, "Disposable", "Create"),
+                                        new ArgumentSyntax[]
+                                        {
+                                            Argument(TupleExpression(
+                                                new ArgumentSyntax[]
+                                                {
+                                                    Argument(inputName, "Parent"),
+                                                    Argument("handler", "Handler"),
+                                                })),
+                                            Argument(SimpleLambdaExpression(
+                                                Parameter("x"),
+                                                AssignmentExpression(
+                                                    SyntaxKind.SubtractAssignmentExpression,
+                                                    MemberAccessExpression(
+                                                        SyntaxKind.SimpleMemberAccessExpression,
+                                                        MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, "x", "Parent"),
+                                                        IdentifierName("PropertyChanged")),
+                                                    MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, "x", "Handler"))))
+                                        }))
+                                },
+                                1))),
+                });
 
         public static IEnumerable<ParameterSyntax> CallerMembersParameters() =>
             new ParameterSyntax[]
             {
-                 Parameter(Identifier("callerMemberName"))
-                    .WithAttributeLists(
-                        SingletonList(
-                            AttributeList(
-                                SingletonSeparatedList(
-                                    Attribute(
-                                        IdentifierName("CallerMemberName"))))))
-                    .WithType(
-                        PredefinedType(
-                            Token(SyntaxKind.StringKeyword)))
-                    .WithDefault(
-                        EqualsValueClause(
-                            LiteralExpression(
-                                SyntaxKind.NullLiteralExpression))),
-
-                 Parameter(Identifier("callerFilePath"))
-                    .WithAttributeLists(
-                        SingletonList(
-                            AttributeList(
-                                SingletonSeparatedList(
-                                    Attribute(
-                                        IdentifierName("CallerFilePath"))))))
-                    .WithType(
-                        PredefinedType(
-                            Token(SyntaxKind.StringKeyword)))
-                    .WithDefault(
-                        EqualsValueClause(
-                            LiteralExpression(
-                                SyntaxKind.NullLiteralExpression))),
-
-                 Parameter(Identifier("callerLineNumber"))
-                    .WithAttributeLists(
-                        SingletonList(
-                            AttributeList(
-                                SingletonSeparatedList(
-                                    Attribute(
-                                        IdentifierName("CallerLineNumber"))))))
-                    .WithType(
-                        PredefinedType(
-                            Token(SyntaxKind.IntKeyword)))
-                    .WithDefault(
-                        EqualsValueClause(
-                            LiteralExpression(
-                                SyntaxKind.NumericLiteralExpression,
-                                Literal(0))))
+                Parameter(new[] { AttributeList(Attribute("CallerMemberName")) }, "string", "callerMemberName", EqualsValueClause(NullLiteral())),
+                Parameter(new[] { AttributeList(Attribute("CallerFilePath")) }, "string", "callerFilePath", EqualsValueClause(NullLiteral())),
+                Parameter(new[] { AttributeList(Attribute("CallerLineNumber")) }, "int", "callerLineNumber", EqualsValueClause(NullLiteral()))
             };
 
         public static MethodDeclarationSyntax GetMethodToProperty(string propertyType, string propertyName, string methodName, Accessibility accessibility) =>
-            MethodDeclaration(
-                    IdentifierName(propertyType),
-                    Identifier(methodName))
-                .WithModifiers(TokenList(accessibility.GetAccessibilityTokens()))
-                .WithExpressionBody(
-                    ArrowExpressionClause(
-                        IdentifierName(propertyName)))
-                .WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
+            MethodDeclaration(accessibility.GetAccessibilityTokens(), propertyType, propertyName, 1, ArrowExpressionClause(IdentifierName(propertyName)));
 
         public static MethodDeclarationSyntax GetMethodExpressionToProperty(string className, string propertyType, string propertyName, string methodName, Accessibility accessibility) =>
-            MethodDeclaration(
-                        GenericName(
-                            Identifier("Expression"))
-                        .WithTypeArgumentList(
-                            TypeArgumentList(
-                                SingletonSeparatedList<TypeSyntax>(
-                                    GenericName(
-                                        Identifier("Func"))
-                                    .WithTypeArgumentList(
-                                        TypeArgumentList(
-                                            SeparatedList<TypeSyntax>(
-                                                new SyntaxNodeOrToken[]
-                                                {
-                                                    IdentifierName(className),
-                                                    Token(SyntaxKind.CommaToken),
-                                                    IdentifierName(propertyType)
-                                                })))))),
-                        Identifier(methodName))
-                    .WithModifiers(TokenList(accessibility.GetAccessibilityTokens()))
-                    .WithExpressionBody(
-                        ArrowExpressionClause(
-                            SimpleLambdaExpression(
-                                Parameter(
-                                    Identifier("x")))
-                            .WithExpressionBody(
-                                MemberAccessExpression(
-                                    SyntaxKind.SimpleMemberAccessExpression,
-                                    IdentifierName("x"),
-                                    IdentifierName(propertyName)))))
-                    .WithSemicolonToken(
-                        Token(SyntaxKind.SemicolonToken));
+            MethodDeclaration(accessibility.GetAccessibilityTokens(), propertyType, propertyName, new[] { TypeParameter(className), TypeParameter(propertyType) }, 1, ArrowExpressionClause(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, "x", propertyName)));
 
         public static PropertyDeclarationSyntax GetPropertyExpressionToProperty(string inputType, string outputType, string propertyName, string valuePropertyName, Accessibility accessibility) =>
-            PropertyDeclaration(
-                GenericName(Identifier("Expression"))
-                    .WithTypeArgumentList(
-                        TypeArgumentList(
-                            SingletonSeparatedList<TypeSyntax>(
-                                GenericName(
-                                    Identifier("Func"))
-                                .WithTypeArgumentList(
-                                    TypeArgumentList(
-                                        SeparatedList<TypeSyntax>(
-                                            new SyntaxNodeOrToken[]
-                                            {
-                                                IdentifierName(inputType),
-                                                Token(SyntaxKind.CommaToken),
-                                                IdentifierName(outputType)
-                                            })))))),
-                Identifier(propertyName))
-                    .WithModifiers(TokenList(accessibility.GetAccessibilityTokens()))
-                .WithAccessorList(
-                    AccessorList(SingletonList(
-                        AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
-                            .WithSemicolonToken(Token(SyntaxKind.SemicolonToken)))))
-                .WithInitializer(
-                    EqualsValueClause(
-                        SimpleLambdaExpression(
-                            Parameter(Identifier("x")))
-                        .WithExpressionBody(
-                            MemberAccessExpression(
-                                SyntaxKind.SimpleMemberAccessExpression,
-                                IdentifierName("x"),
-                                IdentifierName(valuePropertyName)))))
-                        .WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
+            PropertyDeclaration(GetExpressionFunc(inputType, outputType), propertyName, accessibility.GetAccessibilityTokens(), new[] { AccessorDeclaration(SyntaxKind.GetAccessorDeclaration) }, EqualsValueClause(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, "x", valuePropertyName)), 0);
 
         public static SimpleLambdaExpressionSyntax LambdaIndexer(string variableName, string arrayName, int index) =>
-            SimpleLambdaExpression(Parameter(Identifier(variableName)))
-                .WithExpressionBody(
-                    ElementAccessExpression(
-                        MemberAccessExpression(
-                            SyntaxKind.SimpleMemberAccessExpression,
-                            IdentifierName(variableName),
-                            IdentifierName(arrayName)))
-                                .WithArgumentList(
-                                    BracketedArgumentList(SingletonSeparatedList(
-                                            Argument(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(index)))))));
+            SimpleLambdaExpression(
+                Parameter(variableName),
+                ElementAccessExpression(
+                    MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        IdentifierName(variableName),
+                        IdentifierName(arrayName)))
+                            .WithArgumentList(
+                                BracketedArgumentList(SingletonSeparatedList(
+                                        Argument(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(index)))))));
 
         public static ArgumentSyntax LambdaIndexerArgument(string variableName, string arrayName, int index) =>
             Argument(LambdaIndexer(variableName, arrayName, index));
@@ -782,19 +389,37 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             Argument(MemberAccess(LambdaIndexer(variableName, arrayName, index), members));
 
         public static ArgumentSyntax LambdaInvokeMethodArgument(string variableName, string methodName) =>
-            Argument(SimpleLambdaExpression(Parameter(Identifier(variableName)))
-                .WithExpressionBody(
-                    InvocationExpression(
-                        MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName(variableName), IdentifierName(methodName)))));
+            Argument(SimpleLambdaExpression(Parameter(variableName), InvocationExpression(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName(variableName), IdentifierName(methodName)))));
 
         public static ArgumentSyntax LambdaInvokeMethodArgument(string variableName, string methodName, IEnumerable<string> members) =>
-            Argument(SimpleLambdaExpression(Parameter(Identifier(variableName))).WithExpressionBody(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, MemberAccess(variableName, members), IdentifierName(methodName))));
+            Argument(SimpleLambdaExpression(Parameter(variableName), MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, MemberAccess(variableName, members), IdentifierName(methodName))));
 
         public static ArgumentSyntax LambdaNoVariableUseArgument(string variableName, string propertyName) =>
-            Argument(SimpleLambdaExpression(Parameter(Identifier(variableName))).WithExpressionBody(IdentifierName(propertyName)));
+            Argument(SimpleLambdaExpression(Parameter(variableName), IdentifierName(propertyName)));
 
         public static ArgumentSyntax LambdaNoVariableUseArgument(string variableName, IEnumerable<string> properties) =>
-            Argument(SimpleLambdaExpression(Parameter(Identifier(variableName))).WithExpressionBody((MemberAccessExpressionSyntax)properties.Skip(1).Aggregate<string, ExpressionSyntax>(IdentifierName(properties.First()), (expression, name) =>
-                MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, expression, IdentifierName(name)))));
+            Argument(SimpleLambdaExpression(
+                Parameter(variableName),
+                properties.Skip(1).Aggregate<string, ExpressionSyntax>(
+                    IdentifierName(properties.First()),
+                    (expression, name) =>
+                    MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, expression, IdentifierName(name)))));
+
+        private static void GetWhenChangedValues(string inputType, string outputType, bool isExtension, Accessibility accessibility, out List<SyntaxKind> modifiers, out List<ParameterSyntax> parameterList)
+        {
+            modifiers = accessibility.GetAccessibilityTokens().ToList();
+            parameterList = new List<ParameterSyntax>();
+            if (isExtension)
+            {
+                modifiers.Add(SyntaxKind.StaticKeyword);
+                parameterList.Add(Parameter(inputType, "source", new[] { SyntaxKind.ThisKeyword }));
+            }
+
+            parameterList.Add(Parameter(
+                    GetExpressionFunc(inputType, outputType),
+                    "propertyExpression"));
+
+            parameterList.AddRange(CallerMembersParameters());
+        }
     }
 }

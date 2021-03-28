@@ -15,7 +15,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample
             var myClass = new SampleClass();
             var myClass2 = new OtherNamespace.SampleClass();
 
-            myClass.WhenChanged(x => x.MyString).Subscribe(Console.WriteLine);
+            myClass.WhenChanged(x => x.MyString).Where(x => x == "Hello World").Select(x => x.Substring(10)).Subscribe(Console.WriteLine);
             myClass2.WhenChanged(x => x.MyString).Subscribe(Console.WriteLine);
 
             Observable
