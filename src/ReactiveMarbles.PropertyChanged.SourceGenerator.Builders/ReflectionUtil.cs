@@ -4,10 +4,19 @@
 
 using System.Reflection;
 
-namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
+namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
 {
-    internal static class ReflectionUtil
+    /// <summary>
+    /// Utility for common reflection operations.
+    /// </summary>
+    public static class ReflectionUtil
     {
+        /// <summary>
+        /// Sets a property on a target object.
+        /// </summary>
+        /// <param name="target">The object to invoke the setter on.</param>
+        /// <param name="propertyName">The name of the property.</param>
+        /// <param name="value">The value to assign.</param>
         public static void SetProperty(object target, string propertyName, object value)
         {
             target.GetType().InvokeMember(
@@ -18,6 +27,12 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 new object[] { value });
         }
 
+        /// <summary>
+        /// Gets a property on a target object.
+        /// </summary>
+        /// <param name="target">The object to invoke the getter on.</param>
+        /// <param name="propertyName">The name of the property.</param>
+        /// <returns>The value of the property.</returns>
         public static object GetProperty(object target, string propertyName)
         {
             return target.GetType().InvokeMember(

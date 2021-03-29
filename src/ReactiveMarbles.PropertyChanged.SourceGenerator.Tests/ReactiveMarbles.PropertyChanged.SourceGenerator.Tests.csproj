@@ -20,11 +20,27 @@
   </ItemGroup>
   
   <ItemGroup>
+    <ProjectReference Include="..\ReactiveMarbles.PropertyChanged.SourceGenerator.Builders\ReactiveMarbles.PropertyChanged.SourceGenerator.Builders.csproj" />
     <ProjectReference Include="..\ReactiveMarbles.PropertyChanged.SourceGenerator\ReactiveMarbles.PropertyChanged.SourceGenerator.csproj" />
   </ItemGroup>
   
   <ItemGroup>
-    <Folder Include="New\" />
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="AccessibilityTestCases.tt">
+      <LastGenOutput>AccessibilityTestCases.cs</LastGenOutput>
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="AccessibilityTestCases.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AccessibilityTestCases.tt</DependentUpon>
+    </Compile>
   </ItemGroup>
 
 </Project>

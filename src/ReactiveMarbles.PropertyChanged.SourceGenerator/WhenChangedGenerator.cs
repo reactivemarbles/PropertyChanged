@@ -151,10 +151,13 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             var (_, expressionChain, inputTypeSymbol, outputTypeSymbol, _) = outputTypeGroup.ExpressionArguments[0];
             var (inputTypeName, outputTypeName) = (inputTypeSymbol.ToDisplayString(), outputTypeSymbol.ToDisplayString());
 
-            var accessModifier = inputTypeSymbol.DeclaredAccessibility;
-            if (outputTypeSymbol.DeclaredAccessibility < inputTypeSymbol.DeclaredAccessibility)
+            var inputTypeAccess = inputTypeSymbol.GetAccessibility();
+            var outputTypeAccess = outputTypeSymbol.GetOutputAccessibility();
+
+            var accessModifier = inputTypeAccess;
+            if (outputTypeAccess < inputTypeAccess || (inputTypeAccess == Accessibility.Protected && outputTypeAccess == Accessibility.Internal))
             {
-                accessModifier = outputTypeSymbol.DeclaredAccessibility;
+                accessModifier = outputTypeAccess;
             }
 
             switch (outputTypeGroup.ExpressionArguments.Count)

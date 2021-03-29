@@ -52,6 +52,12 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 {
                     return true;
                 }
+
+                var childTypeSymbol = model.GetTypeInfo(child).ConvertedType;
+                if (childTypeSymbol.DeclaredAccessibility <= Accessibility.Protected || childTypeSymbol.DeclaredAccessibility == Accessibility.ProtectedOrInternal)
+                {
+                    return true;
+                }
             }
 
             return false;
@@ -115,7 +121,25 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         {
             var minAccessibility = methodSymbol.TypeArguments.Min(x => x.DeclaredAccessibility);
             var accessModifier = minAccessibility;
-            var containsPrivateOrProtectedTypeArgument = minAccessibility <= Accessibility.Protected;
+
+            var current = methodSymbol.TypeArguments.First();
+            while (current != null)
+            {
+                if (current.DeclaredAccessibility < accessModifier)
+                {
+                    accessModifier = current.DeclaredAccessibility;
+                }
+
+                current = current.ContainingType;
+            }
+
+            if (methodSymbol.TypeArguments.First().DeclaredAccessibility == Accessibility.Protected &&
+                methodSymbol.TypeArguments.Last().DeclaredAccessibility == Accessibility.Internal)
+            {
+                accessModifier = Accessibility.Internal;
+            }
+
+            var containsPrivateOrProtectedTypeArgument = minAccessibility <= Accessibility.Protected || minAccessibility == Accessibility.ProtectedOrInternal;
             var types = methodSymbol.TypeArguments;
 
             return new(accessModifier, types, containsPrivateOrProtectedTypeArgument);

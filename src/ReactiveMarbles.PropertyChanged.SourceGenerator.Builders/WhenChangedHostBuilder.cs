@@ -7,15 +7,23 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using Microsoft.CodeAnalysis;
+using ReactiveMarbles.PropertyChanged.SourceGenerator;
 
-namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
+namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
 {
-    internal class WhenChangedHostBuilder : BaseUserSourceBuilder<WhenChangedHostBuilder>
+    /// <summary>
+    /// Simplifies the source code creation of the 'host' class.
+    /// </summary>
+    /// <remarks>'Host' refers to the class that contains a WhenChanged invocation.</remarks>
+    public class WhenChangedHostBuilder : BaseUserSourceBuilder<WhenChangedHostBuilder>
     {
         private BaseUserSourceBuilder _propertyType;
         private Accessibility _propertyAccess;
         private string _invocation;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="WhenChangedHostBuilder"/> class.
+        /// </summary>
         public WhenChangedHostBuilder()
         {
             _propertyType = null;
@@ -23,20 +31,40 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             WithInvocation(InvocationKind.MemberAccess, ReceiverKind.This, x => x.Value);
         }
 
+        /// <summary>
+        /// Gets the type name of the <b>Value</b> property.
+        /// </summary>
         public string ValuePropertyTypeName => _propertyType.GetTypeName();
 
+        /// <summary>
+        /// Sets the type of the <b>Value</b> property.
+        /// </summary>
+        /// <param name="value">A builder that represents a type.</param>
+        /// <returns>A reference to this builder.</returns>
         public WhenChangedHostBuilder WithPropertyType(BaseUserSourceBuilder value)
         {
             _propertyType = value;
             return this;
         }
 
+        /// <summary>
+        /// Sets the access modifier of the <b>Value</b> property.
+        /// </summary>
+        /// <param name="value">An access modifier.</param>
+        /// <returns>A reference to this builder.</returns>
         public WhenChangedHostBuilder WithPropertyAccess(Accessibility value)
         {
             _propertyAccess = value;
             return this;
         }
 
+        /// <summary>
+        /// Sets the WhenChanged invocation.
+        /// </summary>
+        /// <param name="invocationKind">The invocation kind.</param>
+        /// <param name="receiverKind">The receiver kind.</param>
+        /// <param name="expression">The expression.</param>
+        /// <returns>A reference to this builder.</returns>
         public WhenChangedHostBuilder WithInvocation(
             InvocationKind invocationKind,
             ReceiverKind receiverKind,
@@ -46,6 +74,15 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             return this;
         }
 
+        /// <summary>
+        /// Sets the WhenChanged invocation.
+        /// </summary>
+        /// <param name="invocationKind">The invocation kind.</param>
+        /// <param name="receiverKind">The receiver kind.</param>
+        /// <param name="expression1">The first expression.</param>
+        /// <param name="expression2">The second expression.</param>
+        /// <param name="conversionFunc">The conversion function.</param>
+        /// <returns>A reference to this builder.</returns>
         public WhenChangedHostBuilder WithInvocation(
             InvocationKind invocationKind,
             ReceiverKind receiverKind,
@@ -57,12 +94,24 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             return this;
         }
 
-        public WhenChangedHostBuilder WithInvocation(int depth)
+        /// <summary>
+        /// Sets the WhenChanged invocation.
+        /// </summary>
+        /// <param name="depth">The depth of the expression chain.</param>
+        /// <param name="invocationKind">The invocation kind.</param>
+        /// <param name="receiverKind">The receiver kind.</param>
+        /// <returns>A reference to this builder.</returns>
+        public WhenChangedHostBuilder WithInvocation(
+            int depth,
+            InvocationKind invocationKind,
+            ReceiverKind receiverKind)
         {
-            _invocation = string.Join(".", Enumerable.Range(1, depth - 1).Select(_ => "Child").Prepend("x => x").Append("Value"));
+            var expression = string.Join(".", Enumerable.Range(1, depth - 1).Select(_ => "Child").Prepend("x => x").Append("Value"));
+            _invocation = GetWhenChangedInvocation(invocationKind, receiverKind, expression);
             return this;
         }
 
+        /// <inheritdoc/>
         public override IEnumerable<string> GetNamespaces()
         {
             return new[]
@@ -75,6 +124,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             };
         }
 
+        /// <inheritdoc/>
         protected override string CreateClass(string nestedClasses)
         {
             var propertyAccess = _propertyAccess.ToFriendlyString();
