@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
+using ReactiveMarbles.PropertyChanged.SourceGenerator.Builders;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 

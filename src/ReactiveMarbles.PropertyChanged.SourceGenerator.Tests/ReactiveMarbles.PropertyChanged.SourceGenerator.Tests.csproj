@@ -20,6 +20,7 @@
   </ItemGroup>
   
   <ItemGroup>
+    <ProjectReference Include="..\ReactiveMarbles.PropertyChanged.SourceGenerator.Builders\ReactiveMarbles.PropertyChanged.SourceGenerator.Builders.csproj" />
     <ProjectReference Include="..\ReactiveMarbles.PropertyChanged.SourceGenerator\ReactiveMarbles.PropertyChanged.SourceGenerator.csproj" />
   </ItemGroup>
   

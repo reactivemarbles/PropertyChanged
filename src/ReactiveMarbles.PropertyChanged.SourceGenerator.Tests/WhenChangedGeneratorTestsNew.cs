@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
 using Microsoft.CodeAnalysis;
+using ReactiveMarbles.PropertyChanged.SourceGenerator.Builders;
 using Xunit;
 using Xunit.Abstractions;
 

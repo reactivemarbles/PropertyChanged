@@ -32,7 +32,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReactiveMarbles.PropertyCha
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReactiveMarbles.PropertyChanged.SourceGenerator.Tests", "ReactiveMarbles.PropertyChanged.SourceGenerator.Tests\ReactiveMarbles.PropertyChanged.SourceGenerator.Tests.csproj", "{CFB56B15-DD0E-4055-A62F-D6E72976CC8F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReactiveMarbles.PropertyChanged.SourceGenerator.Benchmarks", "ReactiveMarbles.PropertyChanged.SourceGenerator.Benchmarks\ReactiveMarbles.PropertyChanged.SourceGenerator.Benchmarks.csproj", "{EC6384E6-CC7E-4D7A-BD78-8E155B16B1B1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReactiveMarbles.PropertyChanged.SourceGenerator.Benchmarks", "ReactiveMarbles.PropertyChanged.SourceGenerator.Benchmarks\ReactiveMarbles.PropertyChanged.SourceGenerator.Benchmarks.csproj", "{EC6384E6-CC7E-4D7A-BD78-8E155B16B1B1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReactiveMarbles.PropertyChanged.SourceGenerator.Builders", "ReactiveMarbles.PropertyChanged.SourceGenerator.Builders\ReactiveMarbles.PropertyChanged.SourceGenerator.Builders.csproj", "{384B9AD3-586E-4D07-9B9C-1260682FB3A2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -128,6 +130,18 @@ Global
 		{EC6384E6-CC7E-4D7A-BD78-8E155B16B1B1}.Release|x64.Build.0 = Release|Any CPU
 		{EC6384E6-CC7E-4D7A-BD78-8E155B16B1B1}.Release|x86.ActiveCfg = Release|Any CPU
 		{EC6384E6-CC7E-4D7A-BD78-8E155B16B1B1}.Release|x86.Build.0 = Release|Any CPU
+		{384B9AD3-586E-4D07-9B9C-1260682FB3A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{384B9AD3-586E-4D07-9B9C-1260682FB3A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{384B9AD3-586E-4D07-9B9C-1260682FB3A2}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{384B9AD3-586E-4D07-9B9C-1260682FB3A2}.Debug|x64.Build.0 = Debug|Any CPU
+		{384B9AD3-586E-4D07-9B9C-1260682FB3A2}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{384B9AD3-586E-4D07-9B9C-1260682FB3A2}.Debug|x86.Build.0 = Debug|Any CPU
+		{384B9AD3-586E-4D07-9B9C-1260682FB3A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{384B9AD3-586E-4D07-9B9C-1260682FB3A2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{384B9AD3-586E-4D07-9B9C-1260682FB3A2}.Release|x64.ActiveCfg = Release|Any CPU
+		{384B9AD3-586E-4D07-9B9C-1260682FB3A2}.Release|x64.Build.0 = Release|Any CPU
+		{384B9AD3-586E-4D07-9B9C-1260682FB3A2}.Release|x86.ActiveCfg = Release|Any CPU
+		{384B9AD3-586E-4D07-9B9C-1260682FB3A2}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
