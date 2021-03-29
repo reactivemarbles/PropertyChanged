@@ -9,14 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="BindGeneratorTests.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="BindGeneratorTests.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.3" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.console" Version="2.4.1" />
@@ -36,18 +28,18 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="New\AccessibilityTestCases.cs">
+    <None Update="AccessibilityTestCases.tt">
+      <LastGenOutput>AccessibilityTestCases.cs</LastGenOutput>
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="AccessibilityTestCases.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>AccessibilityTestCases.tt</DependentUpon>
     </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="New\AccessibilityTestCases.tt">
-      <LastGenOutput>AccessibilityTestCases.cs</LastGenOutput>
-      <Generator>TextTemplatingFileGenerator</Generator>
-    </None>
   </ItemGroup>
 
 </Project>
