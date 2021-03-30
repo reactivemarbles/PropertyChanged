@@ -11,14 +11,19 @@ using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
-namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
+namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
 {
     /// <summary>
     /// Utility methods to assist with compilations.
     /// </summary>
-    internal static class CompilationUtil
+    public static class CompilationUtil
     {
-        internal static Compilation CreateCompilation(params string[] sources)
+        /// <summary>
+        /// Creates a compilation.
+        /// </summary>
+        /// <param name="sources">The source code to include.</param>
+        /// <returns>The created compilation.</returns>
+        public static Compilation CreateCompilation(params string[] sources)
         {
             var assemblyPath = Path.GetDirectoryName(typeof(object).Assembly.Location);
 
@@ -41,7 +46,14 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
         }
 
-        internal static Compilation RunGenerators(Compilation compilation, out ImmutableArray<Diagnostic> diagnostics, params ISourceGenerator[] generators)
+        /// <summary>
+        /// Executes the source generators.
+        /// </summary>
+        /// <param name="compilation">The target compilation.</param>
+        /// <param name="diagnostics">The resulting diagnostics.</param>
+        /// <param name="generators">The generators to include in the compilation.</param>
+        /// <returns>The new compilation after the generators have executed.</returns>
+        public static Compilation RunGenerators(Compilation compilation, out ImmutableArray<Diagnostic> diagnostics, params ISourceGenerator[] generators)
         {
             CreateDriver(compilation, generators).RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out diagnostics);
             return outputCompilation;

@@ -86,5 +86,34 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 outputGroup.ExpressionArguments.Insert(~index, expression);
             }
         }
+
+        public static Accessibility GetAccessibility(this ITypeSymbol typeSymbol)
+        {
+            var accessibility = typeSymbol.DeclaredAccessibility;
+            typeSymbol = typeSymbol.ContainingType;
+
+            while (typeSymbol != null)
+            {
+                if (typeSymbol.DeclaredAccessibility < accessibility)
+                {
+                    accessibility = typeSymbol.DeclaredAccessibility;
+                }
+
+                typeSymbol = typeSymbol.ContainingType;
+            }
+
+            return accessibility;
+        }
+
+        public static Accessibility GetOutputAccessibility(this ITypeSymbol typeSymbol)
+        {
+            var accessibility = GetAccessibility(typeSymbol);
+            if (accessibility == Accessibility.Protected && typeSymbol.DeclaredAccessibility == Accessibility.Internal)
+            {
+                return Accessibility.Internal;
+            }
+
+            return accessibility;
+        }
     }
 }

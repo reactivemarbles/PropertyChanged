@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
+using ReactiveMarbles.PropertyChanged.SourceGenerator.Builders;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
@@ -15,34 +16,39 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
 {
     internal class WhenChangedFixture
     {
-        private WhenChangedHostBuilder _hostTypeInfo;
-        private Compilation _compilation;
+        private readonly WhenChangedHostBuilder _hostTypeInfo;
+        private readonly Compilation _compilation;
+        private readonly ITestOutputHelper _testOutputHelper;
         private Type _hostType;
         private Type _valuePropertyType;
 
-        private WhenChangedFixture(WhenChangedHostBuilder hostTypeInfo, Compilation compilation)
+        private WhenChangedFixture(WhenChangedHostBuilder hostTypeInfo, Compilation compilation, ITestOutputHelper testOutputHelper)
         {
             _hostTypeInfo = hostTypeInfo;
             _compilation = compilation;
+            _testOutputHelper = testOutputHelper;
         }
 
-        public static WhenChangedFixture Create(WhenChangedHostBuilder hostTypeInfo, params string[] extraSources)
+        public string Sources { get; private set; }
+
+        public static WhenChangedFixture Create(WhenChangedHostBuilder hostTypeInfo, ITestOutputHelper testOutputHelper, params string[] extraSources)
         {
             var sources = extraSources.Prepend(hostTypeInfo.BuildRoot()).ToArray();
             Compilation compilation = CompilationUtil.CreateCompilation(sources);
-            return new WhenChangedFixture(hostTypeInfo, compilation);
+            return new WhenChangedFixture(hostTypeInfo, compilation, testOutputHelper);
         }
 
-        public void RunGenerator(out ImmutableArray<Diagnostic> compilationDiagnostics, out ImmutableArray<Diagnostic> generatorDiagnostics, ITestOutputHelper output, bool useRoslyn)
+        public void RunGenerator(out ImmutableArray<Diagnostic> compilationDiagnostics, out ImmutableArray<Diagnostic> generatorDiagnostics, bool useRoslyn)
         {
             var newCompilation = CompilationUtil.RunGenerators(_compilation, out generatorDiagnostics, new Generator() { UseRoslyn = useRoslyn });
             compilationDiagnostics = newCompilation.GetDiagnostics();
 
             var compilationErrors = compilationDiagnostics.Where(x => x.Severity == DiagnosticSeverity.Error).Select(x => x.GetMessage()).ToList();
+            Sources = string.Join(Environment.NewLine, newCompilation.SyntaxTrees.Select(x => x.ToString()).Where(x => !x.Contains("The impementation should have been generated.")));
 
             if (compilationErrors.Count > 0)
             {
-                output.WriteLine(string.Join('\n', compilationErrors));
+                _testOutputHelper.WriteLine(Sources);
                 throw new XunitException(string.Join('\n', compilationErrors));
             }
 
