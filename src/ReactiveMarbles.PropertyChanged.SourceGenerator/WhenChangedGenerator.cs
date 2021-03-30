@@ -16,7 +16,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
     internal static class WhenChangedGenerator
     {
         private const string ExtensionClassFullName = "NotifyPropertyChangedExtensions";
-        private static readonly HashSet<MultiExpressionMethodDatum> EmptyMulti = new HashSet<MultiExpressionMethodDatum>();
+        private static readonly HashSet<MultiExpressionMethodDatum> EmptyMulti = new();
 
         public static void GenerateWhenChanged(GeneratorExecutionContext context, Compilation compilation, SyntaxReceiver syntaxReceiver, bool useRoslyn)
         {

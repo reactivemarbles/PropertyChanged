@@ -37,6 +37,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         {
             var newCompilation = CompilationUtil.RunGenerators(_compilation, out generatorDiagnostics, new Generator() { UseRoslyn = useRoslyn });
             compilationDiagnostics = newCompilation.GetDiagnostics();
+
             var compilationErrors = compilationDiagnostics.Where(x => x.Severity == DiagnosticSeverity.Error).Select(x => x.GetMessage()).ToList();
 
             if (compilationErrors.Count > 0)
@@ -71,6 +72,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             var result = compilation.Emit(ms);
             ms.Seek(0, SeekOrigin.Begin);
             return Assembly.Load(ms.ToArray());
+        }
+
+        private static void SaveCompilation(Compilation compilation)
+        {
+
         }
     }
 }

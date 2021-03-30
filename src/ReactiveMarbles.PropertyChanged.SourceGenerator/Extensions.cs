@@ -15,7 +15,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             new(inputType, source.ToList());
 
         public static OutputTypeGroup ToOutputTypeGroup(this List<ExpressionArgument> source, ITypeSymbol outputType) =>
-            new OutputTypeGroup(outputType, source);
+            new(outputType, source);
 
         public static string GetVariableName(this ITypeSymbol outputTypeSymbol) =>
             $"{outputTypeSymbol.ToDisplayParts().Where(x => x.Kind != SymbolDisplayPartKind.Punctuation).Select(x => x.ToString()).Aggregate((a, b) => a + b)}".FirstCharToUpper();
