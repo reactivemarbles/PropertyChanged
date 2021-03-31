@@ -3,24 +3,24 @@
 // See the LICENSE file in the project root for full license information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.IO;
-using System.Linq;
-using System.Reactive.Linq;
-using System.Reflection;
 
 using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Running;
+using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Jobs;
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
+
+using ReactiveMarbles.PropertyChanged.SourceGenerator.Builders;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Benchmarks
 {
+    [SimpleJob(RuntimeMoniker.NetCoreApp31)]
+    [MemoryDiagnoser]
+    [MarkdownExporterAttribute.GitHub]
+    [GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory)]
     public class WhenChangedBenchmarks
     {
-        public Compilation Compilation { get; set; }
+	    public Compilation Compilation { get; set; }
 
         [ParamsAllValues]
         public bool IsRoslyn { get; set; }
@@ -32,81 +32,69 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Benchmarks
         public ReceiverKind ReceiverKind { get; set; }
 
         [ParamsAllValues]
-        public ExpressionForm ExpressionForm { get; set; }
+        public Accessibility Accessibility { get; set; }
 
-        [Params(1, 5, 100)]
-        public int Depth { get; set; }
 
-        [GlobalSetup(Target = nameof(Basic))]
-        public void SetupBasic()
+        [GlobalSetup(Targets = new[] { nameof(Depth1WhenChanged) })]
+        public void Depth1WhenChangedSetup()
         {
-            string userSource = new WhenChangedMockUserSourceBuilder(InvocationKind, ReceiverKind, ExpressionForm, Depth)
-                .GetTypeName(out var typeName)
-                .Build();
+            string userSource = new WhenChangedHostBuilder()
+                .WithClassAccess(Accessibility)
+                .WithInvocation(InvocationKind, ReceiverKind, x => x.Value)
+                .BuildSource();
 
-            Compilation = CreateCompilation(userSource);
+            Compilation = CompilationUtil.CreateCompilation(userSource);
         }
 
-        [Benchmark]
-        public void Basic()
+        public void Depth1WhenChanged()
         {
-            var newCompilation = RunGenerators(Compilation, out var generatorDiagnostics, new Generator() { UseRoslyn = IsRoslyn });
+            var newCompilation = CompilationUtil.RunGenerators(Compilation, out var generatorDiagnostics, new Generator() { UseRoslyn = IsRoslyn });
+        }
+        [GlobalSetup(Targets = new[] { nameof(Depth2WhenChanged) })]
+        public void Depth2WhenChangedSetup()
+        {
+            string userSource = new WhenChangedHostBuilder()
+                .WithClassAccess(Accessibility)
+                .WithInvocation(InvocationKind, ReceiverKind, x => x.Child.Value)
+                .BuildSource();
+
+            Compilation = CompilationUtil.CreateCompilation(userSource);
         }
 
-        /// <summary>
-        /// Creates the compilation.
-        /// </summary>
-        /// <param name="sources">The sources.</param>
-        /// <returns>The compilation.</returns>
-        protected static Compilation CreateCompilation(params string[] sources)
+        public void Depth2WhenChanged()
         {
-            var assemblyPath = Path.GetDirectoryName(typeof(object).Assembly.Location);
+            var newCompilation = CompilationUtil.RunGenerators(Compilation, out var generatorDiagnostics, new Generator() { UseRoslyn = IsRoslyn });
+        }
+        [GlobalSetup(Targets = new[] { nameof(Depth10WhenChanged) })]
+        public void Depth10WhenChangedSetup()
+        {
+            string userSource = new WhenChangedHostBuilder()
+                .WithClassAccess(Accessibility)
+                .WithInvocation(InvocationKind, ReceiverKind, x => x.Child.Child.Child.Child.Child.Child.Child.Child.Child.Value)
+                .BuildSource();
 
-            return CSharpCompilation.Create(
-                assemblyName: "compilation",
-                syntaxTrees: sources.Select(x => CSharpSyntaxTree.ParseText(x, new CSharpParseOptions(LanguageVersion.Latest))),
-                references: new[]
-                {
-                    MetadataReference.CreateFromFile(typeof(Observable).GetTypeInfo().Assembly.Location),
-                    MetadataReference.CreateFromFile(typeof(WhenChangedGenerator).GetTypeInfo().Assembly.Location),
-                    MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "mscorlib.dll")),
-                    MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "System.dll")),
-                    MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "System.Core.dll")),
-                    MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "System.Console.dll")),
-                    MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "System.Runtime.dll")),
-                    MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "netstandard.dll")),
-                    MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "System.Linq.Expressions.dll")),
-                    MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "System.ObjectModel.dll")),
-                    MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "System.Private.CoreLib.dll")),
-                },
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
-                    .WithSpecificDiagnosticOptions(new[] { new KeyValuePair<string, ReportDiagnostic>("1061", ReportDiagnostic.Suppress) }));
+            Compilation = CompilationUtil.CreateCompilation(userSource);
         }
 
-        /// <summary>
-        /// Creates the driver.
-        /// </summary>
-        /// <param name="compilation">The compilation.</param>
-        /// <param name="generators">The generators.</param>
-        /// <returns>The generator driver.</returns>
-        protected static GeneratorDriver CreateDriver(Compilation compilation, params ISourceGenerator[] generators) =>
-            CSharpGeneratorDriver.Create(
-                generators: ImmutableArray.Create(generators),
-                additionalTexts: ImmutableArray<AdditionalText>.Empty,
-                parseOptions: (CSharpParseOptions)compilation.SyntaxTrees.First().Options,
-                optionsProvider: null);
-
-        /// <summary>
-        /// Runs the generators.
-        /// </summary>
-        /// <param name="compilation">The compilation.</param>
-        /// <param name="diagnostics">The diagnostics.</param>
-        /// <param name="generators">The generators.</param>
-        /// <returns>The compilation for builder use.</returns>
-        protected static Compilation RunGenerators(Compilation compilation, out ImmutableArray<Diagnostic> diagnostics, params ISourceGenerator[] generators)
+        public void Depth10WhenChanged()
         {
-            CreateDriver(compilation, generators).RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out diagnostics);
-            return outputCompilation;
+            var newCompilation = CompilationUtil.RunGenerators(Compilation, out var generatorDiagnostics, new Generator() { UseRoslyn = IsRoslyn });
         }
+        [GlobalSetup(Targets = new[] { nameof(Depth1000WhenChanged) })]
+        public void Depth1000WhenChangedSetup()
+        {
+            string userSource = new WhenChangedHostBuilder()
+                .WithClassAccess(Accessibility)
+                .WithInvocation(InvocationKind, ReceiverKind, x => x.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Value)
+                .BuildSource();
+
+            Compilation = CompilationUtil.CreateCompilation(userSource);
+        }
+
+        public void Depth1000WhenChanged()
+        {
+            var newCompilation = CompilationUtil.RunGenerators(Compilation, out var generatorDiagnostics, new Generator() { UseRoslyn = IsRoslyn });
+        }
+
     }
 }

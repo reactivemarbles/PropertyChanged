@@ -37,6 +37,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
                     MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "mscorlib.dll")),
                     MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "System.dll")),
                     MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "System.Core.dll")),
+                    MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "System.Console.dll")),
                     MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "System.Runtime.dll")),
                     MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "netstandard.dll")),
                     MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "System.Linq.Expressions.dll")),

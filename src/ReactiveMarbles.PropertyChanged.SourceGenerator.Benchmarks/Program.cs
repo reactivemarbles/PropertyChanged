@@ -21,7 +21,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Benchmarks
         {
             ////BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
 
-            var benchmark = new WhenChangedBenchmarks();
+            var benchmark = new OldWhenChangedBenchmarks();
             benchmark.Depth = 100;
             benchmark.InvocationKind = InvocationKind.MemberAccess;
             benchmark.IsRoslyn = true;

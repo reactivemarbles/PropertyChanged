@@ -13,7 +13,32 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ReactiveMarbles.PropertyChanged.SourceGenerator.Builders\ReactiveMarbles.PropertyChanged.SourceGenerator.Builders.csproj" />
     <ProjectReference Include="..\ReactiveMarbles.PropertyChanged.SourceGenerator\ReactiveMarbles.PropertyChanged.SourceGenerator.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="WhenChangedBenchmarks.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>WhenChangedBenchmarks.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="WhenAnyBenchmarks.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>WhenAnyBenchmarks.tt</DependentUpon>
+    </Compile>
+    <Compile Update="WhenChangedBenchmarks.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>WhenChangedBenchmarks.tt</DependentUpon>
+    </Compile>
   </ItemGroup>
 
 </Project>
