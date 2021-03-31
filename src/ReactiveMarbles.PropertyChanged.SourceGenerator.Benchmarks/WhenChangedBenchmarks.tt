@@ -41,7 +41,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Benchmarks
         public Accessibility Accessibility { get; set; }
 
 <#
-    var depths = new[] { 1, 2, 10, 1000 };
+    var depths = new[] { 1, 2, 10, 20 };
 #>
 
 <#
