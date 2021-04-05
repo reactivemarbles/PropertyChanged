@@ -63,7 +63,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Benchmarks
 
         public void Depth<#= depth #>WhenChanged()
         {
-            var newCompilation = CompilationUtil.RunGenerators(Compilation, out var generatorDiagnostics, new Generator() { UseRoslyn = IsRoslyn });
+            var newCompilation = CompilationUtil.RunGenerators(Compilation, out _, new Generator() { UseRoslyn = IsRoslyn });
         }
 <#        } #>
 

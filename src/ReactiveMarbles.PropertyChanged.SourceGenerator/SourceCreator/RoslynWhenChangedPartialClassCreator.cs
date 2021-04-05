@@ -15,11 +15,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
     internal class RoslynWhenChangedPartialClassCreator : ISourceCreator
     {
-        public string Create(IEnumerable<IDatum> sourceData)
+        public string Create(IEnumerable<IDatum> sources)
         {
             var members = new List<MemberDeclarationSyntax>();
 
-            foreach (var group in sourceData
+            foreach (var group in sources
                 .Cast<PartialClassDatum>()
                 .GroupBy(x => x.NamespaceName))
             {

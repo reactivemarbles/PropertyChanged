@@ -38,9 +38,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             return new WhenChangedFixture(hostTypeInfo, compilation, testOutputHelper);
         }
 
-        public void RunGenerator(out ImmutableArray<Diagnostic> compilationDiagnostics, out ImmutableArray<Diagnostic> generatorDiagnostics, bool useRoslyn)
+        public void RunGenerator(out ImmutableArray<Diagnostic> compilationDiagnostics, out ImmutableArray<Diagnostic> generatorDiagnostics, bool useRoslyn, bool saveCompilation = true, string directory = @"C:\Users\Glenn\source\repos\ConsoleApp8\ConsoleApp8")
         {
             var newCompilation = CompilationUtil.RunGenerators(_compilation, out generatorDiagnostics, new Generator() { UseRoslyn = useRoslyn });
+
+            SaveCompilation(newCompilation, directory);
             compilationDiagnostics = newCompilation.GetDiagnostics();
 
             var compilationErrors = compilationDiagnostics.Where(x => x.Severity == DiagnosticSeverity.Error).Select(x => x.GetMessage()).ToList();
@@ -80,9 +82,34 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             return Assembly.Load(ms.ToArray());
         }
 
-        private static void SaveCompilation(Compilation compilation)
+        private static void SaveCompilation(Compilation compilation, string directory)
         {
+            foreach (var file in Directory.GetFiles(directory))
+            {
+                if (!Path.GetExtension(file).Equals(".cs", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
 
+                if (Path.GetFileName(file).Equals("program.cs", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                File.Delete(file);
+            }
+
+            int i = 0;
+            foreach (var compile in compilation.SyntaxTrees)
+            {
+                var text = compile.GetText().ToString();
+
+                var fileName = string.IsNullOrWhiteSpace(compile.FilePath) ? $"File{i}.cs" : Path.GetFileName(compile.FilePath);
+                var filePath = Path.Combine(directory, fileName);
+
+                File.WriteAllText(filePath, text);
+                i++;
+            }
         }
     }
 }

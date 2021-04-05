@@ -48,7 +48,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Benchmarks
 
         public void Depth1WhenChanged()
         {
-            var newCompilation = CompilationUtil.RunGenerators(Compilation, out var generatorDiagnostics, new Generator() { UseRoslyn = IsRoslyn });
+            var newCompilation = CompilationUtil.RunGenerators(Compilation, out _, new Generator() { UseRoslyn = IsRoslyn });
         }
         [GlobalSetup(Targets = new[] { nameof(Depth2WhenChanged) })]
         public void Depth2WhenChangedSetup()
@@ -63,7 +63,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Benchmarks
 
         public void Depth2WhenChanged()
         {
-            var newCompilation = CompilationUtil.RunGenerators(Compilation, out var generatorDiagnostics, new Generator() { UseRoslyn = IsRoslyn });
+            var newCompilation = CompilationUtil.RunGenerators(Compilation, out _, new Generator() { UseRoslyn = IsRoslyn });
         }
         [GlobalSetup(Targets = new[] { nameof(Depth10WhenChanged) })]
         public void Depth10WhenChangedSetup()
@@ -78,7 +78,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Benchmarks
 
         public void Depth10WhenChanged()
         {
-            var newCompilation = CompilationUtil.RunGenerators(Compilation, out var generatorDiagnostics, new Generator() { UseRoslyn = IsRoslyn });
+            var newCompilation = CompilationUtil.RunGenerators(Compilation, out _, new Generator() { UseRoslyn = IsRoslyn });
         }
         [GlobalSetup(Targets = new[] { nameof(Depth20WhenChanged) })]
         public void Depth20WhenChangedSetup()
@@ -93,7 +93,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Benchmarks
 
         public void Depth20WhenChanged()
         {
-            var newCompilation = CompilationUtil.RunGenerators(Compilation, out var generatorDiagnostics, new Generator() { UseRoslyn = IsRoslyn });
+            var newCompilation = CompilationUtil.RunGenerators(Compilation, out _, new Generator() { UseRoslyn = IsRoslyn });
         }
 
     }

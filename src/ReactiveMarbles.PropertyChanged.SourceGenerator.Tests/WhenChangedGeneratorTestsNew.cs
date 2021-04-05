@@ -36,13 +36,31 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         /// <param name="hostTypeAccess">hostClassAccess.</param>
         /// <param name="propertyTypeAccess">outputClassAccess.</param>
         /// <param name="propertyAccess">propertyAccess.</param>
-        /// <param name="useRoslyn">If we should use roslyn.</param>
         [Theory]
         [MemberData(nameof(AccessibilityTestCases.GetValidAccessModifierCombinations), MemberType = typeof(AccessibilityTestCases))]
-        public void NoDiagnostics(Accessibility hostContainerTypeAccess, Accessibility hostTypeAccess, Accessibility propertyTypeAccess, Accessibility propertyAccess, bool useRoslyn = false)
+        public void NoDiagnostics_Roslyn(Accessibility hostContainerTypeAccess, Accessibility hostTypeAccess, Accessibility propertyTypeAccess, Accessibility propertyAccess)
+        {
+            NoDiagnosticTest(hostContainerTypeAccess, hostTypeAccess, propertyTypeAccess, propertyAccess, true);
+        }
+
+        /// <summary>
+        /// Tests that no diagnostics are reported when property access modifier is private.
+        /// </summary>
+        /// <param name="hostContainerTypeAccess">outerClassAccess.</param>
+        /// <param name="hostTypeAccess">hostClassAccess.</param>
+        /// <param name="propertyTypeAccess">outputClassAccess.</param>
+        /// <param name="propertyAccess">propertyAccess.</param>
+        [Theory]
+        [MemberData(nameof(AccessibilityTestCases.GetValidAccessModifierCombinations), MemberType = typeof(AccessibilityTestCases))]
+        public void NoDiagnostics(Accessibility hostContainerTypeAccess, Accessibility hostTypeAccess, Accessibility propertyTypeAccess, Accessibility propertyAccess)
+        {
+            NoDiagnosticTest(hostContainerTypeAccess, hostTypeAccess, propertyTypeAccess, propertyAccess, false);
+        }
+
+        private void NoDiagnosticTest(Accessibility hostContainerTypeAccess, Accessibility hostTypeAccess, Accessibility propertyTypeAccess, Accessibility propertyAccess, bool useRoslyn)
         {
             var hostPropertyTypeInfo = new EmptyClassBuilder()
-                .WithClassAccess(propertyTypeAccess);
+    .WithClassAccess(propertyTypeAccess);
             var hostTypeInfo = new WhenChangedHostBuilder()
                 .WithClassName("Host")
                 .WithInvocation(InvocationKind.MemberAccess, ReceiverKind.This, x => x.Child, x => x.Value, (a, b) => b)
