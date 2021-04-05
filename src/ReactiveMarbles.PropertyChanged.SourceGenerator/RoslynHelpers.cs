@@ -343,10 +343,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                                                 Parameter("x"),
                                                 AssignmentExpression(
                                                     SyntaxKind.SubtractAssignmentExpression,
-                                                    MemberAccessExpression(
-                                                        SyntaxKind.SimpleMemberAccessExpression,
-                                                        MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, "x", "Parent"),
-                                                        IdentifierName("PropertyChanged")),
+                                                    MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, inputName, "PropertyChanged"),
                                                     MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, "x", "Handler"))))
                                         }))
                                 },
@@ -358,7 +355,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             {
                 Parameter(new[] { AttributeList(Attribute("CallerMemberName")) }, "string", "callerMemberName", EqualsValueClause(NullLiteral())),
                 Parameter(new[] { AttributeList(Attribute("CallerFilePath")) }, "string", "callerFilePath", EqualsValueClause(NullLiteral())),
-                Parameter(new[] { AttributeList(Attribute("CallerLineNumber")) }, "int", "callerLineNumber", EqualsValueClause(NullLiteral()))
+                Parameter(new[] { AttributeList(Attribute("CallerLineNumber")) }, "int", "callerLineNumber", EqualsValueClause(LiteralExpression(0)))
             };
 
         public static MethodDeclarationSyntax GetMethodToProperty(string propertyType, string propertyName, string methodName, Accessibility accessibility) =>

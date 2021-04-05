@@ -203,7 +203,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static SimpleLambdaExpressionSyntax SimpleLambdaExpression(ParameterSyntax parameter, ExpressionSyntax body) =>
-            SyntaxFactory.SimpleLambdaExpression(parameter, SyntaxFactory.Block(), body);
+            SyntaxFactory.SimpleLambdaExpression(parameter, default, body);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static SimpleLambdaExpressionSyntax SimpleLambdaExpression(ParameterSyntax parameter, BlockSyntax body) =>
@@ -448,7 +448,9 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
             explicitInterface = explicitInterface?.AddLeadingSpaces();
 
-            return SyntaxFactory.MethodDeclaration(attributeList, modifiersList, type, explicitInterface, name, typeParameterList, parametersList, typeParameterConstraintList, body, arrowSyntax, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+            SyntaxToken token = body == default ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : default;
+
+            return SyntaxFactory.MethodDeclaration(attributeList, modifiersList, type, explicitInterface, name, typeParameterList, parametersList, typeParameterConstraintList, body, arrowSyntax, token);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -903,6 +905,12 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         public static LiteralExpressionSyntax LiteralExpression(SyntaxKind syntaxKind, SyntaxToken token) => SyntaxFactory.LiteralExpression(syntaxKind, token);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static LiteralExpressionSyntax LiteralExpression(string value) => SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, Literal(value));
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static LiteralExpressionSyntax LiteralExpression(int value) => SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(value));
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static SyntaxToken Literal(ulong value) => SyntaxFactory.Literal(value);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -925,9 +933,6 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static SyntaxToken Literal(string value) => SyntaxFactory.Literal(value);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static LiteralExpressionSyntax LiteralExpression(string value) => SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, Literal(value));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static TypeOfExpressionSyntax TypeOfExpression(TypeSyntax type) => SyntaxFactory.TypeOfExpression(SyntaxFactory.Token(SyntaxKind.TypeOfKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), type, SyntaxFactory.Token(SyntaxKind.CloseParenToken));

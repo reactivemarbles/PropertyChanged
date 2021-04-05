@@ -52,7 +52,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         /// <param name="propertyAccess">propertyAccess.</param>
         [Theory]
         [MemberData(nameof(AccessibilityTestCases.GetValidAccessModifierCombinations), MemberType = typeof(AccessibilityTestCases))]
-        public void NoDiagnostics(Accessibility hostContainerTypeAccess, Accessibility hostTypeAccess, Accessibility propertyTypeAccess, Accessibility propertyAccess)
+        public void NoDiagnostics_StringBuilder(Accessibility hostContainerTypeAccess, Accessibility hostTypeAccess, Accessibility propertyTypeAccess, Accessibility propertyAccess)
         {
             NoDiagnosticTest(hostContainerTypeAccess, hostTypeAccess, propertyTypeAccess, propertyAccess, false);
         }
