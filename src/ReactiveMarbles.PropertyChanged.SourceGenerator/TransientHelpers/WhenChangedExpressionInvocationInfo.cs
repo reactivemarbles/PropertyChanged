@@ -3,9 +3,13 @@
 // See the LICENSE file in the project root for full license information.
 
 using System.Collections.Generic;
-using System.Text;
+using Microsoft.CodeAnalysis;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
-    internal abstract record ClassDatum(string Name, List<MethodDatum> MethodData) : IDatum;
+    internal sealed record WhenChangedExpressionInvocationInfo(
+        ITypeSymbol Type,
+        bool IsPublic,
+        ExpressionArgument ExpressionArgument)
+        : InvocationInfo(Type);
 }

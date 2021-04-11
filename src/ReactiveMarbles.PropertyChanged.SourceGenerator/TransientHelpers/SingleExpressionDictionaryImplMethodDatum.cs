@@ -11,22 +11,5 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
     /// There are multiple expressions with the same input/output type so it needs a map to return the correct chain.
     /// e.g. x.String1, x.String2, x.Child.String1 would each be a different entry in the dictionary.
     /// </summary>
-    internal sealed record SingleExpressionDictionaryImplMethodDatum : MethodDatum
-    {
-        public SingleExpressionDictionaryImplMethodDatum(string inputTypeName, string outputTypeName, Accessibility accessModifier, MapDatum map)
-        {
-            InputTypeName = inputTypeName;
-            OutputTypeName = outputTypeName;
-            AccessModifier = accessModifier;
-            Map = map;
-        }
-
-        public string InputTypeName { get; }
-
-        public string OutputTypeName { get; }
-
-        public Accessibility AccessModifier { get; }
-
-        public MapDatum Map { get; }
-    }
+    internal sealed record SingleExpressionDictionaryImplMethodDatum(string InputTypeName, string OutputTypeName, Accessibility AccessModifier, MapDatum Map) : MethodDatum;
 }

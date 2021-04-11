@@ -54,6 +54,12 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         public static AssignmentExpressionSyntax AssignmentExpression(SyntaxKind token, ExpressionSyntax left, ExpressionSyntax right) => SyntaxFactory.AssignmentExpression(token, left, right);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static AssignmentExpressionSyntax AssignmentExpression(SyntaxKind token, ExpressionSyntax left, string right) => SyntaxFactory.AssignmentExpression(token, left, IdentifierName(right));
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static AssignmentExpressionSyntax AssignmentExpression(SyntaxKind token, string left, ExpressionSyntax right) => SyntaxFactory.AssignmentExpression(token, IdentifierName(left), right);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static AssignmentExpressionSyntax AssignmentExpression(SyntaxKind token, string left, string right) => SyntaxFactory.AssignmentExpression(token, IdentifierName(left), IdentifierName(right));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -223,6 +229,9 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ParameterSyntax Parameter(string type, string name) => Parameter(default, default, IdentifierName(type).AddTrialingSpaces(), name, null);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ParameterSyntax Parameter(string type, string name, EqualsValueClauseSyntax equals) => Parameter(default, default, IdentifierName(type).AddTrialingSpaces(), name, equals);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ParameterSyntax Parameter(IReadOnlyCollection<AttributeListSyntax> attributes, string type, string name) => Parameter(attributes, default, IdentifierName(type).AddTrialingSpaces(), name, null);
@@ -786,6 +795,13 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ObjectCreationExpressionSyntax ObjectCreationExpression(string typeName, IReadOnlyCollection<ArgumentSyntax> arguments)
+        {
+            var argumentList = ArgumentList(arguments);
+            return SyntaxFactory.ObjectCreationExpression(Token(SyntaxKind.NewKeyword).AddTrialingSpaces(), IdentifierName(typeName), argumentList, default);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ObjectCreationExpressionSyntax ObjectCreationExpression(TypeSyntax type, IReadOnlyCollection<ArgumentSyntax> arguments, InitializerExpressionSyntax initializer)
         {
             var argumentList = ArgumentList(arguments);
@@ -879,6 +895,9 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static BinaryExpressionSyntax BinaryExpression(SyntaxKind kind, ExpressionSyntax left, ExpressionSyntax right) => SyntaxFactory.BinaryExpression(kind, left.AddTrialingSpaces(), right.AddLeadingSpaces());
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static BinaryExpressionSyntax BinaryExpression(SyntaxKind kind, string left, ExpressionSyntax right) => BinaryExpression(kind, IdentifierName(left), right);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static MemberAccessExpressionSyntax MemberAccessExpression(SyntaxKind kind, ExpressionSyntax expression, SimpleNameSyntax name) => SyntaxFactory.MemberAccessExpression(kind, expression, name);

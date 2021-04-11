@@ -40,9 +40,13 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
 
         public void RunGenerator(out ImmutableArray<Diagnostic> compilationDiagnostics, out ImmutableArray<Diagnostic> generatorDiagnostics, bool useRoslyn, bool saveCompilation = true, string directory = @"C:\Users\Glenn\source\repos\ConsoleApp8\ConsoleApp8")
         {
-            var newCompilation = CompilationUtil.RunGenerators(_compilation, out generatorDiagnostics, new Generator() { UseRoslyn = useRoslyn });
+            var newCompilation = CompilationUtil.RunGenerators(_compilation, out generatorDiagnostics, new Generator(useRoslyn));
 
-            SaveCompilation(newCompilation, directory);
+            if (saveCompilation)
+            {
+                SaveCompilation(newCompilation, directory);
+            }
+
             compilationDiagnostics = newCompilation.GetDiagnostics();
 
             var compilationErrors = compilationDiagnostics.Where(x => x.Severity == DiagnosticSeverity.Error).Select(x => x.GetMessage()).ToList();

@@ -72,7 +72,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             {
                 var type = methodDatum.TempReturnTypes[i];
                 var obsName = "obs" + (i + 1);
-                var whenChangedVariable = LocalDeclarationStatement(VariableDeclaration($"IObservable<{type}>", new[] { VariableDeclarator(obsName, EqualsValueClause(RoslynHelpers.InvokeWhenChanged("propertyExpression" + (i + 1), "source"))) }));
+                var whenChangedVariable = RoslynHelpers.InvokeWhenChangedVariable(type, obsName, "propertyExpression" + (i + 1), "source");
                 statements.Add(whenChangedVariable);
                 combineArguments.Add(Argument(obsName));
             }

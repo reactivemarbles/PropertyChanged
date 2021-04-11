@@ -6,11 +6,5 @@ using System.Collections.Generic;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
-    internal sealed record ExtensionClassDatum : ClassDatum
-    {
-        public ExtensionClassDatum(string name, List<MethodDatum> methodData)
-            : base(name, methodData)
-        {
-        }
-    }
+    internal sealed record ExtensionClassDatum(string Name, List<MethodDatum> MethodData) : ClassDatum(Name, MethodData);
 }

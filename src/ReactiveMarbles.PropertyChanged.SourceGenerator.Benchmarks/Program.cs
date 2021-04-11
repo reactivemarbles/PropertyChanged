@@ -21,14 +21,13 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Benchmarks
         /// <param name="args">Arguments from the command line.</param>
         public static void Main(string[] args)
         {
-            ////BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
-
-            var benchmark = new WhenChangedBenchmarks();
-            benchmark.InvocationKind = InvocationKind.MemberAccess;
-            benchmark.Accessibility = Microsoft.CodeAnalysis.Accessibility.Public;
-            benchmark.IsRoslyn = true;
-            benchmark.Depth10WhenChangedSetup();
-            benchmark.Depth10WhenChanged();
+            BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
+            ////var benchmark = new WhenChangedBenchmarks();
+            ////benchmark.InvocationKind = InvocationKind.MemberAccess;
+            ////benchmark.Accessibility = Microsoft.CodeAnalysis.Accessibility.Public;
+            ////benchmark.IsRoslyn = true;
+            ////benchmark.Depth10WhenChangedSetup();
+            ////benchmark.Depth10WhenChanged();
         }
     }
 }

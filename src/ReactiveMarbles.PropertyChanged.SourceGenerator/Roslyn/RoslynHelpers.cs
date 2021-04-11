@@ -156,6 +156,36 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             return MethodDeclaration(modifiers, $"IObservable<{outputType}>", "WhenChanged", parameterList, 0, body);
         }
 
+        public static MethodDeclarationSyntax Bind(string viewModelInputType, string viewModelOutputType, string viewInputType, string viewOutputType, bool isExtension, bool hasConverters, Accessibility accessibility, BlockSyntax body)
+        {
+            var modifiers = accessibility.GetAccessibilityTokens().ToList();
+
+            var parameterList = new List<ParameterSyntax>();
+
+            if (isExtension)
+            {
+                modifiers.Add(SyntaxKind.StaticKeyword);
+                parameterList.Add(Parameter(viewModelInputType, "fromObject", new[] { SyntaxKind.ThisKeyword }));
+            }
+
+            parameterList.Add(Parameter(viewInputType, "targetObject"));
+
+            parameterList.Add(Parameter(GetExpressionFunc(viewModelInputType, viewModelOutputType), "fromProperty"));
+            parameterList.Add(Parameter(GetExpressionFunc(viewInputType, viewOutputType), "toProperty"));
+
+            if (hasConverters)
+            {
+                parameterList.Add(Parameter(GenericName("Func", new[] { IdentifierName(viewModelInputType), IdentifierName(viewOutputType) }), "hostToTargetConv"));
+                parameterList.Add(Parameter(GenericName("Func", new[] { IdentifierName(viewInputType), IdentifierName(viewModelOutputType) }), "targetToHostConv"));
+            }
+
+            parameterList.Add(Parameter("IScheduler", "scheduler", EqualsValueClause(NullLiteral())));
+
+            parameterList.AddRange(CallerMembersParameters());
+
+            return MethodDeclaration(modifiers, "IDisposable", "Bind", parameterList, 0, body);
+        }
+
         public static GenericNameSyntax GetExpressionFunc(string inputType, string returnType) =>
             GenericName(
                 "Expression",
@@ -241,6 +271,12 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 {
                     Argument(invokeName)
                 });
+
+        public static LocalDeclarationStatementSyntax InvokeWhenChangedVariable(string type, string obsName, string expressionName, string source) =>
+            LocalDeclarationStatement(VariableDeclaration($"IObservable<{type}>", new[] { VariableDeclarator(obsName, EqualsValueClause(InvokeWhenChanged(expressionName, source))) }));
+
+        public static LocalDeclarationStatementSyntax InvokeWhenChangedSkipVariable(string type, string obsName, string expressionName, string source, int skipNumber) =>
+            LocalDeclarationStatement(VariableDeclaration($"IObservable<{type}>", new[] { VariableDeclarator(obsName, EqualsValueClause(InvocationExpression(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, InvokeWhenChanged(expressionName, source), "Skip"), new[] { Argument(LiteralExpression(skipNumber)) }))) }));
 
         public static InvocationExpressionSyntax SelectObservableNotifyPropertyChangedSwitch(InvocationExpressionSyntax sourceInvoke, string returnType, string inputName, string memberName) =>
             InvocationExpression(

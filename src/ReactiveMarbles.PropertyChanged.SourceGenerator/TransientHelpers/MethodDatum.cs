@@ -4,7 +4,5 @@
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
-    internal abstract record MethodDatum : IDatum
-    {
-    }
+    internal abstract record MethodDatum : IDatum;
 }

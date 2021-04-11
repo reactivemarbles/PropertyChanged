@@ -60,7 +60,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         private void NoDiagnosticTest(Accessibility hostContainerTypeAccess, Accessibility hostTypeAccess, Accessibility propertyTypeAccess, Accessibility propertyAccess, bool useRoslyn)
         {
             var hostPropertyTypeInfo = new EmptyClassBuilder()
-    .WithClassAccess(propertyTypeAccess);
+                .WithClassAccess(propertyTypeAccess);
             var hostTypeInfo = new WhenChangedHostBuilder()
                 .WithClassName("Host")
                 .WithInvocation(InvocationKind.MemberAccess, ReceiverKind.This, x => x.Child, x => x.Value, (a, b) => b)

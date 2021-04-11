@@ -43,5 +43,13 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             category: "Compiler",
             defaultSeverity: DiagnosticSeverity.Error,
             isEnabledByDefault: true);
+
+        internal static readonly DiagnosticDescriptor InvalidExpression = new(
+            id: "RXM005",
+            title: "The expression is not valid and does not point towards a valid item",
+            messageFormat: "The expression is not valid and does not point towards a valid item",
+            category: "Compiler",
+            defaultSeverity: DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
     }
 }

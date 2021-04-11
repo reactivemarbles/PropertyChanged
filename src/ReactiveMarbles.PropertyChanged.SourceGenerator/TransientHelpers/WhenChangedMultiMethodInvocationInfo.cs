@@ -2,10 +2,17 @@
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
+using System;
 using System.Collections.Generic;
 using System.Text;
 
+using Microsoft.CodeAnalysis;
+
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
-    internal abstract record ClassDatum(string Name, List<MethodDatum> MethodData) : IDatum;
+    internal sealed record WhenChangedMultiMethodInvocationInfo(
+        ITypeSymbol Type,
+        bool IsPublic,
+        MultiExpressionMethodDatum MultiExpression)
+        : InvocationInfo(Type);
 }

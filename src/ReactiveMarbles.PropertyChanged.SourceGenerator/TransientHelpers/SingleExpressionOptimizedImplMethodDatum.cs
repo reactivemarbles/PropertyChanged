@@ -11,22 +11,5 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
     /// <summary>
     /// Single expression with a particular input/output type so it can return the chain directly without needing a dictionary.
     /// </summary>
-    internal sealed record SingleExpressionOptimizedImplMethodDatum : MethodDatum
-    {
-        public SingleExpressionOptimizedImplMethodDatum(string inputType, string outputType, Accessibility accessModifier, List<(string Name, string InputType, string OutputType)> members)
-        {
-            InputTypeName = inputType;
-            OutputTypeName = outputType;
-            AccessModifier = accessModifier;
-            Members = members;
-        }
-
-        public string InputTypeName { get; }
-
-        public string OutputTypeName { get; }
-
-        public Accessibility AccessModifier { get; }
-
-        public List<(string Name, string InputType, string OutputType)> Members { get; }
-    }
+    internal sealed record SingleExpressionOptimizedImplMethodDatum(string InputTypeName, string OutputTypeName, Accessibility AccessModifier, List<(string Name, string InputType, string OutputType)> Members) : MethodDatum;
 }

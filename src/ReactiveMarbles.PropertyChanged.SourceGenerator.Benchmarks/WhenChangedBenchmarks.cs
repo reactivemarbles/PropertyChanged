@@ -23,77 +23,174 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Benchmarks
 	    public Compilation Compilation { get; set; }
 
         [ParamsAllValues]
-        public bool IsRoslyn { get; set; }
-
-        [ParamsAllValues]
         public InvocationKind InvocationKind {  get; set; }
 
         [ParamsAllValues]
         public ReceiverKind ReceiverKind { get; set; }
 
-        [ParamsAllValues]
+        [Params(Accessibility.Public, Accessibility.Private)]
         public Accessibility Accessibility { get; set; }
 
 
-        [GlobalSetup(Targets = new[] { nameof(Depth1WhenChanged) })]
-        public void Depth1WhenChangedSetup()
+        [GlobalSetup(Targets = new[] { nameof(Depth1WhenChangedRoslyn) })]
+        public void Depth1WhenChangedSetupRoslyn()
         {
+            var hostPropertyTypeInfo = new EmptyClassBuilder()
+                .WithClassAccess(Accessibility);
             string userSource = new WhenChangedHostBuilder()
                 .WithClassAccess(Accessibility)
+                .WithPropertyType(hostPropertyTypeInfo)
                 .WithInvocation(InvocationKind, ReceiverKind, x => x.Value)
                 .BuildSource();
 
             Compilation = CompilationUtil.CreateCompilation(userSource);
         }
 
-        public void Depth1WhenChanged()
+        [Benchmark]
+        [BenchmarkCategory("Change Depth 1")]
+        public void Depth1WhenChangedRoslyn()
         {
-            var newCompilation = CompilationUtil.RunGenerators(Compilation, out _, new Generator() { UseRoslyn = IsRoslyn });
+            var newCompilation = CompilationUtil.RunGenerators(Compilation, out _, new Generator(true));
         }
-        [GlobalSetup(Targets = new[] { nameof(Depth2WhenChanged) })]
-        public void Depth2WhenChangedSetup()
+        [GlobalSetup(Targets = new[] { nameof(Depth1WhenChangedStringBuilder) })]
+        public void Depth1WhenChangedSetupStringBuilder()
         {
+            var hostPropertyTypeInfo = new EmptyClassBuilder()
+                .WithClassAccess(Accessibility);
             string userSource = new WhenChangedHostBuilder()
                 .WithClassAccess(Accessibility)
+                .WithPropertyType(hostPropertyTypeInfo)
+                .WithInvocation(InvocationKind, ReceiverKind, x => x.Value)
+                .BuildSource();
+
+            Compilation = CompilationUtil.CreateCompilation(userSource);
+        }
+
+        [Benchmark]
+        [BenchmarkCategory("Change Depth 1")]
+        public void Depth1WhenChangedStringBuilder()
+        {
+            var newCompilation = CompilationUtil.RunGenerators(Compilation, out _, new Generator(false));
+        }
+        [GlobalSetup(Targets = new[] { nameof(Depth2WhenChangedRoslyn) })]
+        public void Depth2WhenChangedSetupRoslyn()
+        {
+            var hostPropertyTypeInfo = new EmptyClassBuilder()
+                .WithClassAccess(Accessibility);
+            string userSource = new WhenChangedHostBuilder()
+                .WithClassAccess(Accessibility)
+                .WithPropertyType(hostPropertyTypeInfo)
                 .WithInvocation(InvocationKind, ReceiverKind, x => x.Child.Value)
                 .BuildSource();
 
             Compilation = CompilationUtil.CreateCompilation(userSource);
         }
 
-        public void Depth2WhenChanged()
+        [Benchmark]
+        [BenchmarkCategory("Change Depth 2")]
+        public void Depth2WhenChangedRoslyn()
         {
-            var newCompilation = CompilationUtil.RunGenerators(Compilation, out _, new Generator() { UseRoslyn = IsRoslyn });
+            var newCompilation = CompilationUtil.RunGenerators(Compilation, out _, new Generator(true));
         }
-        [GlobalSetup(Targets = new[] { nameof(Depth10WhenChanged) })]
-        public void Depth10WhenChangedSetup()
+        [GlobalSetup(Targets = new[] { nameof(Depth2WhenChangedStringBuilder) })]
+        public void Depth2WhenChangedSetupStringBuilder()
         {
+            var hostPropertyTypeInfo = new EmptyClassBuilder()
+                .WithClassAccess(Accessibility);
             string userSource = new WhenChangedHostBuilder()
                 .WithClassAccess(Accessibility)
+                .WithPropertyType(hostPropertyTypeInfo)
+                .WithInvocation(InvocationKind, ReceiverKind, x => x.Child.Value)
+                .BuildSource();
+
+            Compilation = CompilationUtil.CreateCompilation(userSource);
+        }
+
+        [Benchmark]
+        [BenchmarkCategory("Change Depth 2")]
+        public void Depth2WhenChangedStringBuilder()
+        {
+            var newCompilation = CompilationUtil.RunGenerators(Compilation, out _, new Generator(false));
+        }
+        [GlobalSetup(Targets = new[] { nameof(Depth10WhenChangedRoslyn) })]
+        public void Depth10WhenChangedSetupRoslyn()
+        {
+            var hostPropertyTypeInfo = new EmptyClassBuilder()
+                .WithClassAccess(Accessibility);
+            string userSource = new WhenChangedHostBuilder()
+                .WithClassAccess(Accessibility)
+                .WithPropertyType(hostPropertyTypeInfo)
                 .WithInvocation(InvocationKind, ReceiverKind, x => x.Child.Child.Child.Child.Child.Child.Child.Child.Child.Value)
                 .BuildSource();
 
             Compilation = CompilationUtil.CreateCompilation(userSource);
         }
 
-        public void Depth10WhenChanged()
+        [Benchmark]
+        [BenchmarkCategory("Change Depth 10")]
+        public void Depth10WhenChangedRoslyn()
         {
-            var newCompilation = CompilationUtil.RunGenerators(Compilation, out _, new Generator() { UseRoslyn = IsRoslyn });
+            var newCompilation = CompilationUtil.RunGenerators(Compilation, out _, new Generator(true));
         }
-        [GlobalSetup(Targets = new[] { nameof(Depth20WhenChanged) })]
-        public void Depth20WhenChangedSetup()
+        [GlobalSetup(Targets = new[] { nameof(Depth10WhenChangedStringBuilder) })]
+        public void Depth10WhenChangedSetupStringBuilder()
         {
+            var hostPropertyTypeInfo = new EmptyClassBuilder()
+                .WithClassAccess(Accessibility);
             string userSource = new WhenChangedHostBuilder()
                 .WithClassAccess(Accessibility)
+                .WithPropertyType(hostPropertyTypeInfo)
+                .WithInvocation(InvocationKind, ReceiverKind, x => x.Child.Child.Child.Child.Child.Child.Child.Child.Child.Value)
+                .BuildSource();
+
+            Compilation = CompilationUtil.CreateCompilation(userSource);
+        }
+
+        [Benchmark]
+        [BenchmarkCategory("Change Depth 10")]
+        public void Depth10WhenChangedStringBuilder()
+        {
+            var newCompilation = CompilationUtil.RunGenerators(Compilation, out _, new Generator(false));
+        }
+        [GlobalSetup(Targets = new[] { nameof(Depth20WhenChangedRoslyn) })]
+        public void Depth20WhenChangedSetupRoslyn()
+        {
+            var hostPropertyTypeInfo = new EmptyClassBuilder()
+                .WithClassAccess(Accessibility);
+            string userSource = new WhenChangedHostBuilder()
+                .WithClassAccess(Accessibility)
+                .WithPropertyType(hostPropertyTypeInfo)
                 .WithInvocation(InvocationKind, ReceiverKind, x => x.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Value)
                 .BuildSource();
 
             Compilation = CompilationUtil.CreateCompilation(userSource);
         }
 
-        public void Depth20WhenChanged()
+        [Benchmark]
+        [BenchmarkCategory("Change Depth 20")]
+        public void Depth20WhenChangedRoslyn()
         {
-            var newCompilation = CompilationUtil.RunGenerators(Compilation, out _, new Generator() { UseRoslyn = IsRoslyn });
+            var newCompilation = CompilationUtil.RunGenerators(Compilation, out _, new Generator(true));
+        }
+        [GlobalSetup(Targets = new[] { nameof(Depth20WhenChangedStringBuilder) })]
+        public void Depth20WhenChangedSetupStringBuilder()
+        {
+            var hostPropertyTypeInfo = new EmptyClassBuilder()
+                .WithClassAccess(Accessibility);
+            string userSource = new WhenChangedHostBuilder()
+                .WithClassAccess(Accessibility)
+                .WithPropertyType(hostPropertyTypeInfo)
+                .WithInvocation(InvocationKind, ReceiverKind, x => x.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Child.Value)
+                .BuildSource();
+
+            Compilation = CompilationUtil.CreateCompilation(userSource);
+        }
+
+        [Benchmark]
+        [BenchmarkCategory("Change Depth 20")]
+        public void Depth20WhenChangedStringBuilder()
+        {
+            var newCompilation = CompilationUtil.RunGenerators(Compilation, out _, new Generator(false));
         }
 
     }
