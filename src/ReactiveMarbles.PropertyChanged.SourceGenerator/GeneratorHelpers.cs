@@ -102,11 +102,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             return methodDatum;
         }
 
-        public static bool GetExpression(GeneratorExecutionContext context, IMethodSymbol methodSymbol, LambdaExpressionSyntax lambdaExpression, Compilation compilation, SemanticModel model, out ExpressionArgument expressionArgument)
+        public static bool GetExpression(GeneratorExecutionContext context, LambdaExpressionSyntax lambdaExpression, Compilation compilation, SemanticModel model, out ExpressionArgument expressionArgument)
         {
-            var lambdaInputType = methodSymbol.TypeArguments[0];
-            var lambdaOutputType = model.GetTypeInfo(lambdaExpression.Body).Type;
             var expressionChain = GetExpressionChain(context, lambdaExpression, model);
+            var lambdaInputType = expressionChain[0].InputType;
+            var lambdaOutputType = expressionChain[expressionChain.Count - 1].OutputType;
 
             var containsPrivateOrProtectedMember =
                 lambdaInputType.DeclaredAccessibility <= Accessibility.Protected ||
@@ -145,9 +145,9 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             return new(accessModifier, types, containsPrivateOrProtectedTypeArgument);
         }
 
-        public static List<(string Name, string InputType, string OutputType)> GetExpressionChain(GeneratorExecutionContext context, LambdaExpressionSyntax lambdaExpression, SemanticModel model)
+        public static List<ExpressionChain> GetExpressionChain(GeneratorExecutionContext context, LambdaExpressionSyntax lambdaExpression, SemanticModel model)
         {
-            var members = new List<(string Name, string InputType, string OutputType)>();
+            var members = new List<ExpressionChain>();
             var expression = lambdaExpression.ExpressionBody;
             var expressionChain = expression as MemberAccessExpressionSyntax;
 
@@ -157,7 +157,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 var inputType = model.GetTypeInfo(expressionChain.ChildNodes().ElementAt(0)).Type as INamedTypeSymbol;
                 var outputType = model.GetTypeInfo(expressionChain.ChildNodes().ElementAt(1)).Type as INamedTypeSymbol;
 
-                members.Add((name, inputType.ToDisplayString(), outputType.ToDisplayString()));
+                members.Add(new(name, inputType, outputType));
 
                 expression = expressionChain.Expression;
                 expressionChain = expression as MemberAccessExpressionSyntax;

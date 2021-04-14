@@ -38,6 +38,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 UsingDirective("System.Collections.Generic"),
                 UsingDirective("System.ComponentModel"),
                 UsingDirective("System.Linq.Expressions"),
+                UsingDirective("System.Reactive.Concurrency"),
                 UsingDirective("System.Reactive.Disposables"),
                 UsingDirective("System.Reactive.Linq"),
                 UsingDirective("System.Runtime.CompilerServices"),
@@ -289,7 +290,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                     Argument(SimpleLambdaExpression(Parameter(inputName), ObservableNotifyPropertyChanged(returnType, inputName, memberName)))
                 });
 
-        public static InvocationExpressionSyntax GetObservableChain(string inputName, List<(string Name, string InputType, string OutputType)> members)
+        public static InvocationExpressionSyntax GetObservableChain(string inputName, List<ExpressionChain> members)
         {
             InvocationExpressionSyntax observable = null;
             for (int i = 0; i < members.Count; ++i)
@@ -298,11 +299,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
                 if (i == 0)
                 {
-                    observable = ObservableNotifyPropertyChanged(outputType, inputName, name);
+                    observable = ObservableNotifyPropertyChanged(outputType.ToDisplayString(), inputName, name);
                 }
                 else
                 {
-                    observable = SelectObservableNotifyPropertyChangedSwitch(observable, outputType, "source", name);
+                    observable = SelectObservableNotifyPropertyChangedSwitch(observable, outputType.ToDisplayString(), "source", name);
                 }
             }
 

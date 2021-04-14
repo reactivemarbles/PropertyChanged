@@ -35,10 +35,10 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             var visibility = new[] { SyntaxKind.PublicKeyword, SyntaxKind.StaticKeyword, SyntaxKind.PartialKeyword };
 
             // generates the BindExtensions with Bind methods overload.
-            return ClassDeclaration("BindExtensions", visibility, Create(classDatum.ViewModelArgument, classDatum.ViewArgument, classDatum.Accessibility, classDatum.HasConverters).ToList(), 1);
+            return ClassDeclaration("BindExtensions", visibility, Create(classDatum.TargetType, classDatum.ViewModelArgument, classDatum.ViewArgument, classDatum.Accessibility, classDatum.HasConverters).ToList(), 1);
         }
 
-        private static IEnumerable<MemberDeclarationSyntax> Create(ExpressionArgument viewModelArgument, ExpressionArgument viewArgument, Accessibility accessibility, bool hasConverters)
+        private static IEnumerable<MemberDeclarationSyntax> Create(ITypeSymbol target, ExpressionArgument viewModelArgument, ExpressionArgument viewArgument, Accessibility accessibility, bool hasConverters)
         {
             var statements = new List<StatementSyntax>();
 
@@ -52,7 +52,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             statements.Add(RoslynHelpers.InvokeWhenChangedVariable(viewModelOutputType, "hostObs", "fromProperty", "fromObject"));
 
             // generates: var targetObs = targetObject.WhenChanged(toProperty).Skip(1);
-            statements.Add(RoslynHelpers.InvokeWhenChangedSkipVariable(viewModelOutputType, "targetObs", "toProperty", "targetObject", 1));
+            statements.Add(RoslynHelpers.InvokeWhenChangedSkipVariable(target.ToDisplayString(), "targetObs", "toProperty", "targetObject", 1));
 
             if (hasConverters)
             {
@@ -146,7 +146,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 })));
 
             // generates: Bind() method.
-            yield return RoslynHelpers.Bind(viewModelInputType, viewModelOutputType, viewInputType, viewOutputType, true, hasConverters, accessibility, Block(statements, 1));
+            yield return RoslynHelpers.Bind(viewModelInputType, target.ToDisplayString(), viewInputType, viewOutputType, true, hasConverters, accessibility, Block(statements, 1));
         }
     }
 }

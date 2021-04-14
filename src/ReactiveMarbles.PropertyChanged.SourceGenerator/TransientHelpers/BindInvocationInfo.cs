@@ -8,6 +8,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
     internal sealed record BindInvocationInfo(
         ITypeSymbol Type,
+        ITypeSymbol TargetType,
         Accessibility Accessibility,
         bool IsPublic,
         bool HasConverters,

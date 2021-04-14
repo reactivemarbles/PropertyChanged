@@ -26,11 +26,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
                     if (i == 0)
                     {
-                        valueChainSb.Append(StringBuilderSourceCreatorHelper.GetObservableCreation(inputType, initialSource, outputType, name));
+                        valueChainSb.Append(StringBuilderSourceCreatorHelper.GetObservableCreation(inputType.ToDisplayString(), initialSource, outputType.ToDisplayString(), name));
                     }
                     else
                     {
-                        valueChainSb.Append(StringBuilderSourceCreatorHelper.GetMapEntryChain(inputType, outputType, name));
+                        valueChainSb.Append(StringBuilderSourceCreatorHelper.GetMapEntryChain(inputType.ToDisplayString(), outputType.ToDisplayString(), name));
                     }
                 }
 

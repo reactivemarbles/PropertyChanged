@@ -3,26 +3,32 @@
 // See the LICENSE file in the project root for full license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
+
 using Microsoft.CodeAnalysis;
+
 using ReactiveMarbles.PropertyChanged.SourceGenerator.Builders;
+
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
 {
-    internal class WhenChangedFixture
+    internal class BindFixture
     {
-        private readonly WhenChangedHostBuilder _hostTypeInfo;
+        private readonly BindHostBuilder _hostTypeInfo;
         private readonly Compilation _compilation;
         private readonly ITestOutputHelper _testOutputHelper;
         private Type _hostType;
+        private Type _viewModelPropertyType;
         private Type _valuePropertyType;
 
-        private WhenChangedFixture(WhenChangedHostBuilder hostTypeInfo, Compilation compilation, ITestOutputHelper testOutputHelper)
+        private BindFixture(BindHostBuilder hostTypeInfo, Compilation compilation, ITestOutputHelper testOutputHelper)
         {
             _hostTypeInfo = hostTypeInfo;
             _compilation = compilation;
@@ -31,11 +37,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
 
         public string Sources { get; private set; }
 
-        public static WhenChangedFixture Create(WhenChangedHostBuilder hostTypeInfo, ITestOutputHelper testOutputHelper, params string[] extraSources)
+        public static BindFixture Create(BindHostBuilder hostTypeInfo, ITestOutputHelper testOutputHelper, params string[] extraSources)
         {
             var sources = extraSources.Prepend(hostTypeInfo.BuildRoot()).ToArray();
             Compilation compilation = CompilationUtil.CreateCompilation(sources);
-            return new WhenChangedFixture(hostTypeInfo, compilation, testOutputHelper);
+            return new BindFixture(hostTypeInfo, compilation, testOutputHelper);
         }
 
         public void RunGenerator(out ImmutableArray<Diagnostic> compilationDiagnostics, out ImmutableArray<Diagnostic> generatorDiagnostics, bool useRoslyn, bool saveCompilation = true, string directory = @"C:\Users\Glenn\source\repos\ConsoleApp8\ConsoleApp8")
@@ -60,12 +66,18 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
 
             var assembly = GetAssembly(newCompilation);
             _hostType = assembly.GetType(_hostTypeInfo.GetTypeName());
-            _valuePropertyType = assembly.GetType(_hostTypeInfo.ValuePropertyTypeName);
+            _viewModelPropertyType = assembly.GetType(_hostTypeInfo.ViewModelPropertyTypeName);
+            _valuePropertyType = assembly.GetType(_hostTypeInfo.PropertyTypeName);
         }
 
-        public WhenChangedHostProxy NewHostInstance()
+        public BindHostProxy NewHostInstance()
         {
-            return new WhenChangedHostProxy(CreateInstance(_hostType));
+            return new BindHostProxy(CreateInstance(_hostType));
+        }
+
+        public object NewViewModelPropertyInstance()
+        {
+            return CreateInstance(_viewModelPropertyType);
         }
 
         public object NewValuePropertyInstance()

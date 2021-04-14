@@ -100,13 +100,13 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             return sb.ToString();
         }
 
-        public static string GetPartialClassWhenChangedMethodForDirectReturn(string inputType, string outputType, Accessibility accessModifier, List<(string Name, string InputType, string OutputType)> members)
+        public static string GetPartialClassWhenChangedMethodForDirectReturn(string inputType, string outputType, Accessibility accessModifier, List<ExpressionChain> members)
         {
-            var observableChainStringBuilder = new StringBuilder(StringBuilderSourceCreatorHelper.GetObservableCreation(members[0].InputType, "this", members[0].OutputType, members[0].Name));
+            var observableChainStringBuilder = new StringBuilder(StringBuilderSourceCreatorHelper.GetObservableCreation(members[0].InputType.ToDisplayString(), "this", members[0].OutputType.ToDisplayString(), members[0].Name));
 
             foreach (var member in members.Skip(1))
             {
-                observableChainStringBuilder.Append(StringBuilderSourceCreatorHelper.GetMapEntryChain(member.InputType, member.OutputType, member.Name));
+                observableChainStringBuilder.Append(StringBuilderSourceCreatorHelper.GetMapEntryChain(member.InputType.ToDisplayString(), member.OutputType.ToDisplayString(), member.Name));
             }
 
             // Making the access modifier public so multi-expression extensions will able to access it, if needed.

@@ -3,65 +3,71 @@
 // See the LICENSE file in the project root for full license information.
 
 using System;
-using System.Reflection;
+using System.Collections.Generic;
+using System.Text;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
 {
     /// <summary>
-    /// Acts as a user-friendly interface to interact with the 'host' type in the generated compilation.
+    /// Proxies a Bind host.
     /// </summary>
-    public class HostProxy
+    public class BindHostProxy : HostProxyBase
     {
-        private readonly object _source;
-        private HostProxy _child;
-
         /// <summary>
-        /// Initializes a new instance of the <see cref="HostProxy"/> class.
+        /// Initializes a new instance of the <see cref="BindHostProxy"/> class.
         /// </summary>
-        /// <param name="source">An instance of the <i>actual</i> host class.</param>
-        public HostProxy(object source)
+        /// <param name="source">The source to proxy.</param>
+        public BindHostProxy(object source)
+            : base(source)
         {
-            _source = source;
         }
 
         /// <summary>
-        /// Gets the <i>actual</i> host object.
+        /// Gets or sets the view model value.
         /// </summary>
-        public object Source => _source;
+        public object ViewModel
+        {
+            get => ReflectionUtil.GetProperty(Source, nameof(ViewModel));
+            set => ReflectionUtil.SetProperty(Source, nameof(ViewModel), value);
+        }
 
         /// <summary>
-        /// Gets or sets the value.
+        /// Gets or sets the view value.
         /// </summary>
         public object Value
         {
-            get => ReflectionUtil.GetProperty(_source, nameof(Value));
-            set => ReflectionUtil.SetProperty(_source, nameof(Value), value);
+            get => ReflectionUtil.GetProperty(Source, nameof(Value));
+            set => ReflectionUtil.SetProperty(Source, nameof(Value), value);
         }
 
         /// <summary>
-        /// Gets or sets the child.
+        /// Gets the observable resulting from the WhenChanged view model invocation.
         /// </summary>
-        public HostProxy Child
+        /// <param name="onError">An action to invoke when the WhenChanged implementation doesn't generate correctly.</param>
+        /// <returns>An observable.</returns>
+        public IObservable<object> GetViewModelWhenChangedObservable(Action<Exception> onError)
         {
-            get => _child;
-
-            set
+            try
             {
-                _child = value;
-                ReflectionUtil.SetProperty(_source, nameof(Child), value.Source);
+                return GetMethod(Source, MethodNames.GetWhenChangedViewModelObservable) as IObservable<object>;
+            }
+            catch (Exception ex)
+            {
+                onError?.Invoke(ex);
+                throw;
             }
         }
 
         /// <summary>
-        /// Gets the observable resulting from the WhenChanged invocation.
+        /// Gets the observable resulting from the WhenChanged view invocation.
         /// </summary>
         /// <param name="onError">An action to invoke when the WhenChanged implementation doesn't generate correctly.</param>
         /// <returns>An observable.</returns>
-        public IObservable<object> GetWhenChangedObservable(Action<Exception> onError)
+        public IObservable<object> GetViewWhenChangedObservable(Action<Exception> onError)
         {
             try
             {
-                return GetMethod(_source, WhenChangedHostBuilder.MethodName.GetWhenChangedObservable) as IObservable<object>;
+                return GetMethod(Source, MethodNames.GetWhenChangedViewObservable) as IObservable<object>;
             }
             catch (Exception ex)
             {
@@ -79,7 +85,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         {
             try
             {
-                return GetMethod(_source, WhenChangedHostBuilder.MethodName.GetOneWayBindSubscription) as IDisposable;
+                return GetMethod(Source, MethodNames.GetOneWayBindSubscription) as IDisposable;
             }
             catch (Exception ex)
             {
@@ -97,23 +103,13 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         {
             try
             {
-                return GetMethod(_source, WhenChangedHostBuilder.MethodName.GetTwoWayBindSubscription) as IDisposable;
+                return GetMethod(Source, MethodNames.GetTwoWayBindSubscription) as IDisposable;
             }
             catch (Exception ex)
             {
                 onError?.Invoke(ex);
                 throw;
             }
-        }
-
-        private static object GetMethod(object target, string methodName)
-        {
-            return target.GetType().InvokeMember(
-                methodName,
-                BindingFlags.InvokeMethod | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public,
-                null,
-                target,
-                Array.Empty<object>());
         }
     }
 }

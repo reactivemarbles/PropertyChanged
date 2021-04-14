@@ -37,7 +37,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 {
                     if (argument.Expression is LambdaExpressionSyntax lambdaExpression)
                     {
-                        var isValid = GeneratorHelpers.GetExpression(context, methodSymbol, lambdaExpression, compilation, model, out var expressionArgument);
+                        var isValid = GeneratorHelpers.GetExpression(context, lambdaExpression, compilation, model, out var expressionArgument);
 
                         if (!isValid)
                         {

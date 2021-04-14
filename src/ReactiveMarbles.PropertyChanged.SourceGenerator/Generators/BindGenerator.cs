@@ -36,45 +36,5 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 yield return ($"{type.ToDisplayString()}_Bind.extensions.g.cs", extensionsSource);
             }
         }
-
-        private static MethodDatum CreateSingleExpressionMethodDatum(OutputTypeGroup outputTypeGroup)
-        {
-            MethodDatum methodDatum = null;
-
-            var (_, expressionChain, inputTypeSymbol, outputTypeSymbol, _) = outputTypeGroup.ExpressionArguments[0];
-            var (inputTypeName, outputTypeName) = (inputTypeSymbol.ToDisplayString(), outputTypeSymbol.ToDisplayString());
-
-            var inputTypeAccess = inputTypeSymbol.GetAccessibility();
-            var outputTypeAccess = outputTypeSymbol.GetOutputAccessibility();
-
-            var accessModifier = inputTypeAccess;
-            if (outputTypeAccess < inputTypeAccess || (inputTypeAccess == Accessibility.Protected && outputTypeAccess == Accessibility.Internal))
-            {
-                accessModifier = outputTypeAccess;
-            }
-
-            switch (outputTypeGroup.ExpressionArguments.Count)
-            {
-                case 1:
-                    return new SingleExpressionOptimizedImplMethodDatum(inputTypeName, outputTypeName, accessModifier, expressionChain);
-                case > 1:
-                    {
-                        var mapName = $"__generated{inputTypeSymbol.GetVariableName()}{outputTypeSymbol.GetVariableName()}Map";
-
-                        var entries = new List<MapEntryDatum>(outputTypeGroup.ExpressionArguments.Count);
-                        foreach (var argumentDatum in outputTypeGroup.ExpressionArguments)
-                        {
-                            var mapKey = argumentDatum.LambdaBodyString;
-                            var mapEntry = new MapEntryDatum(mapKey, argumentDatum.ExpressionChain);
-                            entries.Add(mapEntry);
-                        }
-
-                        var map = new MapDatum(mapName, entries);
-                        return new SingleExpressionDictionaryImplMethodDatum(inputTypeName, outputTypeName, accessModifier, map);
-                    }
-            }
-
-            return methodDatum;
-        }
     }
 }

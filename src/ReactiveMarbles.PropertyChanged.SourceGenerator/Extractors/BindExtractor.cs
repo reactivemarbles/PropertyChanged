@@ -19,7 +19,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
         public IEnumerable<InvocationInfo> GetInvocations(GeneratorExecutionContext context, Compilation compilation, SyntaxReceiver syntaxReceiver)
         {
-            foreach (var invocationExpression in syntaxReceiver.WhenChangedMethods)
+            foreach (var invocationExpression in syntaxReceiver.BindMethods)
             {
                 var model = compilation.GetSemanticModel(invocationExpression.SyntaxTree);
                 var symbol = model.GetSymbolInfo(invocationExpression).Symbol;
@@ -34,8 +34,37 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                     continue;
                 }
 
-                var hasConverters = invocationExpression.ArgumentList.Arguments.Any(x => model.GetTypeInfo(x).ConvertedType.Name.Equals("Func"));
-                var expressions = invocationExpression.ArgumentList.Arguments.Where(x => model.GetTypeInfo(x).ConvertedType.Name.Equals("Expression")).Select(x => (Expression: x.Expression as LambdaExpressionSyntax, Argument: x)).ToList();
+                bool hasConverters = false;
+                var expressions = new List<(LambdaExpressionSyntax Expression, ArgumentSyntax Argument)>();
+
+                if (invocationExpression.ArgumentList.Arguments.Count < 3)
+                {
+                    context.ReportDiagnostic(DiagnosticWarnings.BindingIncorrectNumberParameters, invocationExpression.GetLocation());
+                    continue;
+                }
+
+                var targetType = model.GetTypeInfo(invocationExpression.ArgumentList.Arguments[0].Expression).ConvertedType;
+
+                foreach (var argument in invocationExpression.ArgumentList.Arguments.Skip(1))
+                {
+                    var argumentType = model.GetTypeInfo(argument.Expression).ConvertedType;
+
+                    if (argumentType is null)
+                    {
+                        context.ReportDiagnostic(DiagnosticWarnings.InvalidExpression, argument.GetLocation());
+                        continue;
+                    }
+
+                    if (argumentType.Name.Equals("Func"))
+                    {
+                        hasConverters = true;
+                    }
+
+                    if (argumentType.Name.Equals("Expression"))
+                    {
+                        expressions.Add((argument.Expression as LambdaExpressionSyntax, argument));
+                    }
+                }
 
                 if (expressions.Count != 2)
                 {
@@ -61,14 +90,14 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                     continue;
                 }
 
-                if (!GeneratorHelpers.GetExpression(context, methodSymbol, viewModelExpression, compilation, model, out var viewModelExpressionArgument))
+                if (!GeneratorHelpers.GetExpression(context, viewModelExpression, compilation, model, out var viewModelExpressionArgument))
                 {
                     // The argument is evaluates to an expression but it's not inline (could be a variable, method invocation, etc).
                     context.ReportDiagnostic(DiagnosticWarnings.InvalidExpression, viewModelExpression.GetLocation());
                     continue;
                 }
 
-                if (!GeneratorHelpers.GetExpression(context, methodSymbol, viewExpression, compilation, model, out var viewExpressionArgument))
+                if (!GeneratorHelpers.GetExpression(context, viewExpression, compilation, model, out var viewExpressionArgument))
                 {
                     // The argument is evaluates to an expression but it's not inline (could be a variable, method invocation, etc).
                     context.ReportDiagnostic(DiagnosticWarnings.InvalidExpression, viewExpression.GetLocation());
@@ -77,7 +106,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
                 var minAccessibility = methodSymbol.TypeArguments.Min(x => x.DeclaredAccessibility);
 
-                yield return new BindInvocationInfo(viewModelExpressionArgument.InputType, minAccessibility, !viewModelExpressionArgument.ContainsPrivateOrProtectedMember, hasConverters, viewModelExpressionArgument, viewExpressionArgument);
+                yield return new BindInvocationInfo(viewModelExpressionArgument.InputType, targetType, minAccessibility, !viewModelExpressionArgument.ContainsPrivateOrProtectedMember, hasConverters, viewModelExpressionArgument, viewExpressionArgument);
                 yield return new WhenChangedExpressionInvocationInfo(viewModelExpressionArgument.InputType, !viewModelExpressionArgument.ContainsPrivateOrProtectedMember, viewModelExpressionArgument);
                 yield return new WhenChangedExpressionInvocationInfo(viewExpressionArgument.InputType, !viewExpressionArgument.ContainsPrivateOrProtectedMember, viewExpressionArgument);
             }

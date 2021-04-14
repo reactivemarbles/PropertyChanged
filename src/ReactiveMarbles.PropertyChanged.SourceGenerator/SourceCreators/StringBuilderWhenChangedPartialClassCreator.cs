@@ -56,7 +56,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             var sb = new StringBuilder();
             foreach (var (name, inputType, outputType) in methodDatum.Members)
             {
-                sb.Append(StringBuilderSourceCreatorHelper.GetMapEntryChain(inputType, outputType, name));
+                sb.Append(StringBuilderSourceCreatorHelper.GetMapEntryChain(inputType.ToDisplayString(), outputType.ToDisplayString(), name));
             }
 
             return StringBuilderWhenChangedSourceCreatorHelper.GetPartialClassWhenChangedMethodForDirectReturn(methodDatum.InputTypeName, methodDatum.OutputTypeName, methodDatum.AccessModifier, methodDatum.Members);

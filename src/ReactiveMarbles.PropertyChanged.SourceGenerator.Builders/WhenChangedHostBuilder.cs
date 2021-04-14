@@ -17,8 +17,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
     /// <remarks>'Host' refers to the class that contains a WhenChanged invocation.</remarks>
     public class WhenChangedHostBuilder : BaseUserSourceBuilder<WhenChangedHostBuilder>
     {
-        private BaseUserSourceBuilder _propertyType;
         private Accessibility _propertyAccess;
+        private string _propertyTypeName;
         private string _invocation;
 
         /// <summary>
@@ -26,7 +26,6 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         /// </summary>
         public WhenChangedHostBuilder()
         {
-            _propertyType = null;
             _propertyAccess = Accessibility.Public;
             WithInvocation(InvocationKind.MemberAccess, ReceiverKind.This, x => x.Value);
         }
@@ -34,7 +33,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         /// <summary>
         /// Gets the type name of the <b>Value</b> property.
         /// </summary>
-        public string ValuePropertyTypeName => _propertyType.GetTypeName();
+        public string ValuePropertyTypeName => _propertyTypeName;
 
         /// <summary>
         /// Sets the type of the <b>Value</b> property.
@@ -43,7 +42,18 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         /// <returns>A reference to this builder.</returns>
         public WhenChangedHostBuilder WithPropertyType(BaseUserSourceBuilder value)
         {
-            _propertyType = value;
+            _propertyTypeName = value.GetTypeName();
+            return this;
+        }
+
+        /// <summary>
+        /// Sets the type of the <b>Value</b> property.
+        /// </summary>
+        /// <param name="value">A builder that represents a type.</param>
+        /// <returns>A reference to this builder.</returns>
+        public WhenChangedHostBuilder WithPropertyType(string value)
+        {
+            _propertyTypeName = value;
             return this;
         }
 
@@ -68,7 +78,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         public WhenChangedHostBuilder WithInvocation(
             InvocationKind invocationKind,
             ReceiverKind receiverKind,
-            Expression<Func<HostProxy, object>> expression)
+            Expression<Func<WhenChangedHostProxy, object>> expression)
         {
             _invocation = GetWhenChangedInvocation(invocationKind, receiverKind, expression.ToString());
             return this;
@@ -86,8 +96,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         public WhenChangedHostBuilder WithInvocation(
             InvocationKind invocationKind,
             ReceiverKind receiverKind,
-            Expression<Func<HostProxy, object>> expression1,
-            Expression<Func<HostProxy, object>> expression2,
+            Expression<Func<WhenChangedHostProxy, object>> expression1,
+            Expression<Func<WhenChangedHostProxy, object>> expression2,
             Expression<Func<object, object, object>> conversionFunc)
         {
             _invocation = GetWhenChangedInvocation(invocationKind, receiverKind, $"{expression1}, {expression2}, {conversionFunc}");
@@ -128,9 +138,9 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         protected override string CreateClass(string nestedClasses)
         {
             var propertyAccess = _propertyAccess.ToFriendlyString();
-            var propertyTypeName = _propertyType.GetTypeName().Replace('+', '.');
+            var propertyTypeName = _propertyTypeName.Replace('+', '.');
 
-            var source = $@"
+            return $@"
     {ClassAccess.ToFriendlyString()} partial class {ClassName} : INotifyPropertyChanged
     {{
         private {propertyTypeName} _value;
@@ -150,7 +160,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
             set => RaiseAndSetIfChanged(ref _child, value);
         }}
         
-        public IObservable<object> {MethodName.GetWhenChangedObservable}()
+        public IObservable<object> {MethodNames.GetWhenChangedObservable}()
         {{
             var instance = this;
             return {_invocation};
@@ -175,7 +185,6 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         {nestedClasses}
     }}
 ";
-            return source;
         }
 
         private static string GetWhenChangedInvocation(
@@ -196,13 +205,6 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
             }
 
             return invocation;
-        }
-
-        internal static class MethodName
-        {
-            public const string GetWhenChangedObservable = "GetWhenChangedObservable";
-            public const string GetOneWayBindSubscription = "GetOneWayBindSubscription";
-            public const string GetTwoWayBindSubscription = "GetTwoWayBindSubscription";
         }
     }
 }

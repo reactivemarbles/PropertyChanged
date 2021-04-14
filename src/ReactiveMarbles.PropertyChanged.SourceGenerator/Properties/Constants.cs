@@ -560,7 +560,7 @@ using System.Reactive.Linq;
 /// <summary>
 /// Set of extension methods that handle binding.
 /// </summary>
-public static class BindExtensions
+public static partial class BindExtensions
 {
     /// <summary>
     /// Performs one way binding between a property on the host to a target property.

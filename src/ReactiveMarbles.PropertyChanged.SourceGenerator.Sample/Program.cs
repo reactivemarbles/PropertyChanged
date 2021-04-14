@@ -14,6 +14,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample
         {
             var myClass = new SampleClass();
             var myClass2 = new OtherNamespace.SampleClass();
+            var myClass3 = new SampleClass2();
 
             myClass.WhenChanged(x => x.MyString).Where(x => x == "Hello World").Select(x => x.Substring(10)).Subscribe(Console.WriteLine);
             myClass2.WhenChanged(x => x.MyString).Subscribe(Console.WriteLine);
@@ -24,6 +25,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample
                 .Subscribe(x => myClass.MyString = x.ToString());
 
             Console.ReadLine();
+
+            myClass.Bind(myClass3, x => x.MyString, x => x.MyString);
         }
 
         private static Expression<Func<SampleClass, string>> GetExpression()
