@@ -74,7 +74,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .AddNestedClass(hostTypeInfo);
 
             var fixture = WhenChangedFixture.Create(hostTypeInfo, _testOutputHelper);
-            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, useRoslyn);
+            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, useRoslyn, saveCompilation: false);
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
             Assert.Empty(compilationDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));

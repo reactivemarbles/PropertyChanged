@@ -48,13 +48,14 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 var propertyDeclarationSymbol = propertyDeclarationModel.GetDeclaredSymbol(propertyDeclarationSyntax);
                 var propertyAccessibility = propertyDeclarationSymbol.DeclaredAccessibility;
 
-                if (propertyAccessibility <= Accessibility.Protected || propertyAccessibility == Accessibility.ProtectedOrInternal)
+                if (propertyAccessibility.IsPrivateOrProtected())
                 {
                     return true;
                 }
 
                 var childTypeSymbol = model.GetTypeInfo(child).ConvertedType;
-                if (childTypeSymbol.DeclaredAccessibility <= Accessibility.Protected || childTypeSymbol.DeclaredAccessibility == Accessibility.ProtectedOrInternal)
+                var childTypeAccess = childTypeSymbol.GetVisibility();
+                if (childTypeAccess.IsPrivateOrProtected())
                 {
                     return true;
                 }
@@ -107,10 +108,10 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             var expressionChain = GetExpressionChain(context, lambdaExpression, model);
             var lambdaInputType = expressionChain[0].InputType;
             var lambdaOutputType = expressionChain[expressionChain.Count - 1].OutputType;
+            var inputTypeAccess = lambdaInputType.GetVisibility();
 
             var containsPrivateOrProtectedMember =
-                lambdaInputType.DeclaredAccessibility <= Accessibility.Protected ||
-                lambdaInputType.DeclaredAccessibility == Accessibility.ProtectedOrInternal ||
+                inputTypeAccess.IsPrivateOrProtected() ||
                 ContainsPrivateOrProtectedMember(compilation, model, lambdaExpression);
             expressionArgument = new ExpressionArgument(lambdaExpression.Body.ToString(), expressionChain, lambdaInputType, lambdaOutputType, containsPrivateOrProtectedMember);
 
@@ -119,27 +120,21 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
         public static MultiExpressionMethodDatum GetMultiExpression(IMethodSymbol methodSymbol)
         {
-            var minAccessibility = methodSymbol.TypeArguments.Min(x => x.DeclaredAccessibility);
-            var accessModifier = minAccessibility;
+            var inputTypeSymbol = methodSymbol.TypeArguments[0];
+            var inputTypeAccess = inputTypeSymbol.GetVisibility();
+            var accessModifier = inputTypeAccess;
 
-            var current = methodSymbol.TypeArguments.First();
-            while (current != null)
+            for (int i = 1; i < methodSymbol.TypeArguments.Length; ++i)
             {
-                if (current.DeclaredAccessibility < accessModifier)
+                var outputTypeSymbol = methodSymbol.TypeArguments[i];
+                var outputTypeAccess = outputTypeSymbol.GetVisibility();
+                if (outputTypeAccess < accessModifier || (accessModifier == Accessibility.Protected && outputTypeAccess == Accessibility.Internal))
                 {
-                    accessModifier = current.DeclaredAccessibility;
+                    accessModifier = outputTypeAccess;
                 }
-
-                current = current.ContainingType;
             }
 
-            if (methodSymbol.TypeArguments.First().DeclaredAccessibility == Accessibility.Protected &&
-                methodSymbol.TypeArguments.Last().DeclaredAccessibility == Accessibility.Internal)
-            {
-                accessModifier = Accessibility.Internal;
-            }
-
-            var containsPrivateOrProtectedTypeArgument = minAccessibility <= Accessibility.Protected || minAccessibility == Accessibility.ProtectedOrInternal;
+            var containsPrivateOrProtectedTypeArgument = accessModifier.IsPrivateOrProtected();
             var types = methodSymbol.TypeArguments;
 
             return new(accessModifier, types, containsPrivateOrProtectedTypeArgument);

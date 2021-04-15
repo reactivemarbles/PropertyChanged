@@ -37,8 +37,12 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
                 if (invocation is WhenChangedMultiMethodInvocationInfo multiInvocationInfo)
                 {
-                    var list = multiInvocationInfo.IsPublic ? publicMultiItems : privateMultiItems;
-                    list.Add(multiInvocationInfo.MultiExpression);
+                    if (multiInvocationInfo.IsPublic)
+                    {
+                        publicMultiItems.Add(multiInvocationInfo.MultiExpression);
+                    }
+
+                    privateMultiItems.Add(multiInvocationInfo.MultiExpression);
                 }
             }
 
@@ -103,8 +107,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             var (_, expressionChain, inputTypeSymbol, outputTypeSymbol, _) = outputTypeGroup.ExpressionArguments[0];
             var (inputTypeName, outputTypeName) = (inputTypeSymbol.ToDisplayString(), outputTypeSymbol.ToDisplayString());
 
-            var inputTypeAccess = inputTypeSymbol.GetAccessibility();
-            var outputTypeAccess = outputTypeSymbol.GetOutputAccessibility();
+            var inputTypeAccess = inputTypeSymbol.GetVisibility();
+            var outputTypeAccess = outputTypeSymbol.GetVisibility();
 
             var accessModifier = inputTypeAccess;
             if (outputTypeAccess < inputTypeAccess || (inputTypeAccess == Accessibility.Protected && outputTypeAccess == Accessibility.Internal))

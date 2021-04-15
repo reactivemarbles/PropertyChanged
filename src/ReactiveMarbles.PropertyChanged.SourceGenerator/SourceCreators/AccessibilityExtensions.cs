@@ -24,5 +24,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 Accessibility.ProtectedOrInternal => "protected internal",
                 _ => string.Empty,
             };
+
+        internal static bool IsPrivateOrProtected(this Accessibility accessibility) =>
+            accessibility <= Accessibility.Protected || accessibility == Accessibility.ProtectedOrInternal;
     }
 }

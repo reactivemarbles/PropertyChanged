@@ -87,7 +87,18 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             }
         }
 
-        public static Accessibility GetAccessibility(this ITypeSymbol typeSymbol)
+        public static Accessibility GetVisibility(this ITypeSymbol typeSymbol)
+        {
+            var accessibility = GetVisibilityHelper(typeSymbol);
+            if (accessibility == Accessibility.Protected && typeSymbol.DeclaredAccessibility == Accessibility.Internal)
+            {
+                return Accessibility.Internal;
+            }
+
+            return accessibility;
+        }
+
+        private static Accessibility GetVisibilityHelper(this ITypeSymbol typeSymbol)
         {
             var accessibility = typeSymbol.DeclaredAccessibility;
             typeSymbol = typeSymbol.ContainingType;
@@ -100,17 +111,6 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 }
 
                 typeSymbol = typeSymbol.ContainingType;
-            }
-
-            return accessibility;
-        }
-
-        public static Accessibility GetOutputAccessibility(this ITypeSymbol typeSymbol)
-        {
-            var accessibility = GetAccessibility(typeSymbol);
-            if (accessibility == Accessibility.Protected && typeSymbol.DeclaredAccessibility == Accessibility.Internal)
-            {
-                return Accessibility.Internal;
             }
 
             return accessibility;
