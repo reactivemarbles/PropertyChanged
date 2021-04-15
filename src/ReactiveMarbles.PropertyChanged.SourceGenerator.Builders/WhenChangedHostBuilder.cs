@@ -18,7 +18,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
     public class WhenChangedHostBuilder : BaseUserSourceBuilder<WhenChangedHostBuilder>
     {
         private Accessibility _propertyAccess;
-        private string _propertyTypeName;
+        private Func<string> _propertyTypeNameFunc;
         private string _invocation;
 
         /// <summary>
@@ -27,13 +27,14 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         public WhenChangedHostBuilder()
         {
             _propertyAccess = Accessibility.Public;
+            _propertyTypeNameFunc = () => "string";
             WithInvocation(InvocationKind.MemberAccess, ReceiverKind.This, x => x.Value);
         }
 
         /// <summary>
         /// Gets the type name of the <b>Value</b> property.
         /// </summary>
-        public string ValuePropertyTypeName => _propertyTypeName;
+        public string ValuePropertyTypeName => _propertyTypeNameFunc.Invoke();
 
         /// <summary>
         /// Sets the type of the <b>Value</b> property.
@@ -42,7 +43,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         /// <returns>A reference to this builder.</returns>
         public WhenChangedHostBuilder WithPropertyType(BaseUserSourceBuilder value)
         {
-            _propertyTypeName = value.GetTypeName();
+            _propertyTypeNameFunc = () => value.GetTypeName();
             return this;
         }
 
@@ -53,7 +54,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         /// <returns>A reference to this builder.</returns>
         public WhenChangedHostBuilder WithPropertyType(string value)
         {
-            _propertyTypeName = value;
+            _propertyTypeNameFunc = () => value;
             return this;
         }
 
@@ -138,7 +139,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         protected override string CreateClass(string nestedClasses)
         {
             var propertyAccess = _propertyAccess.ToFriendlyString();
-            var propertyTypeName = _propertyTypeName.Replace('+', '.');
+            var propertyTypeName = _propertyTypeNameFunc.Invoke();
+            propertyTypeName = propertyTypeName.Replace('+', '.');
 
             return $@"
     {ClassAccess.ToFriendlyString()} partial class {ClassName} : INotifyPropertyChanged
