@@ -40,7 +40,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
             set
             {
                 _child = value;
-                ReflectionUtil.SetProperty(Source, nameof(Child), value.Source);
+                ReflectionUtil.SetProperty(Source, nameof(Child), value?.Source);
             }
         }
 
