@@ -283,12 +283,16 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             InvocationExpression(
                 MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
-                    sourceInvoke,
-                    "Select"),
-                new[]
-                {
-                    Argument(SimpleLambdaExpression(Parameter(inputName), ObservableNotifyPropertyChanged(returnType, inputName, memberName)))
-                });
+                    InvocationExpression(
+                        MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            sourceInvoke,
+                            "Select"),
+                        new[]
+                        {
+                            Argument(SimpleLambdaExpression(Parameter(inputName), ObservableNotifyPropertyChanged(returnType, inputName, memberName)))
+                        }),
+                    "Switch"));
 
         public static InvocationExpressionSyntax GetObservableChain(string inputName, List<ExpressionChain> members)
         {
