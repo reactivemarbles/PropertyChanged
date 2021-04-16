@@ -32,7 +32,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
         private static ClassDeclarationSyntax Create(BindInvocationInfo classDatum)
         {
-            var visibility = new[] { SyntaxKind.PublicKeyword, SyntaxKind.StaticKeyword, SyntaxKind.PartialKeyword };
+            _ = new[] { SyntaxKind.PublicKeyword, SyntaxKind.StaticKeyword, SyntaxKind.PartialKeyword };
 
             return default;
         }

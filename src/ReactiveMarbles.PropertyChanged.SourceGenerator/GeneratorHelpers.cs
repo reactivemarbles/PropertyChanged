@@ -67,8 +67,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         public static MethodDatum CreateSingleExpressionMethodDatum(List<ExpressionArgument> outputTypeGroup)
         {
             MethodDatum methodDatum = null;
-
-            var (lambdaBodyString, expressionChain, inputTypeSymbol, outputTypeSymbol, containsPrivateOrProtectedMember) = outputTypeGroup[0];
+            var (_, expressionChain, inputTypeSymbol, outputTypeSymbol, _) = outputTypeGroup[0];
             var (inputTypeName, outputTypeName) = (inputTypeSymbol.ToDisplayString(), outputTypeSymbol.ToDisplayString());
 
             var accessModifier = inputTypeSymbol.DeclaredAccessibility;
