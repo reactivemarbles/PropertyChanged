@@ -2,11 +2,7 @@
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
-using System;
-
 using BenchmarkDotNet.Running;
-
-using ReactiveMarbles.PropertyChanged.SourceGenerator.Builders;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Benchmarks
 {

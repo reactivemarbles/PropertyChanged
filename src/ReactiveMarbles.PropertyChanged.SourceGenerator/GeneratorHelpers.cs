@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -120,8 +119,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         public static MultiExpressionMethodDatum GetMultiExpression(IMethodSymbol methodSymbol)
         {
             var inputTypeSymbol = methodSymbol.TypeArguments[0];
-            var inputTypeAccess = inputTypeSymbol.GetVisibility();
-            var accessModifier = inputTypeAccess;
+            var accessModifier = inputTypeSymbol.GetVisibility();
 
             for (int i = 1; i < methodSymbol.TypeArguments.Length; ++i)
             {

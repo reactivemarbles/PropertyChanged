@@ -2,10 +2,8 @@
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -17,6 +15,13 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
     internal static class RoslynHelpers
     {
+        /// <summary>
+        /// Generates:
+        /// [source].WhenChanged(expressionName).
+        /// </summary>
+        /// <param name="expressionName">The expression.</param>
+        /// <param name="source">The source variable.</param>
+        /// <returns>The invocation.</returns>
         public static InvocationExpressionSyntax InvokeWhenChanged(string expressionName, string source) =>
             InvocationExpression(
                 MemberAccessExpression(

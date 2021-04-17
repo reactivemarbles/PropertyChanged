@@ -3,9 +3,7 @@
 // See the LICENSE file in the project root for full license information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 using Microsoft.CodeAnalysis;
 
@@ -41,7 +39,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         /// <param name="propertyAccess">propertyAccess.</param>
         [Theory]
         [MemberData(nameof(AccessibilityTestCases.GetValidAccessModifierCombinations), MemberType = typeof(AccessibilityTestCases))]
-        public void NoDiagnostics_StringBuilder(Accessibility hostContainerTypeAccess, Accessibility hostTypeAccess, Accessibility propertyTypeAccess, Accessibility propertyAccess)
+        public void NoDiagnostics(Accessibility hostContainerTypeAccess, Accessibility hostTypeAccess, Accessibility propertyTypeAccess, Accessibility propertyAccess)
         {
             NoDiagnosticTest(hostContainerTypeAccess, hostTypeAccess, propertyTypeAccess, propertyAccess, true);
         }
