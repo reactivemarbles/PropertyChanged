@@ -2,6 +2,8 @@
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
+using System;
+
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
@@ -48,7 +50,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Benchmarks
         [BenchmarkCategory("Change Depth 1")]
         public void Depth1WhenChangedRoslyn()
         {
-            _ = CompilationUtil.RunGenerators(Compilation, out _, new Generator(true));
+            var newCompilation = CompilationUtil.RunGenerators(Compilation, out _, new Generator(true));
         }
         [GlobalSetup(Targets = new[] { nameof(Depth1WhenChangedStringBuilder) })]
         public void Depth1WhenChangedSetupStringBuilder()
@@ -68,7 +70,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Benchmarks
         [BenchmarkCategory("Change Depth 1")]
         public void Depth1WhenChangedStringBuilder()
         {
-            _ = CompilationUtil.RunGenerators(Compilation, out _, new Generator(false));
+            var newCompilation = CompilationUtil.RunGenerators(Compilation, out _, new Generator(false));
         }
         [GlobalSetup(Targets = new[] { nameof(Depth2WhenChangedRoslyn) })]
         public void Depth2WhenChangedSetupRoslyn()
@@ -88,7 +90,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Benchmarks
         [BenchmarkCategory("Change Depth 2")]
         public void Depth2WhenChangedRoslyn()
         {
-            _ = CompilationUtil.RunGenerators(Compilation, out _, new Generator(true));
+            var newCompilation = CompilationUtil.RunGenerators(Compilation, out _, new Generator(true));
         }
         [GlobalSetup(Targets = new[] { nameof(Depth2WhenChangedStringBuilder) })]
         public void Depth2WhenChangedSetupStringBuilder()
@@ -108,7 +110,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Benchmarks
         [BenchmarkCategory("Change Depth 2")]
         public void Depth2WhenChangedStringBuilder()
         {
-            _ = CompilationUtil.RunGenerators(Compilation, out _, new Generator(false));
+            var newCompilation = CompilationUtil.RunGenerators(Compilation, out _, new Generator(false));
         }
         [GlobalSetup(Targets = new[] { nameof(Depth10WhenChangedRoslyn) })]
         public void Depth10WhenChangedSetupRoslyn()
@@ -128,7 +130,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Benchmarks
         [BenchmarkCategory("Change Depth 10")]
         public void Depth10WhenChangedRoslyn()
         {
-            _ = CompilationUtil.RunGenerators(Compilation, out _, new Generator(true));
+            var newCompilation = CompilationUtil.RunGenerators(Compilation, out _, new Generator(true));
         }
         [GlobalSetup(Targets = new[] { nameof(Depth10WhenChangedStringBuilder) })]
         public void Depth10WhenChangedSetupStringBuilder()
@@ -148,7 +150,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Benchmarks
         [BenchmarkCategory("Change Depth 10")]
         public void Depth10WhenChangedStringBuilder()
         {
-            _ = CompilationUtil.RunGenerators(Compilation, out _, new Generator(false));
+            var newCompilation = CompilationUtil.RunGenerators(Compilation, out _, new Generator(false));
         }
         [GlobalSetup(Targets = new[] { nameof(Depth20WhenChangedRoslyn) })]
         public void Depth20WhenChangedSetupRoslyn()
@@ -168,7 +170,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Benchmarks
         [BenchmarkCategory("Change Depth 20")]
         public void Depth20WhenChangedRoslyn()
         {
-            _ = CompilationUtil.RunGenerators(Compilation, out _, new Generator(true));
+            var newCompilation = CompilationUtil.RunGenerators(Compilation, out _, new Generator(true));
         }
         [GlobalSetup(Targets = new[] { nameof(Depth20WhenChangedStringBuilder) })]
         public void Depth20WhenChangedSetupStringBuilder()
@@ -188,7 +190,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Benchmarks
         [BenchmarkCategory("Change Depth 20")]
         public void Depth20WhenChangedStringBuilder()
         {
-            _ = CompilationUtil.RunGenerators(Compilation, out _, new Generator(false));
+            var newCompilation = CompilationUtil.RunGenerators(Compilation, out _, new Generator(false));
         }
 
     }
