@@ -41,7 +41,6 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
                         if (!isValid)
                         {
-                            context.ReportDiagnostic(DiagnosticWarnings.InvalidExpression, argument.GetLocation());
                             continue;
                         }
 
