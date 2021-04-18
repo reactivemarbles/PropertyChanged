@@ -106,14 +106,19 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         public static bool GetExpression(GeneratorExecutionContext context, LambdaExpressionSyntax lambdaExpression, Compilation compilation, SemanticModel model, out ExpressionArgument expressionArgument)
         {
             var expressionChain = GetExpressionChain(context, lambdaExpression, model);
-            var lambdaInputType = expressionChain[0].InputType;
-            var lambdaOutputType = expressionChain[expressionChain.Count - 1].OutputType;
-            var inputTypeAccess = lambdaInputType.GetVisibility();
 
-            var containsPrivateOrProtectedMember =
-                inputTypeAccess.IsPrivateOrProtected() ||
-                ContainsPrivateOrProtectedMember(compilation, model, lambdaExpression);
-            expressionArgument = new ExpressionArgument(lambdaExpression.Body.ToString(), expressionChain, lambdaInputType, lambdaOutputType, containsPrivateOrProtectedMember);
+            expressionArgument = null;
+            if (expressionChain != null)
+            {
+                var lambdaInputType = expressionChain[0].InputType;
+                var lambdaOutputType = expressionChain[expressionChain.Count - 1].OutputType;
+                var inputTypeAccess = lambdaInputType.GetVisibility();
+
+                var containsPrivateOrProtectedMember =
+                    inputTypeAccess.IsPrivateOrProtected() ||
+                    ContainsPrivateOrProtectedMember(compilation, model, lambdaExpression);
+                expressionArgument = new ExpressionArgument(lambdaExpression.Body.ToString(), expressionChain, lambdaInputType, lambdaOutputType, containsPrivateOrProtectedMember);
+            }
 
             return expressionChain != null;
         }
