@@ -44,7 +44,18 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                             continue;
                         }
 
-                        yield return new WhenChangedExpressionInvocationInfo(expressionArgument.InputType, !expressionArgument.ContainsPrivateOrProtectedMember, expressionArgument);
+                        // this.WhenChanged(...) and instance.WhenChanged(...) MethodKind = MethodKind.ReducedExtension
+                        // NotifyPropertyChangedExtensions.WhenChanged(...) MethodKind = MethodKind.Ordinary
+                        // An alternative way is checking if methodSymbol.ReceiverType.Name == NotifyPropertyChangedExtensions.
+                        var isExplicitInvocation = methodSymbol.MethodKind == MethodKind.Ordinary;
+
+                        if (isExplicitInvocation && expressionArgument.ContainsPrivateOrProtectedMember)
+                        {
+                            context.ReportDiagnostic(DiagnosticWarnings.UnableToGenerateExtension, invocationExpression.GetLocation());
+                            break;
+                        }
+
+                        yield return new WhenChangedExpressionInvocationInfo(expressionArgument.InputType, !expressionArgument.ContainsPrivateOrProtectedMember, isExplicitInvocation, expressionArgument);
                     }
                     else
                     {

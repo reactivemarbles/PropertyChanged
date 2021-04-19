@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for full license information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
 using Microsoft.CodeAnalysis;
@@ -14,26 +13,78 @@ using Xunit.Abstractions;
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
 {
     /// <summary>
-    /// Source generator tets.
+    /// WhenChanged tests.
     /// </summary>
-    public partial class WhenChangedGeneratorTests
+    public abstract partial class WhenChangedGeneratorTestBase
     {
         private readonly ITestOutputHelper _testOutputHelper;
+        private readonly bool _useRoslyn;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="WhenChangedGeneratorTests"/> class.
+        /// Initializes a new instance of the <see cref="WhenChangedGeneratorTestBase"/> class.
         /// </summary>
-        /// <param name="testOutputHelper">The output provided by xUnit.</param>
-        public WhenChangedGeneratorTests(ITestOutputHelper testOutputHelper)
+        /// <param name="testOutputHelper">The logger provided by xUnit.</param>
+        /// <param name="useRoslyn">A value indicating whether the Roslyn implementation should be used.</param>
+        public WhenChangedGeneratorTestBase(ITestOutputHelper testOutputHelper, bool useRoslyn)
         {
             _testOutputHelper = testOutputHelper;
+            _useRoslyn = useRoslyn;
+        }
+
+        /// <summary>
+        /// Make sure the ReceiverKind.Instance is handled correctly.
+        /// </summary>
+        /// <param name="invocationKind">The kind of invocation.</param>
+        [Theory]
+        [InlineData(InvocationKind.MemberAccess)]
+        [InlineData(InvocationKind.Explicit)]
+        public void NoDiagnostics_InstanceReceiverKind(InvocationKind invocationKind)
+        {
+            var hostPropertyTypeInfo = new EmptyClassBuilder()
+                .WithClassAccess(Accessibility.Public);
+            var hostTypeInfo = new WhenChangedHostBuilder()
+                .WithClassName("Host")
+                .WithInvocation(invocationKind, ReceiverKind.Instance, x => x.Value)
+                .WithClassAccess(Accessibility.Public)
+                .WithPropertyType(hostPropertyTypeInfo)
+                .WithPropertyAccess(Accessibility.Public);
+
+            AssertTestCase_MultiExpression(hostTypeInfo, hostPropertyTypeInfo, typesHaveSameRoot: false);
+        }
+
+        /// <summary>
+        /// Make sure explicit invocations are handled correctly for visible types and properties.
+        /// </summary>
+        /// <param name="hostTypeAccess">The access modifier of the host type.</param>
+        /// <param name="propertyTypeAccess">The access modifier of the Value property type on the host.</param>
+        /// <param name="propertyAccess">The access modifier of the host properties.</param>
+        [Theory]
+        [InlineData(Accessibility.Public, Accessibility.Public, Accessibility.Public)]
+        [InlineData(Accessibility.Public, Accessibility.Public, Accessibility.Internal)]
+        [InlineData(Accessibility.Public, Accessibility.Internal, Accessibility.Internal)]
+        [InlineData(Accessibility.Internal, Accessibility.Public, Accessibility.Public)]
+        [InlineData(Accessibility.Internal, Accessibility.Public, Accessibility.Internal)]
+        [InlineData(Accessibility.Internal, Accessibility.Internal, Accessibility.Public)]
+        [InlineData(Accessibility.Internal, Accessibility.Internal, Accessibility.Internal)]
+        public void NoDiagnostics_ExplicitInvocation_MultiExpression(Accessibility hostTypeAccess, Accessibility propertyTypeAccess, Accessibility propertyAccess)
+        {
+            var hostPropertyTypeInfo = new EmptyClassBuilder()
+                .WithClassAccess(propertyTypeAccess);
+            var hostTypeInfo = new WhenChangedHostBuilder()
+                .WithClassName("Host")
+                .WithInvocation(InvocationKind.Explicit, ReceiverKind.This, x => x.Child, x => x.Value, (a, b) => "result" + a + b)
+                .WithClassAccess(hostTypeAccess)
+                .WithPropertyType(hostPropertyTypeInfo)
+                .WithPropertyAccess(propertyAccess);
+
+            AssertTestCase_MultiExpression(hostTypeInfo, hostPropertyTypeInfo, typesHaveSameRoot: false);
         }
 
         /// <summary>
         /// Make sure namespaces are handled correctly.
         /// </summary>
-        /// <param name="hostTypeNamespace">The namespace name containing the host.</param>
-        /// <param name="hostPropertyTypeNamespace">The namespace name containing the property type.</param>
+        /// <param name="hostTypeNamespace">The namespace containing the host.</param>
+        /// <param name="hostPropertyTypeNamespace">The namespace containing the property type.</param>
         [Theory]
         [InlineData(null, null)]
         [InlineData("HostNamespace", "CustomNamespace")]
@@ -52,27 +103,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .WithPropertyAccess(Accessibility.Public)
                 .WithNamespace(hostTypeNamespace);
 
-            var fixture = WhenChangedFixture.Create(hostTypeInfo, _testOutputHelper, hostPropertyTypeInfo.BuildRoot());
-            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, useRoslyn: true, saveCompilation: false);
-
-            Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
-            Assert.Empty(compilationDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
-
-            string Convert(WhenChangedHostProxy host)
-            {
-                return "result" + host.Child + host.Value;
-            }
-
-            var host = fixture.NewHostInstance();
-            host.Value = fixture.NewValuePropertyInstance();
-            var observable = host.GetWhenChangedObservable(_ => _testOutputHelper.WriteLine(fixture.Sources));
-            object value = null;
-            observable.Subscribe(x => value = x);
-            Assert.Equal(Convert(host), value);
-            host.Value = fixture.NewValuePropertyInstance();
-            Assert.Equal(Convert(host), value);
-            host.Value = null;
-            Assert.Equal(Convert(host), value);
+            AssertTestCase_MultiExpression(hostTypeInfo, hostPropertyTypeInfo, typesHaveSameRoot: false);
         }
 
         /// <summary>
@@ -94,27 +125,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .WithPropertyType(hostPropertyTypeInfo)
                 .WithPropertyAccess(Accessibility.Public);
 
-            var fixture = WhenChangedFixture.Create(hostTypeInfo, _testOutputHelper, hostPropertyTypeInfo.BuildRoot());
-            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, useRoslyn: true, saveCompilation: false);
-
-            Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
-            Assert.Empty(compilationDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
-
-            string Convert(WhenChangedHostProxy host)
-            {
-                return "result" + host.Child + host.Value;
-            }
-
-            var host = fixture.NewHostInstance();
-            host.Value = fixture.NewValuePropertyInstance();
-            var observable = host.GetWhenChangedObservable(_ => _testOutputHelper.WriteLine(fixture.Sources));
-            object value = null;
-            observable.Subscribe(x => value = x);
-            Assert.Equal(Convert(host), value);
-            host.Value = fixture.NewValuePropertyInstance();
-            Assert.Equal(Convert(host), value);
-            host.Value = null;
-            Assert.Equal(Convert(host), value);
+            AssertTestCase_MultiExpression(hostTypeInfo, hostPropertyTypeInfo, typesHaveSameRoot: false);
         }
 
         /// <summary>
@@ -136,7 +147,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .WithPropertyAccess(Accessibility.Public);
 
             var fixture = WhenChangedFixture.Create(hostTypeInfo, _testOutputHelper, hostPropertyTypeInfo.BuildRoot());
-            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, useRoslyn: true, saveCompilation: false);
+            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, _useRoslyn, saveCompilation: false);
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
             Assert.Empty(compilationDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -178,7 +189,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .WithPropertyAccess(Accessibility.Public);
 
             var fixture = WhenChangedFixture.Create(hostTypeInfo, _testOutputHelper, hostPropertyTypeInfo.BuildRoot());
-            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, useRoslyn: true, saveCompilation: false);
+            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, _useRoslyn, saveCompilation: false);
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
             Assert.Empty(compilationDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -204,34 +215,15 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         }
 
         /// <summary>
-        /// Tests that no diagnostics are reported when property access modifier is private.
+        /// Make sure all possible combinations of access modifiers result in successful generation.
         /// </summary>
-        /// <param name="hostContainerTypeAccess">outerClassAccess.</param>
-        /// <param name="hostTypeAccess">hostClassAccess.</param>
-        /// <param name="propertyTypeAccess">outputClassAccess.</param>
-        /// <param name="propertyAccess">propertyAccess.</param>
+        /// <param name="hostContainerTypeAccess">The access modifier of the type containing the host type.</param>
+        /// <param name="hostTypeAccess">The access modifier of the host type.</param>
+        /// <param name="propertyTypeAccess">The access modifier of the Value property type on the host.</param>
+        /// <param name="propertyAccess">The access modifier of the host properties.</param>
         [Theory]
         [MemberData(nameof(AccessibilityTestCases.GetValidAccessModifierCombinations), MemberType = typeof(AccessibilityTestCases))]
-        public void NoDiagnostics_AccessModifierCombinations_Roslyn(Accessibility hostContainerTypeAccess, Accessibility hostTypeAccess, Accessibility propertyTypeAccess, Accessibility propertyAccess)
-        {
-            NoDiagnostics_AccessModifierCombinations(hostContainerTypeAccess, hostTypeAccess, propertyTypeAccess, propertyAccess, true);
-        }
-
-        /// <summary>
-        /// Tests that no diagnostics are reported when property access modifier is private.
-        /// </summary>
-        /// <param name="hostContainerTypeAccess">outerClassAccess.</param>
-        /// <param name="hostTypeAccess">hostClassAccess.</param>
-        /// <param name="propertyTypeAccess">outputClassAccess.</param>
-        /// <param name="propertyAccess">propertyAccess.</param>
-        [Theory]
-        [MemberData(nameof(AccessibilityTestCases.GetValidAccessModifierCombinations), MemberType = typeof(AccessibilityTestCases))]
-        public void NoDiagnostics_AccessModifierCombinations_StringBuilder(Accessibility hostContainerTypeAccess, Accessibility hostTypeAccess, Accessibility propertyTypeAccess, Accessibility propertyAccess)
-        {
-            NoDiagnostics_AccessModifierCombinations(hostContainerTypeAccess, hostTypeAccess, propertyTypeAccess, propertyAccess, false);
-        }
-
-        private void NoDiagnostics_AccessModifierCombinations(Accessibility hostContainerTypeAccess, Accessibility hostTypeAccess, Accessibility propertyTypeAccess, Accessibility propertyAccess, bool useRoslyn)
+        public void NoDiagnostics_AccessModifierCombinations(Accessibility hostContainerTypeAccess, Accessibility hostTypeAccess, Accessibility propertyTypeAccess, Accessibility propertyAccess)
         {
             var hostPropertyTypeInfo = new EmptyClassBuilder()
                 .WithClassAccess(propertyTypeAccess);
@@ -247,13 +239,42 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .WithClassAccess(hostContainerTypeAccess)
                 .AddNestedClass(hostTypeInfo);
 
-            var fixture = WhenChangedFixture.Create(hostTypeInfo, _testOutputHelper);
-            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, useRoslyn, saveCompilation: false);
+            AssertTestCase_MultiExpression(hostTypeInfo, hostPropertyTypeInfo, typesHaveSameRoot: true);
+        }
+
+        private void AssertTestCase_SingleExpression(WhenChangedHostBuilder hostTypeInfo, EmptyClassBuilder hostPropertyTypeInfo, bool typesHaveSameRoot)
+        {
+            hostTypeInfo.WithInvocation(InvocationKind.MemberAccess, ReceiverKind.This, x => x.Value);
+            var propertyTypeSource = typesHaveSameRoot ? string.Empty : hostPropertyTypeInfo.BuildRoot();
+            var fixture = WhenChangedFixture.Create(hostTypeInfo, _testOutputHelper, propertyTypeSource);
+            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, _useRoslyn, saveCompilation: false);
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
             Assert.Empty(compilationDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
 
-            string Convert(WhenChangedHostProxy host)
+            var host = fixture.NewHostInstance();
+            host.Value = fixture.NewValuePropertyInstance();
+            var observable = host.GetWhenChangedObservable(_ => _testOutputHelper.WriteLine(fixture.Sources));
+            object value = null;
+            observable.Subscribe(x => value = x);
+            Assert.Equal(host.Value, value);
+            host.Value = fixture.NewValuePropertyInstance();
+            Assert.Equal(host.Value, value);
+            host.Value = null;
+            Assert.Equal(host.Value, value);
+        }
+
+        private void AssertTestCase_MultiExpression(WhenChangedHostBuilder hostTypeInfo, EmptyClassBuilder hostPropertyTypeInfo, bool typesHaveSameRoot)
+        {
+            hostTypeInfo.WithInvocation(InvocationKind.MemberAccess, ReceiverKind.This, x => x.Child, x => x.Value, (a, b) => "result" + a + b);
+            var propertyTypeSource = typesHaveSameRoot ? string.Empty : hostPropertyTypeInfo.BuildRoot();
+            var fixture = WhenChangedFixture.Create(hostTypeInfo, _testOutputHelper, propertyTypeSource);
+            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, _useRoslyn, saveCompilation: false);
+
+            Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
+            Assert.Empty(compilationDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
+
+            static string Convert(WhenChangedHostProxy host)
             {
                 return "result" + host.Child + host.Value;
             }

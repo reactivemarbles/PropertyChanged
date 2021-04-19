@@ -11,9 +11,9 @@ using Xunit;
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
 {
     /// <summary>
-    /// Source generator tets.
+    /// WhenChanged tests.
     /// </summary>
-    public partial class WhenChangedGeneratorTests
+    public partial class WhenChangedGeneratorTestBase
     {
         private const string WhenChangedPlaceholder = "[whenchanged_invocation]";
         private const string SourceTemplate = @"
@@ -45,15 +45,12 @@ public class HostClass : INotifyPropertyChanged
         /// Yes: this.WhenChanged(x => x.Value).
         /// No: this.WhenChanged(MyExpression).
         /// </summary>
-        /// <param name="useRoslyn">A value indicating whether the Roslyn implementation should be used.</param>
-        [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public void RXM001_PropertyInvocationUsedAsAnExpressionArgument(bool useRoslyn)
+        [Fact]
+        public void RXM001_PropertyInvocationUsedAsAnExpressionArgument()
         {
             var invocation = "this.WhenChanged(MyExpression)";
             var source = SourceTemplate.Replace(WhenChangedPlaceholder, invocation);
-            AssertDiagnostic(source, DiagnosticWarnings.ExpressionMustBeInline, useRoslyn);
+            AssertDiagnostic(source, DiagnosticWarnings.ExpressionMustBeInline, _useRoslyn);
         }
 
         /// <summary>
@@ -61,15 +58,12 @@ public class HostClass : INotifyPropertyChanged
         /// Yes: this.WhenChanged(x => x.Value).
         /// No: this.WhenChanged(MyExpression).
         /// </summary>
-        /// <param name="useRoslyn">A value indicating whether the Roslyn implementation should be used.</param>
-        [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public void RXM001_PropertyInvocationUsedAsAnExpressionArgument_MultiExpressionMultiChain(bool useRoslyn)
+        [Fact]
+        public void RXM001_PropertyInvocationUsedAsAnExpressionArgument_MultiExpressionMultiChain()
         {
             var invocation = "this.WhenChanged(x => x.Child.Value, MyExpression, (a, b) => $\"{a}-{b}\")";
             var source = SourceTemplate.Replace(WhenChangedPlaceholder, invocation);
-            AssertDiagnostic(source, DiagnosticWarnings.ExpressionMustBeInline, useRoslyn);
+            AssertDiagnostic(source, DiagnosticWarnings.ExpressionMustBeInline, _useRoslyn);
         }
 
         /// <summary>
@@ -77,15 +71,12 @@ public class HostClass : INotifyPropertyChanged
         /// Yes: this.WhenChanged(x => x.Value).
         /// No: this.WhenChanged(GetMyExpression()).
         /// </summary>
-        /// <param name="useRoslyn">A value indicating whether the Roslyn implementation should be used.</param>
-        [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public void RXM001_MethodInvocationUsedAsAnExpressionArgument(bool useRoslyn)
+        [Fact]
+        public void RXM001_MethodInvocationUsedAsAnExpressionArgument()
         {
             var invocation = "this.WhenChanged(GetMyExpression())";
             var source = SourceTemplate.Replace(WhenChangedPlaceholder, invocation);
-            AssertDiagnostic(source, DiagnosticWarnings.ExpressionMustBeInline, useRoslyn);
+            AssertDiagnostic(source, DiagnosticWarnings.ExpressionMustBeInline, _useRoslyn);
         }
 
         /// <summary>
@@ -93,15 +84,12 @@ public class HostClass : INotifyPropertyChanged
         /// Yes: this.WhenChanged(x => x.Value).
         /// No: this.WhenChanged(GetMyExpression()).
         /// </summary>
-        /// <param name="useRoslyn">A value indicating whether the Roslyn implementation should be used.</param>
-        [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public void RXM001_MethodInvocationUsedAsAnExpressionArgument_MultiExpressionMultiChain(bool useRoslyn)
+        [Fact]
+        public void RXM001_MethodInvocationUsedAsAnExpressionArgument_MultiExpressionMultiChain()
         {
             var invocation = "this.WhenChanged(x => x.Child.Value, GetMyExpression(), (a, b) => $\"{a}-{b}\")";
             var source = SourceTemplate.Replace(WhenChangedPlaceholder, invocation);
-            AssertDiagnostic(source, DiagnosticWarnings.ExpressionMustBeInline, useRoslyn);
+            AssertDiagnostic(source, DiagnosticWarnings.ExpressionMustBeInline, _useRoslyn);
         }
 
         /// <summary>
@@ -110,15 +98,12 @@ public class HostClass : INotifyPropertyChanged
         /// No: this.WhenChanged(x => x.GetChild().Value).
         /// No: this.WhenChanged(x => x.Child.GetValue()).
         /// </summary>
-        /// <param name="useRoslyn">A value indicating whether the Roslyn implementation should be used.</param>
-        [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public void RXM002_MethodInvocationUsedInExpressionChain(bool useRoslyn)
+        [Fact]
+        public void RXM002_MethodInvocationUsedInExpressionChain()
         {
             var invocation = "this.WhenChanged(x => x.GetValue())";
             var source = SourceTemplate.Replace(WhenChangedPlaceholder, invocation);
-            AssertDiagnostic(source, DiagnosticWarnings.OnlyPropertyAndFieldAccessAllowed, useRoslyn);
+            AssertDiagnostic(source, DiagnosticWarnings.OnlyPropertyAndFieldAccessAllowed, _useRoslyn);
         }
 
         /// <summary>
@@ -127,15 +112,12 @@ public class HostClass : INotifyPropertyChanged
         /// No: this.WhenChanged(x => x.GetChild().Value).
         /// No: this.WhenChanged(x => x.Child.GetValue()).
         /// </summary>
-        /// <param name="useRoslyn">A value indicating whether the Roslyn implementation should be used.</param>
-        [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public void RXM002_MethodInvocationUsedInExpressionChain_MultiExpressionMultiChain(bool useRoslyn)
+        [Fact]
+        public void RXM002_MethodInvocationUsedInExpressionChain_MultiExpressionMultiChain()
         {
             var invocation = "this.WhenChanged(x => x.Value, x => x.GetChild().Value, (a, b) => $\"{a}-{b}\")";
             var source = SourceTemplate.Replace(WhenChangedPlaceholder, invocation);
-            AssertDiagnostic(source, DiagnosticWarnings.OnlyPropertyAndFieldAccessAllowed, useRoslyn);
+            AssertDiagnostic(source, DiagnosticWarnings.OnlyPropertyAndFieldAccessAllowed, _useRoslyn);
         }
 
         /// <summary>
@@ -144,15 +126,12 @@ public class HostClass : INotifyPropertyChanged
         /// No: this.WhenChanged(x => x.GetChild[0].Value).
         /// No: this.WhenChanged(x => x.Child.GetValue["key"]).
         /// </summary>
-        /// <param name="useRoslyn">A value indicating whether the Roslyn implementation should be used.</param>
-        [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public void RXM002_IndexerAccessUsedInExpressionChain(bool useRoslyn)
+        [Fact]
+        public void RXM002_IndexerAccessUsedInExpressionChain()
         {
             var invocation = "this.WhenChanged(x => x.Values[0])";
             var source = SourceTemplate.Replace(WhenChangedPlaceholder, invocation);
-            AssertDiagnostic(source, DiagnosticWarnings.OnlyPropertyAndFieldAccessAllowed, useRoslyn);
+            AssertDiagnostic(source, DiagnosticWarnings.OnlyPropertyAndFieldAccessAllowed, _useRoslyn);
         }
 
         /// <summary>
@@ -161,15 +140,12 @@ public class HostClass : INotifyPropertyChanged
         /// No: this.WhenChanged(x => x.GetChild[0].Value).
         /// No: this.WhenChanged(x => x.Child.GetValue["key"]).
         /// </summary>
-        /// <param name="useRoslyn">A value indicating whether the Roslyn implementation should be used.</param>
-        [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public void RXM002_IndexerAccessUsedInExpressionChain_MultiExpressionMultiChain(bool useRoslyn)
+        [Fact]
+        public void RXM002_IndexerAccessUsedInExpressionChain_MultiExpressionMultiChain()
         {
             var invocation = "this.WhenChanged(x => x.Value, x => x.Children[0].Value, (a, b) => $\"{a}-{b}\")";
             var source = SourceTemplate.Replace(WhenChangedPlaceholder, invocation);
-            AssertDiagnostic(source, DiagnosticWarnings.OnlyPropertyAndFieldAccessAllowed, useRoslyn);
+            AssertDiagnostic(source, DiagnosticWarnings.OnlyPropertyAndFieldAccessAllowed, _useRoslyn);
         }
 
         /// <summary>
@@ -177,15 +153,12 @@ public class HostClass : INotifyPropertyChanged
         /// Yes: this.WhenChanged(x => x.Child.Value).
         /// No: this.WhenChanged(x => Child.Value).
         /// </summary>
-        /// <param name="useRoslyn">A value indicating whether the Roslyn implementation should be used.</param>
-        [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public void RXM003_LambdaParameterNotUsed(bool useRoslyn)
+        [Fact]
+        public void RXM003_LambdaParameterNotUsed()
         {
             var invocation = "this.WhenChanged(x => Value)";
             var source = SourceTemplate.Replace(WhenChangedPlaceholder, invocation);
-            AssertDiagnostic(source, DiagnosticWarnings.LambdaParameterMustBeUsed, useRoslyn);
+            AssertDiagnostic(source, DiagnosticWarnings.LambdaParameterMustBeUsed, _useRoslyn);
         }
 
         /// <summary>
@@ -193,15 +166,64 @@ public class HostClass : INotifyPropertyChanged
         /// Yes: this.WhenChanged(x => x.Child.Value).
         /// No: this.WhenChanged(x => Child.Value).
         /// </summary>
-        /// <param name="useRoslyn">A value indicating whether the Roslyn implementation should be used.</param>
-        [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public void RXM003_LambdaParameterNotUsed_MultiExpressionMultiChain(bool useRoslyn)
+        [Fact]
+        public void RXM003_LambdaParameterNotUsed_MultiExpressionMultiChain()
         {
             var invocation = "this.WhenChanged(x => x.Value, x => Child.Value, (a, b) => $\"{a}-{b}\")";
             var source = SourceTemplate.Replace(WhenChangedPlaceholder, invocation);
-            AssertDiagnostic(source, DiagnosticWarnings.LambdaParameterMustBeUsed, useRoslyn);
+            AssertDiagnostic(source, DiagnosticWarnings.LambdaParameterMustBeUsed, _useRoslyn);
+        }
+
+        /// <summary>
+        /// Explicit extension invocation is not possible when it involves a private/protected property.
+        /// </summary>
+        /// <param name="propertyAccess">The access modifier of the Value property in the host.</param>
+        [Theory]
+        [InlineData(Accessibility.Private)]
+        [InlineData(Accessibility.Protected)]
+        [InlineData(Accessibility.ProtectedOrInternal)]
+        [InlineData(Accessibility.ProtectedAndInternal)]
+        public void RXM006_ExplicitInvocationInvolvingNonAccessibleProperty(Accessibility propertyAccess)
+        {
+            var hostPropertyTypeInfo = new EmptyClassBuilder()
+                .WithClassAccess(Accessibility.Public);
+            var source = new WhenChangedHostBuilder()
+                .WithClassName("Host")
+                .WithInvocation(InvocationKind.Explicit, ReceiverKind.This, x => x.Value)
+                .WithClassAccess(Accessibility.Public)
+                .WithPropertyType(hostPropertyTypeInfo)
+                .WithPropertyAccess(propertyAccess)
+                .BuildRoot();
+            source += hostPropertyTypeInfo.BuildRoot();
+            AssertDiagnostic(source, DiagnosticWarnings.UnableToGenerateExtension, _useRoslyn);
+        }
+
+        /// <summary>
+        /// Explicit extension invocation is not possible when it involves a non-accessible host type.
+        /// </summary>
+        /// <param name="hostTypeAccess">The access modifier of the host type.</param>
+        [Theory]
+        [InlineData(Accessibility.Private)]
+        [InlineData(Accessibility.Protected)]
+        [InlineData(Accessibility.ProtectedOrInternal)]
+        [InlineData(Accessibility.ProtectedAndInternal)]
+        public void RXM006_ExplicitInvocationInvolvingNonAccessibleHostType(Accessibility hostTypeAccess)
+        {
+            var hostPropertyTypeInfo = new EmptyClassBuilder()
+                .WithClassAccess(Accessibility.Public);
+            var hostTypeInfo = new WhenChangedHostBuilder()
+                .WithClassName("Host")
+                .WithInvocation(InvocationKind.Explicit, ReceiverKind.This, x => x.Value)
+                .WithClassAccess(hostTypeAccess)
+                .WithPropertyType(hostPropertyTypeInfo)
+                .WithPropertyAccess(Accessibility.Public);
+            var source = new EmptyClassBuilder()
+                .WithClassName("HostContainer")
+                .WithClassAccess(Accessibility.Public)
+                .AddNestedClass(hostTypeInfo)
+                .BuildRoot();
+            source += hostPropertyTypeInfo.BuildRoot();
+            AssertDiagnostic(source, DiagnosticWarnings.UnableToGenerateExtension, _useRoslyn);
         }
 
         private static void AssertDiagnostic(string source, DiagnosticDescriptor expectedDiagnostic, bool useRoslyn)
