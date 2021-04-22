@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -12,11 +13,27 @@ using static ReactiveMarbles.PropertyChanged.SourceGenerator.SyntaxFactoryHelper
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
-    internal class RoslynBindPartialClassCreator : ISourceCreator
+    internal class RoslynBindPartialClassCreator : RoslynBindBase
     {
-        public string Create(IEnumerable<IDatum> sources)
+        public override string Create(IEnumerable<IDatum> sources)
         {
-            var members = sources.Cast<BindInvocationInfo>().Select(x => Create(x)).ToList();
+            var members = new List<MemberDeclarationSyntax>();
+
+            foreach (var group in sources
+                .OfType<PartialBindInvocationInfo>()
+                .GroupBy(x => x.NamespaceName))
+            {
+                var classes = group.Select(x => Create(x)).ToList();
+                if (!string.IsNullOrWhiteSpace(group.Key))
+                {
+                    var groupNamespace = NamespaceDeclaration(group.Key, classes, true);
+                    members.Add(groupNamespace);
+                }
+                else
+                {
+                    members.AddRange(classes);
+                }
+            }
 
             if (members.Count > 0)
             {
@@ -28,11 +45,19 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             return null;
         }
 
-        private static ClassDeclarationSyntax Create(BindInvocationInfo classDatum)
+        private static ClassDeclarationSyntax Create(PartialBindInvocationInfo classDatum)
         {
-            _ = new[] { SyntaxKind.PublicKeyword, SyntaxKind.StaticKeyword, SyntaxKind.PartialKeyword };
+            var visibility = classDatum.ViewModelArgument.InputType.DeclaredAccessibility.GetAccessibilityTokens().Concat(new[] { SyntaxKind.PartialKeyword }).ToList();
 
-            return default;
+            var currentClass = ClassDeclaration(classDatum.ClassName, visibility, Create(classDatum.ViewModelArgument, classDatum.ViewArgument, classDatum.Accessibility, classDatum.HasConverters, false).ToList(), 1);
+
+            foreach (var ancestor in classDatum.AncestorClasses)
+            {
+                visibility = ancestor.AccessModifier.GetAccessibilityTokens().Concat(new[] { SyntaxKind.PartialKeyword }).ToList();
+                currentClass = ClassDeclaration(ancestor.Name, visibility, new[] { currentClass }, 0);
+            }
+
+            return currentClass;
         }
     }
 }

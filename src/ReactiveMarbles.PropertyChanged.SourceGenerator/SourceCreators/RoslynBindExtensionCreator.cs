@@ -13,9 +13,9 @@ using static ReactiveMarbles.PropertyChanged.SourceGenerator.SyntaxFactoryHelper
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
-    internal class RoslynBindExtensionCreator : ISourceCreator
+    internal class RoslynBindExtensionCreator : RoslynBindBase
     {
-        public string Create(IEnumerable<IDatum> sources)
+        public override string Create(IEnumerable<IDatum> sources)
         {
             var members = sources.Cast<BindInvocationInfo>().Select(x => Create(x)).ToList();
 
@@ -31,121 +31,10 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
         private static ClassDeclarationSyntax Create(BindInvocationInfo classDatum)
         {
-            var visibility = new[] { SyntaxKind.PublicKeyword, SyntaxKind.StaticKeyword, SyntaxKind.PartialKeyword };
+            var visibility = new[] { SyntaxKind.InternalKeyword, SyntaxKind.StaticKeyword, SyntaxKind.PartialKeyword };
 
             // generates the BindExtensions with Bind methods overload.
-            return ClassDeclaration("BindExtensions", visibility, Create(classDatum.TargetType, classDatum.ViewModelArgument, classDatum.ViewArgument, classDatum.Accessibility, classDatum.HasConverters).ToList(), 1);
-        }
-
-        private static IEnumerable<MemberDeclarationSyntax> Create(ITypeSymbol target, ExpressionArgument viewModelArgument, ExpressionArgument viewArgument, Accessibility accessibility, bool hasConverters)
-        {
-            var statements = new List<StatementSyntax>();
-
-            var viewModelInputType = viewModelArgument.InputType.ToDisplayString();
-            var viewModelOutputType = viewModelArgument.OutputType.ToDisplayString();
-
-            var viewInputType = viewArgument.InputType.ToDisplayString();
-            var viewOutputType = viewArgument.OutputType.ToDisplayString();
-
-            // generates: var hostObs = fromObject.WhenChanged(fromProperty);
-            statements.Add(RoslynHelpers.InvokeWhenChangedVariable(viewModelOutputType, "hostObs", "fromProperty", "fromObject"));
-
-            // generates: var targetObs = targetObject.WhenChanged(toProperty).Skip(1);
-            statements.Add(RoslynHelpers.InvokeWhenChangedSkipVariable(target.ToDisplayString(), "targetObs", "toProperty", "targetObject", 1));
-
-            if (hasConverters)
-            {
-                // generates: hostObs = hostObs.Select(hostToTargetConv);
-                statements.Add(ExpressionStatement(
-                    AssignmentExpression(
-                        SyntaxKind.SimpleAssignmentExpression,
-                        "hostObs",
-                        InvocationExpression(
-                            MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, "hostObs", "Select"), new[] { Argument("hostToTargetConv") }))));
-
-                // generates: targetObs = targetObs.Select(targetToHostConv);
-                statements.Add(ExpressionStatement(
-                    AssignmentExpression(
-                        SyntaxKind.SimpleAssignmentExpression,
-                        "targetObs",
-                        InvocationExpression(
-                            MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, "targetObs", "Select"), new[] { Argument("targetToHostConv") }))));
-            }
-
-            // generates: scheduler = scheduler ?? ImmediateScheduler.Instance;
-            statements.Add(ExpressionStatement(
-                AssignmentExpression(
-                    SyntaxKind.SimpleAssignmentExpression,
-                    "scheduler",
-                    BinaryExpression(
-                        SyntaxKind.CoalesceExpression,
-                        "scheduler",
-                        MemberAccessExpression(
-                            SyntaxKind.SimpleMemberAccessExpression,
-                            "ImmediateScheduler",
-                            "Instance")))));
-
-            // generates: if (scheduler != ImmediateScheduler.Instance) { ... }
-            IfStatement(
-                BinaryExpression(
-                    SyntaxKind.NotEqualsExpression,
-                    "scheduler",
-                    MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, "ImmediateScheduler", "Instance")),
-                Block(
-                    new[]
-                    {
-                        // generates: hostObs = hostObs.ObserveOn(scheduler);
-                        ExpressionStatement(
-                            AssignmentExpression(
-                                SyntaxKind.SimpleAssignmentExpression,
-                                "hostObs",
-                                InvocationExpression(
-                                    MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, "hostObs", "ObserveOn"), new[] { Argument("scheduler") }))),
-
-                        // generates: targetObs = targetObs.ObserveOn(scheduler);
-                        ExpressionStatement(
-                            AssignmentExpression(
-                                SyntaxKind.SimpleAssignmentExpression,
-                                "targetObs",
-                                InvocationExpression(
-                                    MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, "targetObs", "ObserveOn"), new[] { Argument("scheduler") }))),
-                    },
-                    1));
-
-            // generates: return new CompositeDisposable(...);
-            statements.Add(ReturnStatement(ObjectCreationExpression(
-                "CompositeDisposable",
-                new[]
-                {
-                    // generates: hostObs.Subscribe(x => targetObject.[propertyName] = x);
-                    Argument(InvocationExpression(
-                        MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, "hostObs", "Subscribe"),
-                        new[]
-                        {
-                            Argument(SimpleLambdaExpression(
-                                Parameter("x"),
-                                AssignmentExpression(
-                                    SyntaxKind.SimpleAssignmentExpression,
-                                    MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, "targetObject", viewArgument.ExpressionChain[viewArgument.ExpressionChain.Count - 1].Name),
-                                    "x")))
-                        })),
-
-                    // generates: targetObs.Subscribe(x => fromObject.[propertyName] = x);
-                    Argument(InvocationExpression(
-                        MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, "targetObs", "Subscribe"),
-                        new[]
-                        {
-                            Argument(SimpleLambdaExpression(
-                                Parameter("x"),
-                                AssignmentExpression(
-                                    SyntaxKind.SimpleAssignmentExpression,
-                                    MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, "fromObject", viewModelArgument.ExpressionChain[viewModelArgument.ExpressionChain.Count - 1].Name),
-                                    "x")))
-                        }))
-                })));
-
-            // generates: Bind() method.
-            yield return RoslynHelpers.Bind(viewModelInputType, target.ToDisplayString(), viewInputType, viewOutputType, true, hasConverters, accessibility, Block(statements, 1));
+            return ClassDeclaration("BindExtensions", visibility, Create(classDatum.ViewModelArgument, classDatum.ViewArgument, classDatum.Accessibility, classDatum.HasConverters, true).ToList(), 1);
         }
     }
 }

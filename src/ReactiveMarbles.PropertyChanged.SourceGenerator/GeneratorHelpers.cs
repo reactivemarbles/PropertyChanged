@@ -30,6 +30,18 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             members.Reverse();
             var inputTypeSymbol = model.GetTypeInfo(expression).ConvertedType;
 
+            var current = inputTypeSymbol;
+
+            while (current != null)
+            {
+                if (current.DeclaredAccessibility.IsPrivateOrProtected())
+                {
+                    return true;
+                }
+
+                current = current.ContainingType;
+            }
+
             for (var i = members.Count - 1; i > 0; i--)
             {
                 var parent = members[i - 1];

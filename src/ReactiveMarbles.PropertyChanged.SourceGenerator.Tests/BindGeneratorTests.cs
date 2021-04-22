@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for full license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.CodeAnalysis;
@@ -31,26 +32,44 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         }
 
         /// <summary>
+        /// Gets test cases.
+        /// </summary>
+        /// <returns>Test cases.</returns>
+        public static IEnumerable<object[]> GetValidAccessModifierCombinations()
+        {
+            var testCases = AccessibilityTestCases.GetValidAccessModifierCombinations().Select(x => ((Accessibility)x[0], (Accessibility)x[1], (Accessibility)x[2], (Accessibility)x[3]));
+
+            var validViewModelAccesses = new[] { Accessibility.Public, Accessibility.Internal, Accessibility.ProtectedOrInternal };
+
+            foreach (var (hostContainerType, hostTypeAccess, _, propertyAccess) in testCases)
+            {
+                foreach (var validClassAccessibility in validViewModelAccesses)
+                {
+                    foreach (var validPropertyAccessibility in validViewModelAccesses)
+                    {
+                        yield return new object[] { hostContainerType, hostTypeAccess, propertyAccess, validClassAccessibility, validPropertyAccessibility };
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// Tests that no diagnostics are reported when property access modifier is private.
         /// </summary>
         /// <param name="hostContainerTypeAccess">outerClassAccess.</param>
         /// <param name="hostTypeAccess">hostClassAccess.</param>
-        /// <param name="propertyTypeAccess">outputClassAccess.</param>
         /// <param name="propertyAccess">propertyAccess.</param>
+        /// <param name="viewModelAccess">The view model access.</param>
+        /// <param name="viewModelPropertyAccess">The view model property access.</param>
         [Theory]
-        [MemberData(nameof(AccessibilityTestCases.GetValidAccessModifierCombinations), MemberType = typeof(AccessibilityTestCases))]
-        public void NoDiagnostics(Accessibility hostContainerTypeAccess, Accessibility hostTypeAccess, Accessibility propertyTypeAccess, Accessibility propertyAccess)
-        {
-            NoDiagnosticTest(hostContainerTypeAccess, hostTypeAccess, propertyTypeAccess, propertyAccess, true);
-        }
-
-        private void NoDiagnosticTest(Accessibility hostContainerTypeAccess, Accessibility hostTypeAccess, Accessibility propertyTypeAccess, Accessibility propertyAccess, bool useRoslyn)
+        [MemberData(nameof(AccessibilityTestCases.GetValidAccessModifierCombinations))]
+        public void NoDiagnostics(Accessibility hostContainerTypeAccess, Accessibility hostTypeAccess, Accessibility propertyAccess, Accessibility viewModelAccess, Accessibility viewModelPropertyAccess)
         {
             var viewModelHostDetails = new WhenChangedHostBuilder()
-                .WithClassAccess(propertyTypeAccess)
+                .WithClassAccess(viewModelPropertyAccess)
                 .WithInvocation(InvocationKind.MemberAccess, ReceiverKind.This, x => x.Value)
                 .WithPropertyType("string")
-                .WithPropertyAccess(propertyAccess)
+                .WithPropertyAccess(viewModelAccess)
                 .WithClassName("ViewModelHost");
 
             var hostTypeInfo = new BindHostBuilder()
@@ -68,23 +87,31 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .AddNestedClass(hostTypeInfo);
 
             var fixture = BindFixture.Create(hostTypeInfo, _testOutputHelper);
-            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, useRoslyn);
+            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, true);
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
             Assert.Empty(compilationDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
 
             var host = fixture.NewHostInstance();
-            host.Value = fixture.NewViewModelPropertyInstance();
+            host.ViewModel = fixture.NewViewModelPropertyInstance();
             var disposable = host.GetTwoWayBindSubscription(_ => _testOutputHelper.WriteLine(fixture.Sources));
 
             var viewModelObservable = host.GetViewModelWhenChangedObservable(_ => _testOutputHelper.WriteLine(fixture.Sources));
-            var viewObservable = host.GetViewWhenChangedObservable(_ => _testOutputHelper.WriteLine(fixture.Sources));
+            var viewObservable = host.GetWhenChangedObservable(_ => _testOutputHelper.WriteLine(fixture.Sources));
             object viewModelValue = null;
             object viewValue = null;
             viewModelObservable.Subscribe(x => viewModelValue = x);
             viewObservable.Subscribe(x => viewValue = x);
 
-            host.ViewModel = fixture.NewViewModelPropertyInstance();
+            host.Value = "test";
+
+            Assert.Equal("test", host.ViewModel.Value);
+
+            host.Value = "Test2";
+            Assert.Equal("Test2", host.ViewModel.Value);
+
+            host.ViewModel.Value = "Test3";
+            Assert.Equal("Test3", host.Value);
         }
     }
 }

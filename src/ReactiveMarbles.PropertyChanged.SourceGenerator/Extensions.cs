@@ -25,8 +25,27 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
            {
                null => throw new ArgumentNullException(nameof(input)),
                "" => throw new ArgumentException($"{nameof(input)} cannot be empty", nameof(input)),
-               _ => input.First().ToString().ToUpper() + input.Substring(1)
+               _ => input[0].ToString().ToUpper() + input.Substring(1)
            };
+
+        public static List<AncestorClassInfo> GetAncestors(this ITypeSymbol inputType)
+        {
+            var ancestorClasses = new List<AncestorClassInfo>();
+            var containingType = inputType.ContainingType;
+            while (containingType != null)
+            {
+                ancestorClasses.Add(new(containingType.Name, containingType.DeclaredAccessibility));
+                containingType = containingType.ContainingType;
+            }
+
+            return ancestorClasses;
+        }
+
+        public static string GetNamespace(this ITypeSymbol inputType)
+        {
+            var containingNamespace = inputType.ContainingNamespace;
+            return string.IsNullOrEmpty(containingNamespace?.Name) ? string.Empty : containingNamespace.ToDisplayString();
+        }
 
         public static void ReportDiagnostic(this GeneratorExecutionContext context, DiagnosticDescriptor descriptor, Location location = null)
         {

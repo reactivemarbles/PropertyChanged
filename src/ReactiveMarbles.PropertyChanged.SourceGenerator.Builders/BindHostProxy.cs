@@ -11,6 +11,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
     /// </summary>
     public class BindHostProxy : HostProxyBase
     {
+        private WhenChangedHostProxy _viewModelProxy;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="BindHostProxy"/> class.
         /// </summary>
@@ -23,10 +25,14 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         /// <summary>
         /// Gets or sets the view model value.
         /// </summary>
-        public object ViewModel
+        public WhenChangedHostProxy ViewModel
         {
-            get => ReflectionUtil.GetProperty(Source, nameof(ViewModel));
-            set => ReflectionUtil.SetProperty(Source, nameof(ViewModel), value);
+            get => _viewModelProxy;
+            set
+            {
+                _viewModelProxy = value;
+                ReflectionUtil.SetProperty(Source, nameof(ViewModel), value?.Source);
+            }
         }
 
         /// <summary>
@@ -61,11 +67,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         /// </summary>
         /// <param name="onError">An action to invoke when the WhenChanged implementation doesn't generate correctly.</param>
         /// <returns>An observable.</returns>
-        public IObservable<object> GetViewWhenChangedObservable(Action<Exception> onError)
+        public IObservable<object> GetWhenChangedObservable(Action<Exception> onError)
         {
             try
             {
-                return GetMethod(Source, MethodNames.GetWhenChangedViewObservable) as IObservable<object>;
+                return GetMethod(Source, MethodNames.GetWhenChangedObservable) as IObservable<object>;
             }
             catch (Exception ex)
             {

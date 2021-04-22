@@ -73,9 +73,9 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             return new BindHostProxy(CreateInstance(_hostType));
         }
 
-        public object NewViewModelPropertyInstance()
+        public WhenChangedHostProxy NewViewModelPropertyInstance()
         {
-            return CreateInstance(_viewModelPropertyType);
+            return new WhenChangedHostProxy(CreateInstance(_viewModelPropertyType));
         }
 
         public object NewValuePropertyInstance()

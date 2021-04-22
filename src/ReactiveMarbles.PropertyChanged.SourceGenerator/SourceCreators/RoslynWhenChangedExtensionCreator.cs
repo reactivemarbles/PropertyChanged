@@ -31,7 +31,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
         private static ClassDeclarationSyntax Create(ExtensionClassDatum classDatum)
         {
-            var visibility = new[] { SyntaxKind.PublicKeyword, SyntaxKind.StaticKeyword, SyntaxKind.PartialKeyword };
+            var visibility = new[] { SyntaxKind.InternalKeyword, SyntaxKind.StaticKeyword, SyntaxKind.PartialKeyword };
             return ClassDeclaration("NotifyPropertyChangedExtensions", visibility, classDatum.MethodData.SelectMany(x => Create(x)).ToList(), 1);
         }
 

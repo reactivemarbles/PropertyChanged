@@ -17,15 +17,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         /// <param name="target">The object to invoke the setter on.</param>
         /// <param name="propertyName">The name of the property.</param>
         /// <param name="value">The value to assign.</param>
-        public static void SetProperty(object target, string propertyName, object value)
-        {
-            target.GetType().InvokeMember(
-                propertyName,
-                BindingFlags.SetProperty | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public,
-                null,
-                target,
-                new object[] { value });
-        }
+        public static void SetProperty(object target, string propertyName, object value) =>
+            target.GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).SetValue(target, value);
 
         /// <summary>
         /// Gets a property on a target object.
@@ -33,14 +26,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         /// <param name="target">The object to invoke the getter on.</param>
         /// <param name="propertyName">The name of the property.</param>
         /// <returns>The value of the property.</returns>
-        public static object GetProperty(object target, string propertyName)
-        {
-            return target.GetType().InvokeMember(
-                propertyName,
-                BindingFlags.GetProperty | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public,
-                null,
-                target,
-                null);
-        }
+        public static object GetProperty(object target, string propertyName) =>
+            target.GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).GetValue(target);
     }
 }

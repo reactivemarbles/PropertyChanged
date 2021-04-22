@@ -16,18 +16,9 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             _inputType = inputType;
             OutputTypeGroups = outputTypeGroups;
 
-            var containingNamespace = _inputType.ContainingNamespace;
-            NamespaceName = string.IsNullOrEmpty(containingNamespace?.Name) ? string.Empty : containingNamespace.ToDisplayString();
+            NamespaceName = _inputType.GetNamespace();
 
-            var ancestorClasses = new List<AncestorClassInfo>();
-            var containingType = _inputType.ContainingType;
-            while (containingType != null)
-            {
-                ancestorClasses.Add(new(containingType.Name, containingType.DeclaredAccessibility));
-                containingType = containingType.ContainingType;
-            }
-
-            AncestorClasses = ancestorClasses;
+            AncestorClasses = _inputType.GetAncestors();
         }
 
         public string NamespaceName { get; }

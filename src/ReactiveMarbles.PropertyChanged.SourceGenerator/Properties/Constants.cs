@@ -20,7 +20,7 @@ using System.Runtime.CompilerServices;
 /// <summary>
 /// Provides extension methods for the notify property changed extensions.
 /// </summary>
-public static partial class NotifyPropertyChangedExtensions
+internal static partial class NotifyPropertyChangedExtensions
 {
     /// <summary>
     /// Notifies when the specified property changes.
@@ -552,11 +552,12 @@ using System.Linq.Expressions;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Runtime.CompilerServices;
 
 /// <summary>
 /// Set of extension methods that handle binding.
 /// </summary>
-public static partial class BindExtensions
+internal static partial class BindExtensions
 {
     /// <summary>
     /// Performs one way binding between a property on the host to a target property.
@@ -566,6 +567,9 @@ public static partial class BindExtensions
     /// <param name=""fromProperty"">A expression to the host property.</param>
     /// <param name=""toProperty"">A expression to the target property.</param>
     /// <param name=""scheduler"">A scheduler for performing the binding on. Defaults to ImmediateScheduler.</param>
+    /// <param name=""callerMemberName"">The caller of the method.</param>
+    /// <param name=""callerFilePath"">The caller file path.</param>
+    /// <param name=""callerLineNumber"">The caller line number.</param>
     /// <typeparam name=""TFrom"">The type of property the host is.</typeparam>
     /// <typeparam name=""TPropertyType"">The property types.</typeparam>
     /// <typeparam name=""TTarget"">The target property.</typeparam>
@@ -576,7 +580,10 @@ public static partial class BindExtensions
         TTarget targetObject,
         Expression<Func<TFrom, TPropertyType>> fromProperty,
         Expression<Func<TTarget, TPropertyType>> toProperty,
-        IScheduler scheduler = null)
+        IScheduler scheduler = null,
+        [CallerMemberName]string callerMemberName = null,
+        [CallerFilePath]string callerFilePath = null,
+        [CallerLineNumber]int callerLineNumber = 0)
         where TFrom : class, INotifyPropertyChanged
         {
             throw new Exception(""The impementation should have been generated."");
@@ -591,6 +598,9 @@ public static partial class BindExtensions
     /// <param name=""toProperty"">A expression to the target property.</param>
     /// <param name=""conversionFunc"">A converter which will convert the property from the host to the target property.</param>
     /// <param name=""scheduler"">A scheduler for performing the binding on. Defaults to ImmediateScheduler.</param>
+    /// <param name=""callerMemberName"">The caller of the method.</param>
+    /// <param name=""callerFilePath"">The caller file path.</param>
+    /// <param name=""callerLineNumber"">The caller line number.</param>
     /// <typeparam name=""TFrom"">The type of property the host is.</typeparam>
     /// <typeparam name=""TFromProperty"">The property from type.</typeparam>
     /// <typeparam name=""TTarget"">The target property.</typeparam>
@@ -603,7 +613,10 @@ public static partial class BindExtensions
         Expression<Func<TFrom, TFromProperty>> fromProperty,
         Expression<Func<TTarget, TTargetProperty>> toProperty,
         Func<TFromProperty, TTargetProperty> conversionFunc,
-        IScheduler scheduler = null)
+        IScheduler scheduler = null,
+        [CallerMemberName]string callerMemberName = null,
+        [CallerFilePath]string callerFilePath = null,
+        [CallerLineNumber]int callerLineNumber = 0)
         where TFrom : class, INotifyPropertyChanged
     {
         throw new Exception(""The impementation should have been generated."");
@@ -619,6 +632,9 @@ public static partial class BindExtensions
     /// <param name=""hostToTargetConv"">A converter which will convert the property from the host to the target property.</param>
     /// <param name=""targetToHostConv"">A converter which will convert the property from the target to the host property.</param>
     /// <param name=""scheduler"">A scheduler for performing the binding on. Defaults to ImmediateScheduler.</param>
+    /// <param name=""callerMemberName"">The caller of the method.</param>
+    /// <param name=""callerFilePath"">The caller file path.</param>
+    /// <param name=""callerLineNumber"">The caller line number.</param>
     /// <typeparam name=""TFrom"">The type of property the host is.</typeparam>
     /// <typeparam name=""TFromProperty"">The property from type.</typeparam>
     /// <typeparam name=""TTarget"">The target property.</typeparam>
@@ -632,7 +648,10 @@ public static partial class BindExtensions
         Expression<Func<TTarget, TTargetProperty>> toProperty,
         Func<TFromProperty, TTargetProperty> hostToTargetConv,
         Func<TTargetProperty, TFromProperty> targetToHostConv,
-        IScheduler scheduler = null)
+        IScheduler scheduler = null,
+        [CallerMemberName]string callerMemberName = null,
+        [CallerFilePath]string callerFilePath = null,
+        [CallerLineNumber]int callerLineNumber = 0)
         where TFrom : class, INotifyPropertyChanged
         where TTarget : class, INotifyPropertyChanged
     {
@@ -647,6 +666,9 @@ public static partial class BindExtensions
     /// <param name=""fromProperty"">A expression to the host property.</param>
     /// <param name=""toProperty"">A expression to the target property.</param>
     /// <param name=""scheduler"">A scheduler for performing the binding on. Defaults to ImmediateScheduler.</param>
+    /// <param name=""callerMemberName"">The caller of the method.</param>
+    /// <param name=""callerFilePath"">The caller file path.</param>
+    /// <param name=""callerLineNumber"">The caller line number.</param>
     /// <typeparam name=""TFrom"">The type of property the host is.</typeparam>
     /// <typeparam name=""TProperty"">The property from type.</typeparam>
     /// <typeparam name=""TTarget"">The target property.</typeparam>
@@ -657,7 +679,10 @@ public static partial class BindExtensions
         TTarget targetObject,
         Expression<Func<TFrom, TProperty>> fromProperty,
         Expression<Func<TTarget, TProperty>> toProperty,
-        IScheduler scheduler = null)
+        IScheduler scheduler = null,
+        [CallerMemberName]string callerMemberName = null,
+        [CallerFilePath]string callerFilePath = null,
+        [CallerLineNumber]int callerLineNumber = 0)
         where TFrom : class, INotifyPropertyChanged
         where TTarget : class, INotifyPropertyChanged
     {
