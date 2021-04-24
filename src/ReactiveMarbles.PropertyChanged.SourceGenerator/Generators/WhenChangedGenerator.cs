@@ -116,16 +116,6 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 accessModifier = outputTypeAccess;
             }
 
-            if (inputTypeAccess == Accessibility.Protected || outputTypeAccess == Accessibility.Protected)
-            {
-                accessModifier = Accessibility.Internal;
-            }
-
-            if (inputTypeAccess < Accessibility.Public && outputTypeAccess < Accessibility.Public)
-            {
-                accessModifier = Accessibility.Public;
-            }
-
             switch (outputTypeGroup.ExpressionArguments.Count)
             {
                 case 1:

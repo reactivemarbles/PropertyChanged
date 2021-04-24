@@ -66,7 +66,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         public void NoDiagnostics(Accessibility hostContainerTypeAccess, Accessibility hostTypeAccess, Accessibility propertyAccess, Accessibility viewModelAccess, Accessibility viewModelPropertyAccess)
         {
             var viewModelHostDetails = new WhenChangedHostBuilder()
-                .WithClassAccess(viewModelPropertyAccess)
+                .WithClassAccess(viewModelAccess)
                 .WithInvocation(InvocationKind.MemberAccess, ReceiverKind.This, x => x.Value)
                 .WithPropertyType("string")
                 .WithPropertyAccess(viewModelAccess)
@@ -78,6 +78,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .WithClassAccess(hostTypeAccess)
                 .WithPropertyType("string")
                 .WithPropertyAccess(propertyAccess)
+                .WithViewModelPropertyAccess(viewModelPropertyAccess)
                 .WithViewModelPropertyType(viewModelHostDetails)
                 .AddNestedClass(viewModelHostDetails);
 

@@ -142,7 +142,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         public static string GetClass(string body)
         {
             return $@"
-public static partial class NotifyPropertyChangedExtensions
+internal static partial class NotifyPropertyChangedExtensions
 {{
     {body}
 }}
