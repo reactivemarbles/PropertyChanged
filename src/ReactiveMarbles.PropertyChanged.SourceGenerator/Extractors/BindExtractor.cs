@@ -106,9 +106,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
                 var minAccessibility = methodSymbol.TypeArguments.Min(x => x.DeclaredAccessibility);
 
+                var isExplicitInvocation = methodSymbol.MethodKind == MethodKind.Ordinary;
+
                 yield return new BindInvocationInfo(viewModelExpressionArgument.InputType, targetType, minAccessibility, !viewModelExpressionArgument.ContainsPrivateOrProtectedMember, hasConverters, viewModelExpressionArgument, viewExpressionArgument);
-                yield return new WhenChangedExpressionInvocationInfo(viewModelExpressionArgument.InputType, !viewModelExpressionArgument.ContainsPrivateOrProtectedMember, viewModelExpressionArgument);
-                yield return new WhenChangedExpressionInvocationInfo(viewExpressionArgument.InputType, !viewExpressionArgument.ContainsPrivateOrProtectedMember, viewExpressionArgument);
+                yield return new WhenChangedExpressionInvocationInfo(viewModelExpressionArgument.InputType, !viewModelExpressionArgument.ContainsPrivateOrProtectedMember, isExplicitInvocation, viewModelExpressionArgument);
+                yield return new WhenChangedExpressionInvocationInfo(viewExpressionArgument.InputType, !viewExpressionArgument.ContainsPrivateOrProtectedMember, isExplicitInvocation, viewExpressionArgument);
             }
         }
     }

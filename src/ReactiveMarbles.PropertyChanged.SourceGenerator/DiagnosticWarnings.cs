@@ -51,5 +51,13 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             category: "Compiler",
             defaultSeverity: DiagnosticSeverity.Error,
             isEnabledByDefault: true);
+
+        internal static readonly DiagnosticDescriptor UnableToGenerateExtension = new(
+            id: "RXM006",
+            title: "Unable to generate extension method",
+            messageFormat: "Unable to generate extension method because the invocation involves one or more private/protected types or properties. Invoke via instance method, instead.",
+            category: "Compiler",
+            defaultSeverity: DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
     }
 }
