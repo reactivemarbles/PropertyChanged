@@ -39,37 +39,34 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         {
             var testCases = AccessibilityTestCases.GetValidAccessModifierCombinations().Select(x => ((Accessibility)x[0], (Accessibility)x[1], (Accessibility)x[2], (Accessibility)x[3]));
 
-            var validViewModelAccesses = new[] { Accessibility.Public, Accessibility.Internal, Accessibility.ProtectedOrInternal };
+            var vmPropertiesAccessList = new[] { Accessibility.Public, Accessibility.Internal, Accessibility.ProtectedOrInternal };
 
-            foreach (var (hostContainerType, hostTypeAccess, _, propertyAccess) in testCases)
+            foreach (var (hostContainerType, hostTypeAccess, vmTypeAccess, hostPropertiesAccess) in testCases)
             {
-                foreach (var validClassAccessibility in validViewModelAccesses)
+                foreach (var vmPropertiesAccess in vmPropertiesAccessList)
                 {
-                    foreach (var validPropertyAccessibility in validViewModelAccesses)
-                    {
-                        yield return new object[] { hostContainerType, hostTypeAccess, propertyAccess, validClassAccessibility, validPropertyAccessibility };
-                    }
+                    yield return new object[] { hostContainerType, hostTypeAccess, hostPropertiesAccess, vmTypeAccess, vmPropertiesAccess };
                 }
             }
         }
 
         /// <summary>
-        /// Tests that no diagnostics are reported when property access modifier is private.
+        /// Make sure all possible combinations of access modifiers result in successful generation.
         /// </summary>
-        /// <param name="hostContainerTypeAccess">outerClassAccess.</param>
-        /// <param name="hostTypeAccess">hostClassAccess.</param>
-        /// <param name="propertyAccess">propertyAccess.</param>
-        /// <param name="viewModelAccess">The view model access.</param>
-        /// <param name="viewModelPropertyAccess">The view model property access.</param>
+        /// <param name="hostContainerTypeAccess">The access modifier of the type containing the host type.</param>
+        /// <param name="hostTypeAccess">The access modifier of the host type.</param>
+        /// <param name="hostPropertiesAccess">The access modifier of the properties in the host.</param>
+        /// <param name="vmTypeAccess">The access modifier of the view model type.</param>
+        /// <param name="vmPropertiesAccess">The access modifier of the properties in the view model.</param>
         [Theory]
         [MemberData(nameof(AccessibilityTestCases.GetValidAccessModifierCombinations))]
-        public void NoDiagnostics(Accessibility hostContainerTypeAccess, Accessibility hostTypeAccess, Accessibility propertyAccess, Accessibility viewModelAccess, Accessibility viewModelPropertyAccess)
+        public void NoDiagnostics(Accessibility hostContainerTypeAccess, Accessibility hostTypeAccess, Accessibility hostPropertiesAccess, Accessibility vmTypeAccess, Accessibility vmPropertiesAccess)
         {
             var viewModelHostDetails = new WhenChangedHostBuilder()
-                .WithClassAccess(viewModelAccess)
+                .WithClassAccess(vmTypeAccess)
                 .WithInvocation(InvocationKind.MemberAccess, ReceiverKind.This, x => x.Value)
                 .WithPropertyType("string")
-                .WithPropertyAccess(viewModelAccess)
+                .WithPropertyAccess(vmPropertiesAccess)
                 .WithClassName("ViewModelHost");
 
             var hostTypeInfo = new BindHostBuilder()
@@ -77,8 +74,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .WithTwoWayInvocation(InvocationKind.MemberAccess, ReceiverKind.This, x => x.Value, x => x.Value)
                 .WithClassAccess(hostTypeAccess)
                 .WithPropertyType("string")
-                .WithPropertyAccess(propertyAccess)
-                .WithViewModelPropertyAccess(viewModelPropertyAccess)
+                .WithPropertyAccess(hostPropertiesAccess)
+                .WithViewModelPropertyAccess(hostPropertiesAccess)
                 .WithViewModelPropertyType(viewModelHostDetails)
                 .AddNestedClass(viewModelHostDetails);
 
