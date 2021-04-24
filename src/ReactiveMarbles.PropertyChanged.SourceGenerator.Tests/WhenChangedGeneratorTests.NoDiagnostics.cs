@@ -13,21 +13,21 @@ using Xunit.Abstractions;
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
 {
     /// <summary>
-    /// WhenChanged tests.
+    /// WhenChanged generator tests.
     /// </summary>
     public abstract partial class WhenChangedGeneratorTestBase
     {
-        private readonly ITestOutputHelper _testOutputHelper;
+        private readonly ITestOutputHelper _testLogger;
         private readonly bool _useRoslyn;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="WhenChangedGeneratorTestBase"/> class.
         /// </summary>
-        /// <param name="testOutputHelper">The logger provided by xUnit.</param>
+        /// <param name="testLogger">The logger provided by xUnit.</param>
         /// <param name="useRoslyn">A value indicating whether the Roslyn implementation should be used.</param>
-        public WhenChangedGeneratorTestBase(ITestOutputHelper testOutputHelper, bool useRoslyn)
+        public WhenChangedGeneratorTestBase(ITestOutputHelper testLogger, bool useRoslyn)
         {
-            _testOutputHelper = testOutputHelper;
+            _testLogger = testLogger;
             _useRoslyn = useRoslyn;
         }
 
@@ -146,7 +146,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .WithPropertyType(hostPropertyTypeInfo)
                 .WithPropertyAccess(Accessibility.Public);
 
-            var fixture = WhenChangedFixture.Create(hostTypeInfo, _testOutputHelper, hostPropertyTypeInfo.BuildRoot());
+            var fixture = WhenChangedFixture.Create(hostTypeInfo, _testLogger, hostPropertyTypeInfo.BuildRoot());
             fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, _useRoslyn, saveCompilation: false);
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -155,7 +155,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             var host = fixture.NewHostInstance();
             host.Child = fixture.NewHostInstance();
             host.Child.Value = fixture.NewValuePropertyInstance();
-            var observable = host.GetWhenChangedObservable(_ => _testOutputHelper.WriteLine(fixture.Sources));
+            var observable = host.GetWhenChangedObservable(_ => _testLogger.WriteLine(fixture.Sources));
             object value = null;
             observable.Subscribe(x => value = x);
             Assert.Equal(host.Child.Value, value);
@@ -188,7 +188,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .WithPropertyType(hostPropertyTypeInfo)
                 .WithPropertyAccess(Accessibility.Public);
 
-            var fixture = WhenChangedFixture.Create(hostTypeInfo, _testOutputHelper, hostPropertyTypeInfo.BuildRoot());
+            var fixture = WhenChangedFixture.Create(hostTypeInfo, _testLogger, hostPropertyTypeInfo.BuildRoot());
             fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, _useRoslyn, saveCompilation: false);
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -198,7 +198,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             host.Child = fixture.NewHostInstance();
             host.Child.Child = fixture.NewHostInstance();
             host.Child.Child.Value = fixture.NewValuePropertyInstance();
-            var observable = host.GetWhenChangedObservable(_ => _testOutputHelper.WriteLine(fixture.Sources));
+            var observable = host.GetWhenChangedObservable(_ => _testLogger.WriteLine(fixture.Sources));
             object value = null;
             observable.Subscribe(x => value = x);
             Assert.Equal(host.Child.Child.Value, value);
@@ -246,7 +246,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         {
             hostTypeInfo.WithInvocation(InvocationKind.MemberAccess, ReceiverKind.This, x => x.Value);
             var propertyTypeSource = typesHaveSameRoot ? string.Empty : hostPropertyTypeInfo.BuildRoot();
-            var fixture = WhenChangedFixture.Create(hostTypeInfo, _testOutputHelper, propertyTypeSource);
+            var fixture = WhenChangedFixture.Create(hostTypeInfo, _testLogger, propertyTypeSource);
             fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, _useRoslyn, saveCompilation: false);
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -254,7 +254,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
 
             var host = fixture.NewHostInstance();
             host.Value = fixture.NewValuePropertyInstance();
-            var observable = host.GetWhenChangedObservable(_ => _testOutputHelper.WriteLine(fixture.Sources));
+            var observable = host.GetWhenChangedObservable(_ => _testLogger.WriteLine(fixture.Sources));
             object value = null;
             observable.Subscribe(x => value = x);
             Assert.Equal(host.Value, value);
@@ -268,7 +268,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         {
             hostTypeInfo.WithInvocation(InvocationKind.MemberAccess, ReceiverKind.This, x => x.Child, x => x.Value, (a, b) => "result" + a + b);
             var propertyTypeSource = typesHaveSameRoot ? string.Empty : hostPropertyTypeInfo.BuildRoot();
-            var fixture = WhenChangedFixture.Create(hostTypeInfo, _testOutputHelper, propertyTypeSource);
+            var fixture = WhenChangedFixture.Create(hostTypeInfo, _testLogger, propertyTypeSource);
             fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, _useRoslyn, saveCompilation: false);
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -281,7 +281,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
 
             var host = fixture.NewHostInstance();
             host.Value = fixture.NewValuePropertyInstance();
-            var observable = host.GetWhenChangedObservable(_ => _testOutputHelper.WriteLine(fixture.Sources));
+            var observable = host.GetWhenChangedObservable(_ => _testLogger.WriteLine(fixture.Sources));
             object value = null;
             observable.Subscribe(x => value = x);
             Assert.Equal(Convert(host), value);

@@ -16,19 +16,19 @@ using Xunit.Abstractions;
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
 {
     /// <summary>
-    /// Source generator tets.
+    /// Bind generator tests.
     /// </summary>
-    public class BindGeneratorTests
+    public partial class BindGeneratorTests
     {
-        private readonly ITestOutputHelper _testOutputHelper;
+        private readonly ITestOutputHelper _testLogger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BindGeneratorTests"/> class.
         /// </summary>
-        /// <param name="testOutputHelper">The output provided by xUnit.</param>
-        public BindGeneratorTests(ITestOutputHelper testOutputHelper)
+        /// <param name="testLogger">The logger provided by xUnit.</param>
+        public BindGeneratorTests(ITestOutputHelper testLogger)
         {
-            _testOutputHelper = testOutputHelper;
+            _testLogger = testLogger;
         }
 
         /// <summary>
@@ -84,7 +84,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .WithClassAccess(hostContainerTypeAccess)
                 .AddNestedClass(hostTypeInfo);
 
-            var fixture = BindFixture.Create(hostTypeInfo, _testOutputHelper);
+            var fixture = BindFixture.Create(hostTypeInfo, _testLogger);
             fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, true);
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -92,10 +92,10 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
 
             var host = fixture.NewHostInstance();
             host.ViewModel = fixture.NewViewModelPropertyInstance();
-            var disposable = host.GetTwoWayBindSubscription(_ => _testOutputHelper.WriteLine(fixture.Sources));
+            var disposable = host.GetTwoWayBindSubscription(_ => _testLogger.WriteLine(fixture.Sources));
 
-            var viewModelObservable = host.GetViewModelWhenChangedObservable(_ => _testOutputHelper.WriteLine(fixture.Sources));
-            var viewObservable = host.GetWhenChangedObservable(_ => _testOutputHelper.WriteLine(fixture.Sources));
+            var viewModelObservable = host.GetViewModelWhenChangedObservable(_ => _testLogger.WriteLine(fixture.Sources));
+            var viewObservable = host.GetWhenChangedObservable(_ => _testLogger.WriteLine(fixture.Sources));
             object viewModelValue = null;
             object viewValue = null;
             viewModelObservable.Subscribe(x => viewModelValue = x);
