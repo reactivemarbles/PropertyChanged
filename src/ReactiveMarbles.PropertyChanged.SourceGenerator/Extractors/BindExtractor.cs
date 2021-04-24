@@ -116,8 +116,10 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                     yield return new PartialBindInvocationInfo(namespaceName, name, ancestorClasses, viewModelExpressionArgument.InputType, minAccessibility, hasConverters, viewModelExpressionArgument, viewExpressionArgument);
                 }
 
-                yield return new WhenChangedExpressionInvocationInfo(viewModelExpressionArgument.InputType, !viewModelExpressionArgument.ContainsPrivateOrProtectedMember, viewModelExpressionArgument);
-                yield return new WhenChangedExpressionInvocationInfo(viewExpressionArgument.InputType, !viewExpressionArgument.ContainsPrivateOrProtectedMember, viewExpressionArgument);
+                var isExplicitInvocation = methodSymbol.MethodKind == MethodKind.Ordinary;
+
+                yield return new WhenChangedExpressionInvocationInfo(viewModelExpressionArgument.InputType, !viewModelExpressionArgument.ContainsPrivateOrProtectedMember, isExplicitInvocation, viewModelExpressionArgument);
+                yield return new WhenChangedExpressionInvocationInfo(viewExpressionArgument.InputType, !viewExpressionArgument.ContainsPrivateOrProtectedMember, isExplicitInvocation, viewExpressionArgument);
             }
         }
     }
