@@ -9,6 +9,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
     internal sealed record WhenChangedExpressionInvocationInfo(
         ITypeSymbol Type,
         bool IsPublic,
+        bool IsExplicitInvocation,
         ExpressionArgument ExpressionArgument)
         : InvocationInfo(Type);
 }
