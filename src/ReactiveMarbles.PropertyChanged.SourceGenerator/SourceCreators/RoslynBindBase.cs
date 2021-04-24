@@ -128,7 +128,6 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 })));
 
             // generates: Bind() method.
-            accessibility = accessibility == Accessibility.Private ? Accessibility.Internal : accessibility;
             yield return RoslynHelpers.Bind(viewModelInputType, viewModelOutputType, viewInputType, viewOutputType, isExtension, hasConverters, accessibility, Block(statements, 1));
         }
     }

@@ -101,11 +101,32 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                     continue;
                 }
 
-                var minAccessibility = methodSymbol.TypeArguments.Min(x => x.DeclaredAccessibility);
+                var inputTypeSymbol = methodSymbol.TypeArguments[0];
+                var accessModifier = inputTypeSymbol.GetVisibility();
+                bool involvesInternalType = false;
 
-                if (!viewModelExpressionArgument.ContainsPrivateOrProtectedMember)
+                for (int i = 1; i < methodSymbol.TypeArguments.Length; ++i)
                 {
-                    yield return new ExtensionBindInvocationInfo(viewModelExpressionArgument.InputType, minAccessibility, hasConverters, viewModelExpressionArgument, viewExpressionArgument);
+                    var outputTypeSymbol = methodSymbol.TypeArguments[i];
+                    var outputTypeAccess = outputTypeSymbol.GetVisibility();
+                    if (outputTypeAccess < accessModifier)
+                    {
+                        accessModifier = outputTypeAccess;
+                    }
+                    else if (outputTypeAccess == Accessibility.Internal)
+                    {
+                        involvesInternalType = true;
+                    }
+                }
+
+                if (accessModifier == Accessibility.Protected && involvesInternalType)
+                {
+                    accessModifier = Accessibility.Internal;
+                }
+
+                if (!viewModelExpressionArgument.ContainsPrivateOrProtectedMember && !viewExpressionArgument.ContainsPrivateOrProtectedMember)
+                {
+                    yield return new ExtensionBindInvocationInfo(viewModelExpressionArgument.InputType, accessModifier, hasConverters, viewModelExpressionArgument, viewExpressionArgument);
                 }
                 else
                 {
@@ -113,7 +134,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                     var ancestorClasses = viewModelExpressionArgument.InputType.GetAncestors();
                     var name = viewModelExpressionArgument.InputType.Name;
 
-                    yield return new PartialBindInvocationInfo(namespaceName, name, ancestorClasses, viewModelExpressionArgument.InputType, minAccessibility, hasConverters, viewModelExpressionArgument, viewExpressionArgument);
+                    yield return new PartialBindInvocationInfo(namespaceName, name, ancestorClasses, viewModelExpressionArgument.InputType, accessModifier, hasConverters, viewModelExpressionArgument, viewExpressionArgument);
                 }
 
                 var isExplicitInvocation = methodSymbol.MethodKind == MethodKind.Ordinary;

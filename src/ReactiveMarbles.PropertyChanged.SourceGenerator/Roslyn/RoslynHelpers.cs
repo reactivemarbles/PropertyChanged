@@ -450,7 +450,6 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
         private static void GetWhenChangedValues(string inputType, string outputType, bool isExtension, Accessibility accessibility, out List<SyntaxKind> modifiers, out List<ParameterSyntax> parameterList)
         {
-            accessibility = accessibility == Accessibility.Private ? Accessibility.Internal : accessibility;
             modifiers = accessibility.GetAccessibilityTokens().ToList();
             parameterList = new List<ParameterSyntax>();
             if (isExtension)

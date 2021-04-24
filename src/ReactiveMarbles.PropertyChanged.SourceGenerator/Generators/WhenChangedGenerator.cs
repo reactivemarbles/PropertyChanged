@@ -110,10 +110,16 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             var inputTypeAccess = inputTypeSymbol.GetVisibility();
             var outputTypeAccess = outputTypeSymbol.GetVisibility();
 
-            var accessModifier = inputTypeAccess;
+            var minAccess = inputTypeAccess;
             if (outputTypeAccess < inputTypeAccess || (inputTypeAccess == Accessibility.Protected && outputTypeAccess == Accessibility.Internal))
             {
-                accessModifier = outputTypeAccess;
+                minAccess = outputTypeAccess;
+            }
+
+            var accessModifier = outputTypeAccess;
+            if (inputTypeAccess == minAccess && inputTypeAccess == outputTypeAccess)
+            {
+                accessModifier = minAccess;
             }
 
             switch (outputTypeGroup.ExpressionArguments.Count)
