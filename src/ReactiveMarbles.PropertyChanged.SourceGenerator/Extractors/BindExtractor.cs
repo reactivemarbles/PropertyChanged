@@ -13,6 +13,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
     internal class BindExtractor : IExtractor
     {
         private const string ExtensionClassFullName = "BindExtensions";
+        private const string BindName = "Bind";
+        private const string OnewayBindName = "OneWayBind";
 
         public IEnumerable<InvocationInfo> GetInvocations(GeneratorExecutionContext context, Compilation compilation, SyntaxReceiver syntaxReceiver)
         {
@@ -123,6 +125,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 {
                     accessModifier = Accessibility.Internal;
                 }
+
+                bool isTwoWayBind = methodSymbol.Name.Equals(BindName);
 
                 if (!viewModelExpressionArgument.ContainsPrivateOrProtectedMember && !viewExpressionArgument.ContainsPrivateOrProtectedMember)
                 {

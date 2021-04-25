@@ -23,25 +23,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             new BindExtractor()
         };
 
-        private static readonly BindGenerator _bindGenerator = new BindGenerator();
-        private readonly WhenChangedGenerator _whenChangedGenerator;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Generator"/> class.
-        /// </summary>
-        public Generator()
-            : this(true)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Generator"/> class.
-        /// </summary>
-        /// <param name="useRoslyn">If we should use Roslyn.</param>
-        public Generator(bool useRoslyn)
-        {
-            _whenChangedGenerator = new WhenChangedGenerator(useRoslyn);
-        }
+        private static readonly BindGenerator _bindGenerator = new();
+        private static readonly WhenChangedGenerator _whenChangedGenerator = new();
 
         /// <inheritdoc/>
         public void Initialize(GeneratorInitializationContext context) => context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());

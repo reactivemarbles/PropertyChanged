@@ -15,22 +15,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
     /// <summary>
     /// WhenChanged tests.
     /// </summary>
-    public abstract partial class WhenChangedGeneratorTestBase
+    public partial class WhenChangedGeneratorTests
     {
-        private readonly ITestOutputHelper _testOutputHelper;
-        private readonly bool _useRoslyn;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="WhenChangedGeneratorTestBase"/> class.
-        /// </summary>
-        /// <param name="testOutputHelper">The logger provided by xUnit.</param>
-        /// <param name="useRoslyn">A value indicating whether the Roslyn implementation should be used.</param>
-        public WhenChangedGeneratorTestBase(ITestOutputHelper testOutputHelper, bool useRoslyn)
-        {
-            _testOutputHelper = testOutputHelper;
-            _useRoslyn = useRoslyn;
-        }
-
         /// <summary>
         /// Make sure the ReceiverKind.Instance is handled correctly.
         /// </summary>
@@ -147,7 +133,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .WithPropertyAccess(Accessibility.Public);
 
             var fixture = WhenChangedFixture.Create(hostTypeInfo, _testOutputHelper, hostPropertyTypeInfo.BuildRoot());
-            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, _useRoslyn, saveCompilation: false);
+            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, saveCompilation: false);
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
             Assert.Empty(compilationDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -189,7 +175,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .WithPropertyAccess(Accessibility.Public);
 
             var fixture = WhenChangedFixture.Create(hostTypeInfo, _testOutputHelper, hostPropertyTypeInfo.BuildRoot());
-            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, _useRoslyn, saveCompilation: false);
+            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, saveCompilation: false);
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
             Assert.Empty(compilationDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -247,7 +233,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             hostTypeInfo.WithInvocation(InvocationKind.MemberAccess, ReceiverKind.This, x => x.Value);
             var propertyTypeSource = typesHaveSameRoot ? string.Empty : hostPropertyTypeInfo.BuildRoot();
             var fixture = WhenChangedFixture.Create(hostTypeInfo, _testOutputHelper, propertyTypeSource);
-            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, _useRoslyn, saveCompilation: false);
+            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, saveCompilation: false);
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
             Assert.Empty(compilationDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -269,7 +255,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             hostTypeInfo.WithInvocation(InvocationKind.MemberAccess, ReceiverKind.This, x => x.Child, x => x.Value, (a, b) => "result" + a + b);
             var propertyTypeSource = typesHaveSameRoot ? string.Empty : hostPropertyTypeInfo.BuildRoot();
             var fixture = WhenChangedFixture.Create(hostTypeInfo, _testOutputHelper, propertyTypeSource);
-            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, _useRoslyn, saveCompilation: false);
+            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, saveCompilation: false);
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
             Assert.Empty(compilationDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));

@@ -15,10 +15,10 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         private ISourceCreator _extensionClassCreator;
         private ISourceCreator _partialClassCreator;
 
-        public WhenChangedGenerator(bool useRoslyn)
+        public WhenChangedGenerator()
         {
-            _extensionClassCreator = !useRoslyn ? new StringBuilderWhenChangedExtensionClassCreator() : new RoslynWhenChangedExtensionCreator();
-            _partialClassCreator = !useRoslyn ? new StringBuilderWhenChangedPartialClassCreator() : new RoslynWhenChangedPartialClassCreator();
+            _extensionClassCreator = new RoslynWhenChangedExtensionCreator();
+            _partialClassCreator = new RoslynWhenChangedPartialClassCreator();
         }
 
         public IEnumerable<(string FileName, string SourceCode)> GenerateSourceFromInvocations(ITypeSymbol type, HashSet<InvocationInfo> invocations)

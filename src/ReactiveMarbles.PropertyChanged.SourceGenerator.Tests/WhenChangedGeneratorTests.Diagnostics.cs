@@ -13,7 +13,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
     /// <summary>
     /// WhenChanged tests.
     /// </summary>
-    public partial class WhenChangedGeneratorTestBase
+    public partial class WhenChangedGeneratorTests
     {
         private const string WhenChangedPlaceholder = "[whenchanged_invocation]";
         private const string SourceTemplate = @"
@@ -50,7 +50,7 @@ public class HostClass : INotifyPropertyChanged
         {
             var invocation = "this.WhenChanged(MyExpression)";
             var source = SourceTemplate.Replace(WhenChangedPlaceholder, invocation);
-            AssertDiagnostic(source, DiagnosticWarnings.ExpressionMustBeInline, _useRoslyn);
+            AssertDiagnostic(source, DiagnosticWarnings.ExpressionMustBeInline);
         }
 
         /// <summary>
@@ -63,7 +63,7 @@ public class HostClass : INotifyPropertyChanged
         {
             var invocation = "this.WhenChanged(x => x.Child.Value, MyExpression, (a, b) => $\"{a}-{b}\")";
             var source = SourceTemplate.Replace(WhenChangedPlaceholder, invocation);
-            AssertDiagnostic(source, DiagnosticWarnings.ExpressionMustBeInline, _useRoslyn);
+            AssertDiagnostic(source, DiagnosticWarnings.ExpressionMustBeInline);
         }
 
         /// <summary>
@@ -76,7 +76,7 @@ public class HostClass : INotifyPropertyChanged
         {
             var invocation = "this.WhenChanged(GetMyExpression())";
             var source = SourceTemplate.Replace(WhenChangedPlaceholder, invocation);
-            AssertDiagnostic(source, DiagnosticWarnings.ExpressionMustBeInline, _useRoslyn);
+            AssertDiagnostic(source, DiagnosticWarnings.ExpressionMustBeInline);
         }
 
         /// <summary>
@@ -89,7 +89,7 @@ public class HostClass : INotifyPropertyChanged
         {
             var invocation = "this.WhenChanged(x => x.Child.Value, GetMyExpression(), (a, b) => $\"{a}-{b}\")";
             var source = SourceTemplate.Replace(WhenChangedPlaceholder, invocation);
-            AssertDiagnostic(source, DiagnosticWarnings.ExpressionMustBeInline, _useRoslyn);
+            AssertDiagnostic(source, DiagnosticWarnings.ExpressionMustBeInline);
         }
 
         /// <summary>
@@ -103,7 +103,7 @@ public class HostClass : INotifyPropertyChanged
         {
             var invocation = "this.WhenChanged(x => x.GetValue())";
             var source = SourceTemplate.Replace(WhenChangedPlaceholder, invocation);
-            AssertDiagnostic(source, DiagnosticWarnings.OnlyPropertyAndFieldAccessAllowed, _useRoslyn);
+            AssertDiagnostic(source, DiagnosticWarnings.OnlyPropertyAndFieldAccessAllowed);
         }
 
         /// <summary>
@@ -117,7 +117,7 @@ public class HostClass : INotifyPropertyChanged
         {
             var invocation = "this.WhenChanged(x => x.Value, x => x.GetChild().Value, (a, b) => $\"{a}-{b}\")";
             var source = SourceTemplate.Replace(WhenChangedPlaceholder, invocation);
-            AssertDiagnostic(source, DiagnosticWarnings.OnlyPropertyAndFieldAccessAllowed, _useRoslyn);
+            AssertDiagnostic(source, DiagnosticWarnings.OnlyPropertyAndFieldAccessAllowed);
         }
 
         /// <summary>
@@ -131,7 +131,7 @@ public class HostClass : INotifyPropertyChanged
         {
             var invocation = "this.WhenChanged(x => x.Values[0])";
             var source = SourceTemplate.Replace(WhenChangedPlaceholder, invocation);
-            AssertDiagnostic(source, DiagnosticWarnings.OnlyPropertyAndFieldAccessAllowed, _useRoslyn);
+            AssertDiagnostic(source, DiagnosticWarnings.OnlyPropertyAndFieldAccessAllowed);
         }
 
         /// <summary>
@@ -145,7 +145,7 @@ public class HostClass : INotifyPropertyChanged
         {
             var invocation = "this.WhenChanged(x => x.Value, x => x.Children[0].Value, (a, b) => $\"{a}-{b}\")";
             var source = SourceTemplate.Replace(WhenChangedPlaceholder, invocation);
-            AssertDiagnostic(source, DiagnosticWarnings.OnlyPropertyAndFieldAccessAllowed, _useRoslyn);
+            AssertDiagnostic(source, DiagnosticWarnings.OnlyPropertyAndFieldAccessAllowed);
         }
 
         /// <summary>
@@ -158,7 +158,7 @@ public class HostClass : INotifyPropertyChanged
         {
             var invocation = "this.WhenChanged(x => Value)";
             var source = SourceTemplate.Replace(WhenChangedPlaceholder, invocation);
-            AssertDiagnostic(source, DiagnosticWarnings.LambdaParameterMustBeUsed, _useRoslyn);
+            AssertDiagnostic(source, DiagnosticWarnings.LambdaParameterMustBeUsed);
         }
 
         /// <summary>
@@ -171,7 +171,7 @@ public class HostClass : INotifyPropertyChanged
         {
             var invocation = "this.WhenChanged(x => x.Value, x => Child.Value, (a, b) => $\"{a}-{b}\")";
             var source = SourceTemplate.Replace(WhenChangedPlaceholder, invocation);
-            AssertDiagnostic(source, DiagnosticWarnings.LambdaParameterMustBeUsed, _useRoslyn);
+            AssertDiagnostic(source, DiagnosticWarnings.LambdaParameterMustBeUsed);
         }
 
         /// <summary>
@@ -195,7 +195,7 @@ public class HostClass : INotifyPropertyChanged
                 .WithPropertyAccess(propertyAccess)
                 .BuildRoot();
             source += hostPropertyTypeInfo.BuildRoot();
-            AssertDiagnostic(source, DiagnosticWarnings.UnableToGenerateExtension, _useRoslyn);
+            AssertDiagnostic(source, DiagnosticWarnings.UnableToGenerateExtension);
         }
 
         /// <summary>
@@ -223,13 +223,13 @@ public class HostClass : INotifyPropertyChanged
                 .AddNestedClass(hostTypeInfo)
                 .BuildRoot();
             source += hostPropertyTypeInfo.BuildRoot();
-            AssertDiagnostic(source, DiagnosticWarnings.UnableToGenerateExtension, _useRoslyn);
+            AssertDiagnostic(source, DiagnosticWarnings.UnableToGenerateExtension);
         }
 
-        private static void AssertDiagnostic(string source, DiagnosticDescriptor expectedDiagnostic, bool useRoslyn)
+        private static void AssertDiagnostic(string source, DiagnosticDescriptor expectedDiagnostic)
         {
             Compilation compilation = CompilationUtil.CreateCompilation(source);
-            var newCompilation = CompilationUtil.RunGenerators(compilation, out var generatorDiagnostics, new Generator(useRoslyn));
+            var newCompilation = CompilationUtil.RunGenerators(compilation, out var generatorDiagnostics, new Generator());
             var compilationDiagnostics = newCompilation.GetDiagnostics();
             var compilationErrors = compilationDiagnostics.Where(x => x.Severity == DiagnosticSeverity.Error).Select(x => x.GetMessage()).ToList();
 

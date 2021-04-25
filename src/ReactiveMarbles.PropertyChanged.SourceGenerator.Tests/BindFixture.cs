@@ -42,9 +42,9 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             return new BindFixture(hostTypeInfo, compilation, testOutputHelper);
         }
 
-        public void RunGenerator(out ImmutableArray<Diagnostic> compilationDiagnostics, out ImmutableArray<Diagnostic> generatorDiagnostics, bool useRoslyn, bool saveCompilation = true, string directory = @"C:\Users\Glenn\source\repos\ConsoleApp8\ConsoleApp8")
+        public void RunGenerator(out ImmutableArray<Diagnostic> compilationDiagnostics, out ImmutableArray<Diagnostic> generatorDiagnostics, bool saveCompilation = true, string directory = @"C:\Users\Glenn\source\repos\ConsoleApp8\ConsoleApp8")
         {
-            var newCompilation = CompilationUtil.RunGenerators(_compilation, out generatorDiagnostics, new Generator(useRoslyn));
+            var newCompilation = CompilationUtil.RunGenerators(_compilation, out generatorDiagnostics, new Generator());
 
             if (saveCompilation)
             {
