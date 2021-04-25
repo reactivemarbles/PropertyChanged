@@ -7,7 +7,7 @@ using Xunit.Abstractions;
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
 {
     /// <summary>
-    /// WhenChanged tests for the Roslyn implementation.
+    /// WhenChanged generator tests for the Roslyn implementation.
     /// </summary>
     public partial class WhenChangedGeneratorTests
     {

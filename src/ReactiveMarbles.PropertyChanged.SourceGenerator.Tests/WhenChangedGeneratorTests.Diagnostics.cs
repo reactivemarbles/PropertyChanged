@@ -11,7 +11,7 @@ using Xunit;
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
 {
     /// <summary>
-    /// WhenChanged tests.
+    /// WhenChanged generator tests.
     /// </summary>
     public partial class WhenChangedGeneratorTests
     {

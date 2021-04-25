@@ -13,7 +13,7 @@ using Xunit.Abstractions;
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
 {
     /// <summary>
-    /// WhenChanged tests.
+    /// WhenChanged generator tests.
     /// </summary>
     public partial class WhenChangedGeneratorTests
     {
@@ -141,7 +141,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             var host = fixture.NewHostInstance();
             host.Child = fixture.NewHostInstance();
             host.Child.Value = fixture.NewValuePropertyInstance();
-            var observable = host.GetWhenChangedObservable(_ => _testOutputHelper.WriteLine(fixture.Sources));
+            var observable = host.GetWhenChangedObservable(_ => _testLogger.WriteLine(fixture.Sources));
             object value = null;
             observable.Subscribe(x => value = x);
             Assert.Equal(host.Child.Value, value);
@@ -184,7 +184,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             host.Child = fixture.NewHostInstance();
             host.Child.Child = fixture.NewHostInstance();
             host.Child.Child.Value = fixture.NewValuePropertyInstance();
-            var observable = host.GetWhenChangedObservable(_ => _testOutputHelper.WriteLine(fixture.Sources));
+            var observable = host.GetWhenChangedObservable(_ => _testLogger.WriteLine(fixture.Sources));
             object value = null;
             observable.Subscribe(x => value = x);
             Assert.Equal(host.Child.Child.Value, value);
@@ -240,7 +240,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
 
             var host = fixture.NewHostInstance();
             host.Value = fixture.NewValuePropertyInstance();
-            var observable = host.GetWhenChangedObservable(_ => _testOutputHelper.WriteLine(fixture.Sources));
+            var observable = host.GetWhenChangedObservable(_ => _testLogger.WriteLine(fixture.Sources));
             object value = null;
             observable.Subscribe(x => value = x);
             Assert.Equal(host.Value, value);
@@ -267,7 +267,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
 
             var host = fixture.NewHostInstance();
             host.Value = fixture.NewValuePropertyInstance();
-            var observable = host.GetWhenChangedObservable(_ => _testOutputHelper.WriteLine(fixture.Sources));
+            var observable = host.GetWhenChangedObservable(_ => _testLogger.WriteLine(fixture.Sources));
             object value = null;
             observable.Subscribe(x => value = x);
             Assert.Equal(Convert(host), value);
