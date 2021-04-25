@@ -20,17 +20,6 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
     /// </summary>
     public partial class BindGeneratorTests
     {
-        private readonly ITestOutputHelper _testLogger;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="BindGeneratorTests"/> class.
-        /// </summary>
-        /// <param name="testLogger">The logger provided by xUnit.</param>
-        public BindGeneratorTests(ITestOutputHelper testLogger)
-        {
-            _testLogger = testLogger;
-        }
-
         /// <summary>
         /// Gets test cases.
         /// </summary>
