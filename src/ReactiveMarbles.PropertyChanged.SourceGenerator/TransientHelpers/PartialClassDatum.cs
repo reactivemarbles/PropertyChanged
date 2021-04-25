@@ -8,5 +8,5 @@ using Microsoft.CodeAnalysis;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
-    internal sealed record PartialClassDatum(string NamespaceName, string Name, Accessibility AccessModifier, List<AncestorClassInfo> AncestorClasses, List<MethodDatum> MethodData) : ClassDatum(Name, MethodData);
+    internal sealed record PartialClassDatum(string NamespaceName, string Name, Accessibility AccessModifier, IReadOnlyList<AncestorClassInfo> AncestorClasses, IReadOnlyList<MethodDatum> MethodData) : ClassDatum(Name, MethodData);
 }

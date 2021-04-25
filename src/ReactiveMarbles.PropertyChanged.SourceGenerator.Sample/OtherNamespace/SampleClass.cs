@@ -30,10 +30,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample.OtherNamespace
         /// </summary>
         internal string MyString
         {
-            get
-            {
-                return _myString;
-            }
+            get => _myString;
 
             set
             {
@@ -47,10 +44,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample.OtherNamespace
         /// </summary>
         internal Sample.SampleClass MyClass
         {
-            get
-            {
-                return _myClass;
-            }
+            get => _myClass;
 
             set
             {

@@ -1,7 +1,6 @@
 ﻿<#@ template debug="false" hostspecific="false" language="C#" #>
 <#@ assembly name="System.Core.dll" #>
 <#@ assembly name="System.Collections.dll" #>
-<#@ import namespace="System.Collections.Generic" #>
 <#@ import namespace="System.Linq" #>
 <#@ output extension=".cs" #>
 // Copyright (c) 2019-2021 ReactiveUI Association Incorporated. All rights reserved.
@@ -39,21 +38,16 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Benchmarks
 
 <#
     var depths = new[] { 1, 2, 10, 20 };
-    var isRoslynValues = new[] { true, false };
 #>
 
 <#
-        for (int i = 0; i < depths.Length; i++)
+        for (var i = 0; i < depths.Length; i++)
         {
-            for (int r = 0; r < isRoslynValues.Length; ++r)
-            {
-                int depth = depths[i];
-                var roslyn = isRoslynValues[r] == true ? "Roslyn" : "StringBuilder";
-                var isRoslyn = isRoslynValues[r];
-                var expression = string.Join(".", Enumerable.Range(1, depth - 1).Select(x => "Child").Prepend("x").Append("Value"));
+            var depth = depths[i];
+            var expression = string.Join(".", Enumerable.Range(1, depth - 1).Select(x => "Child").Prepend("x").Append("Value"));
 #>
-        [GlobalSetup(Targets = new[] { nameof(Depth<#= depth #>WhenChanged<#= roslyn #>) })]
-        public void Depth<#= depth #>WhenChangedSetup<#= roslyn #>()
+        [GlobalSetup(Targets = new[] { nameof(Depth<#= depth #>WhenChanged) })]
+        public void Depth<#= depth #>WhenChangedSetup()
         {
             var hostPropertyTypeInfo = new EmptyClassBuilder()
                 .WithClassAccess(Accessibility);
@@ -68,13 +62,13 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Benchmarks
 
         [Benchmark]
         [BenchmarkCategory("Change Depth <#= depth #>")]
-        public void Depth<#= depth #>WhenChanged<#= roslyn #>()
+        public void Depth<#= depth #>WhenChanged()
         {
-            var newCompilation = CompilationUtil.RunGenerators(Compilation, out _, new Generator(<#= isRoslyn ? "true" : "false" #>));
+            var newCompilation = CompilationUtil.RunGenerators(Compilation, out _, new Generator());
         }
 <#
             }
-        }#>
+#>
 
     }
 }

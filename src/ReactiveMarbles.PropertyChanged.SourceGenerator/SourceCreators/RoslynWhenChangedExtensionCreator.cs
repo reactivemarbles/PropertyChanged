@@ -15,9 +15,9 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
     internal class RoslynWhenChangedExtensionCreator : ISourceCreator
     {
-        public string Create(IEnumerable<IDatum> sourceData)
+        public string Create(IEnumerable<IDatum> sources)
         {
-            var members = sourceData.Cast<ExtensionClassDatum>().Select(x => Create(x)).ToList();
+            var members = sources.Cast<ExtensionClassDatum>().Select(Create).ToList();
 
             if (members.Count > 0)
             {
@@ -32,7 +32,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         private static ClassDeclarationSyntax Create(ExtensionClassDatum classDatum)
         {
             var visibility = new[] { SyntaxKind.InternalKeyword, SyntaxKind.StaticKeyword, SyntaxKind.PartialKeyword };
-            return ClassDeclaration("NotifyPropertyChangedExtensions", visibility, classDatum.MethodData.SelectMany(x => Create(x)).ToList(), 1);
+            return ClassDeclaration("NotifyPropertyChangedExtensions", visibility, classDatum.MethodData.SelectMany(Create).ToList(), 1);
         }
 
         private static IEnumerable<MemberDeclarationSyntax> Create(MethodDatum method) =>
@@ -48,10 +48,10 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         {
             var mapEntries = new List<AssignmentExpressionSyntax>();
 
-            foreach (var entry in methodDatum.Map.Entries)
+            foreach (var (key, entries) in methodDatum.Map.Entries)
             {
-                var observable = RoslynHelpers.GetObservableChain("source", entry.Members);
-                mapEntries.Add(RoslynHelpers.MapEntry(entry.Key, observable));
+                var observable = RoslynHelpers.GetObservableChain("source", entries);
+                mapEntries.Add(RoslynHelpers.MapEntry(key, observable));
             }
 
             yield return RoslynHelpers.MapDictionary(methodDatum.InputTypeName, methodDatum.OutputTypeName, methodDatum.Map.MapName, mapEntries);
@@ -68,7 +68,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             var statements = new List<StatementSyntax>(methodDatum.TempReturnTypes.Count);
             var combineArguments = new List<ArgumentSyntax>(methodDatum.TempReturnTypes.Count);
 
-            for (int i = 0; i < methodDatum.TempReturnTypes.Count; ++i)
+            for (var i = 0; i < methodDatum.TempReturnTypes.Count; ++i)
             {
                 var type = methodDatum.TempReturnTypes[i];
                 var obsName = "obs" + (i + 1);

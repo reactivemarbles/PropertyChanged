@@ -18,10 +18,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         /// Initializes a new instance of the <see cref="HostProxyBase"/> class.
         /// </summary>
         /// <param name="source">An instance of the <i>actual</i> host class.</param>
-        public HostProxyBase(object source)
-        {
-            Source = source;
-        }
+        protected HostProxyBase(object source) => Source = source;
 
         /// <summary>
         /// Gets the <i>actual</i> host object.
@@ -42,14 +39,12 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
             }
         }
 
-        internal static object GetMethod(object target, string methodName)
-        {
-            return target.GetType().InvokeMember(
+        internal static object GetMethod(object target, string methodName) =>
+            target.GetType().InvokeMember(
                 methodName,
                 BindingFlags.InvokeMethod | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public,
                 null,
                 target,
                 Array.Empty<object>());
-        }
     }
 }

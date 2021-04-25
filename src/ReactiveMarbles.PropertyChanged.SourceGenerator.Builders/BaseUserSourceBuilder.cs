@@ -79,22 +79,20 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
     {
         private static int _classCounter;
         private readonly TBuilder _instance;
+        private readonly List<BaseUserSourceBuilder> _nestedClasses;
 
-        private string _className;
-        private Accessibility _classAccess;
         private string _namespaceName;
         private BaseUserSourceBuilder _containerClass;
-        private List<BaseUserSourceBuilder> _nestedClasses;
         private HashSet<string> _usings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BaseUserSourceBuilder{TBuilder}"/> class.
         /// </summary>
-        public BaseUserSourceBuilder()
+        protected BaseUserSourceBuilder()
         {
             _instance = (TBuilder)this;
-            _className = $"CustomClass{_classCounter++}";
-            _classAccess = Accessibility.Public;
+            ClassName = $"CustomClass{_classCounter++}";
+            ClassAccess = Accessibility.Public;
             _namespaceName = null;
             _containerClass = null;
             _nestedClasses = new List<BaseUserSourceBuilder>();
@@ -115,20 +113,18 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         /// <summary>
         /// Gets the name of this class.
         /// </summary>
-        protected string ClassName => _className;
+        protected string ClassName { get; private set; }
 
         /// <summary>
         /// Gets the access modifier of this class.
         /// </summary>
-        protected Accessibility ClassAccess => _classAccess;
+        protected Accessibility ClassAccess { get; private set; }
 
         /// <inheritdoc/>
-        public override string GetTypeName()
-        {
-            return IsNested
-                ? $"{_containerClass.GetTypeName()}+{_className}"
-                : HasNamespace ? $"{_namespaceName}.{_className}" : _className;
-        }
+        public override string GetTypeName() =>
+            IsNested
+                ? $"{_containerClass.GetTypeName()}+{ClassName}"
+                : HasNamespace ? $"{_namespaceName}.{ClassName}" : ClassName;
 
         /// <summary>
         /// Sets the class name.
@@ -137,7 +133,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         /// <returns>A reference to this builder.</returns>
         public TBuilder WithClassName(string value)
         {
-            _className = value;
+            ClassName = value;
             return _instance;
         }
 
@@ -148,7 +144,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         /// <returns>A reference to this builder.</returns>
         public TBuilder WithClassAccess(Accessibility value)
         {
-            _classAccess = value;
+            ClassAccess = value;
             return _instance;
         }
 
@@ -203,16 +199,10 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         }
 
         /// <inheritdoc/>
-        public sealed override IEnumerable<string> GetNamespacesRecursive()
-        {
-            return GetNamespaces().Concat(_nestedClasses.SelectMany(x => x.GetNamespacesRecursive()));
-        }
+        public sealed override IEnumerable<string> GetNamespacesRecursive() => GetNamespaces().Concat(_nestedClasses.SelectMany(x => x.GetNamespacesRecursive()));
 
         /// <inheritdoc/>
-        public override IEnumerable<string> GetNamespaces()
-        {
-            return Enumerable.Empty<string>();
-        }
+        public override IEnumerable<string> GetNamespaces() => Enumerable.Empty<string>();
 
         /// <summary>
         /// Creates the source code for this class.

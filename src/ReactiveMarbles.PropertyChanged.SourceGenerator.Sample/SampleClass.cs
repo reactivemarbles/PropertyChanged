@@ -13,7 +13,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample
     /// </summary>
     public partial class SampleClass
     {
-        private SampleClass.PrivateClass GetClass() => throw new NotImplementedException();
+        private PrivateClass GetClass() => throw new NotImplementedException();
     }
 
     /// <summary>
@@ -43,10 +43,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample
         /// </summary>
         internal string MyString
         {
-            get
-            {
-                return _myString;
-            }
+            get => _myString;
 
             set
             {
@@ -60,10 +57,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample
         /// </summary>
         internal OtherNamespace.SampleClass MyClass
         {
-            get
-            {
-                return _myClass;
-            }
+            get => _myClass;
 
             set
             {
@@ -73,21 +67,18 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "OK")]
-        internal System.IObservable<OtherNamespace.SampleClass> WhenChanged(System.Linq.Expressions.Expression<System.Func<Sample.SampleClass, OtherNamespace.SampleClass>> propertyExpression)
-        {
-            return System.Reactive.Linq.Observable.Return(this)
-                    .Where(x => x != null)
-                    .Select(x => GenerateObservable(x, "MyClass", y => y.MyClass))
-                    .Switch();
-        }
+        internal System.IObservable<OtherNamespace.SampleClass> WhenChanged(System.Linq.Expressions.Expression<System.Func<Sample.SampleClass, OtherNamespace.SampleClass>> propertyExpression) =>
+            System.Reactive.Linq.Observable.Return(this)
+                .Where(x => x != null)
+                .Select(x => GenerateObservable(x, "MyClass", y => y.MyClass))
+                .Switch();
 
         private static System.IObservable<T> GenerateObservable<TObj, T>(
         TObj parent,
         string memberName,
         System.Func<TObj, T> getter)
-    where TObj : INotifyPropertyChanged
-        {
-            return Observable.Create<T>(
+    where TObj : INotifyPropertyChanged =>
+            Observable.Create<T>(
                     observer =>
                     {
                         PropertyChangedEventHandler handler = (object sender, PropertyChangedEventArgs e) =>
@@ -103,7 +94,6 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample
                         return System.Reactive.Disposables.Disposable.Create((parent, handler), x => x.parent.PropertyChanged -= x.handler);
                     })
                 .StartWith(getter(parent));
-        }
 
         private class PrivateClass
         {

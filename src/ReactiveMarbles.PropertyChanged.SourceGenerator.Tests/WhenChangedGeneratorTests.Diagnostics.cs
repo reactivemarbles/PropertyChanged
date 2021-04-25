@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for full license information.
 
 using System.Linq;
-using System.Reactive.Linq;
 using Microsoft.CodeAnalysis;
 using ReactiveMarbles.PropertyChanged.SourceGenerator.Builders;
 using Xunit;
@@ -48,7 +47,7 @@ public class HostClass : INotifyPropertyChanged
         [Fact]
         public void RXM001_PropertyInvocationUsedAsAnExpressionArgument()
         {
-            var invocation = "this.WhenChanged(MyExpression)";
+            const string invocation = "this.WhenChanged(MyExpression)";
             var source = SourceTemplate.Replace(WhenChangedPlaceholder, invocation);
             AssertDiagnostic(source, DiagnosticWarnings.ExpressionMustBeInline);
         }
@@ -61,7 +60,7 @@ public class HostClass : INotifyPropertyChanged
         [Fact]
         public void RXM001_PropertyInvocationUsedAsAnExpressionArgument_MultiExpressionMultiChain()
         {
-            var invocation = "this.WhenChanged(x => x.Child.Value, MyExpression, (a, b) => $\"{a}-{b}\")";
+            const string invocation = "this.WhenChanged(x => x.Child.Value, MyExpression, (a, b) => $\"{a}-{b}\")";
             var source = SourceTemplate.Replace(WhenChangedPlaceholder, invocation);
             AssertDiagnostic(source, DiagnosticWarnings.ExpressionMustBeInline);
         }
@@ -74,7 +73,7 @@ public class HostClass : INotifyPropertyChanged
         [Fact]
         public void RXM001_MethodInvocationUsedAsAnExpressionArgument()
         {
-            var invocation = "this.WhenChanged(GetMyExpression())";
+            const string invocation = "this.WhenChanged(GetMyExpression())";
             var source = SourceTemplate.Replace(WhenChangedPlaceholder, invocation);
             AssertDiagnostic(source, DiagnosticWarnings.ExpressionMustBeInline);
         }
@@ -87,7 +86,7 @@ public class HostClass : INotifyPropertyChanged
         [Fact]
         public void RXM001_MethodInvocationUsedAsAnExpressionArgument_MultiExpressionMultiChain()
         {
-            var invocation = "this.WhenChanged(x => x.Child.Value, GetMyExpression(), (a, b) => $\"{a}-{b}\")";
+            const string invocation = "this.WhenChanged(x => x.Child.Value, GetMyExpression(), (a, b) => $\"{a}-{b}\")";
             var source = SourceTemplate.Replace(WhenChangedPlaceholder, invocation);
             AssertDiagnostic(source, DiagnosticWarnings.ExpressionMustBeInline);
         }
@@ -101,7 +100,7 @@ public class HostClass : INotifyPropertyChanged
         [Fact]
         public void RXM002_MethodInvocationUsedInExpressionChain()
         {
-            var invocation = "this.WhenChanged(x => x.GetValue())";
+            const string invocation = "this.WhenChanged(x => x.GetValue())";
             var source = SourceTemplate.Replace(WhenChangedPlaceholder, invocation);
             AssertDiagnostic(source, DiagnosticWarnings.OnlyPropertyAndFieldAccessAllowed);
         }
@@ -115,7 +114,7 @@ public class HostClass : INotifyPropertyChanged
         [Fact]
         public void RXM002_MethodInvocationUsedInExpressionChain_MultiExpressionMultiChain()
         {
-            var invocation = "this.WhenChanged(x => x.Value, x => x.GetChild().Value, (a, b) => $\"{a}-{b}\")";
+            const string invocation = "this.WhenChanged(x => x.Value, x => x.GetChild().Value, (a, b) => $\"{a}-{b}\")";
             var source = SourceTemplate.Replace(WhenChangedPlaceholder, invocation);
             AssertDiagnostic(source, DiagnosticWarnings.OnlyPropertyAndFieldAccessAllowed);
         }
@@ -129,7 +128,7 @@ public class HostClass : INotifyPropertyChanged
         [Fact]
         public void RXM002_IndexerAccessUsedInExpressionChain()
         {
-            var invocation = "this.WhenChanged(x => x.Values[0])";
+            const string invocation = "this.WhenChanged(x => x.Values[0])";
             var source = SourceTemplate.Replace(WhenChangedPlaceholder, invocation);
             AssertDiagnostic(source, DiagnosticWarnings.OnlyPropertyAndFieldAccessAllowed);
         }
@@ -143,7 +142,7 @@ public class HostClass : INotifyPropertyChanged
         [Fact]
         public void RXM002_IndexerAccessUsedInExpressionChain_MultiExpressionMultiChain()
         {
-            var invocation = "this.WhenChanged(x => x.Value, x => x.Children[0].Value, (a, b) => $\"{a}-{b}\")";
+            const string invocation = "this.WhenChanged(x => x.Value, x => x.Children[0].Value, (a, b) => $\"{a}-{b}\")";
             var source = SourceTemplate.Replace(WhenChangedPlaceholder, invocation);
             AssertDiagnostic(source, DiagnosticWarnings.OnlyPropertyAndFieldAccessAllowed);
         }
@@ -156,7 +155,7 @@ public class HostClass : INotifyPropertyChanged
         [Fact]
         public void RXM003_LambdaParameterNotUsed()
         {
-            var invocation = "this.WhenChanged(x => Value)";
+            const string invocation = "this.WhenChanged(x => Value)";
             var source = SourceTemplate.Replace(WhenChangedPlaceholder, invocation);
             AssertDiagnostic(source, DiagnosticWarnings.LambdaParameterMustBeUsed);
         }
@@ -169,7 +168,7 @@ public class HostClass : INotifyPropertyChanged
         [Fact]
         public void RXM003_LambdaParameterNotUsed_MultiExpressionMultiChain()
         {
-            var invocation = "this.WhenChanged(x => x.Value, x => Child.Value, (a, b) => $\"{a}-{b}\")";
+            const string invocation = "this.WhenChanged(x => x.Value, x => Child.Value, (a, b) => $\"{a}-{b}\")";
             var source = SourceTemplate.Replace(WhenChangedPlaceholder, invocation);
             AssertDiagnostic(source, DiagnosticWarnings.LambdaParameterMustBeUsed);
         }
@@ -228,7 +227,7 @@ public class HostClass : INotifyPropertyChanged
 
         private static void AssertDiagnostic(string source, DiagnosticDescriptor expectedDiagnostic)
         {
-            Compilation compilation = CompilationUtil.CreateCompilation(source);
+            var compilation = CompilationUtil.CreateCompilation(source);
             var newCompilation = CompilationUtil.RunGenerators(compilation, out var generatorDiagnostics, new Generator());
             var compilationDiagnostics = newCompilation.GetDiagnostics();
             var compilationErrors = compilationDiagnostics.Where(x => x.Severity == DiagnosticSeverity.Error).Select(x => x.GetMessage()).ToList();

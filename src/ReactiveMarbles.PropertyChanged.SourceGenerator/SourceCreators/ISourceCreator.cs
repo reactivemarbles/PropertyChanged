@@ -12,7 +12,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
     internal interface ISourceCreator
     {
         /// <summary>
-        /// Creates the source code for the specified source datums.
+        /// Creates the source code for the specified sources.
         /// </summary>
         /// <param name="sources">The source data.</param>
         /// <returns>The source.</returns>

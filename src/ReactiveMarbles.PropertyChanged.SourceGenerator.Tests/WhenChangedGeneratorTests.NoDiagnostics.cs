@@ -4,11 +4,9 @@
 
 using System;
 using System.Linq;
-using System.Reactive.Linq;
 using Microsoft.CodeAnalysis;
 using ReactiveMarbles.PropertyChanged.SourceGenerator.Builders;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
 {
@@ -228,7 +226,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             AssertTestCase_MultiExpression(hostTypeInfo, hostPropertyTypeInfo, typesHaveSameRoot: true);
         }
 
-        private void AssertTestCase_SingleExpression(WhenChangedHostBuilder hostTypeInfo, EmptyClassBuilder hostPropertyTypeInfo, bool typesHaveSameRoot)
+        private void AssertTestCase_SingleExpression(WhenChangedHostBuilder hostTypeInfo, BaseUserSourceBuilder hostPropertyTypeInfo, bool typesHaveSameRoot)
         {
             hostTypeInfo.WithInvocation(InvocationKind.MemberAccess, ReceiverKind.This, x => x.Value);
             var propertyTypeSource = typesHaveSameRoot ? string.Empty : hostPropertyTypeInfo.BuildRoot();
@@ -250,7 +248,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             Assert.Equal(host.Value, value);
         }
 
-        private void AssertTestCase_MultiExpression(WhenChangedHostBuilder hostTypeInfo, EmptyClassBuilder hostPropertyTypeInfo, bool typesHaveSameRoot)
+        private void AssertTestCase_MultiExpression(WhenChangedHostBuilder hostTypeInfo, BaseUserSourceBuilder hostPropertyTypeInfo, bool typesHaveSameRoot)
         {
             hostTypeInfo.WithInvocation(InvocationKind.MemberAccess, ReceiverKind.This, x => x.Child, x => x.Value, (a, b) => "result" + a + b);
             var propertyTypeSource = typesHaveSameRoot ? string.Empty : hostPropertyTypeInfo.BuildRoot();

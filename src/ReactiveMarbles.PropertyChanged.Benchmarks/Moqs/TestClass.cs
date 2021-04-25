@@ -54,7 +54,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks.Moqs
             }
 
             var height = Height;
-            TestClass current = this;
+            var current = this;
             while (--height > depth)
             {
                 current = current?.Child;

@@ -6,13 +6,8 @@
 <#@ assembly name="Microsoft.CodeAnalysis.dll" #>
 <#@ assembly name="Microsoft.CodeAnalysis.CSharp.dll" #>
 <#@ assembly name="netstandard.dll" #>
-<#@ import namespace="Microsoft.CodeAnalysis" #>
-<#@ import namespace="Microsoft.CodeAnalysis.CSharp" #>
-<#@ import namespace="System.Collections.Generic" #>
-<#@ import namespace="System.Collections.Immutable" #>
 <#@ import namespace="System.IO" #>
 <#@ import namespace="System.Linq" #>
-<#@ import namespace="System.Reflection" #>
 <#@ output extension=".cs" #>
 // Copyright (c) 2019-2021 ReactiveUI Association Incorporated. All rights reserved.
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.

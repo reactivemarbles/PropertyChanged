@@ -11,20 +11,20 @@ using static ReactiveMarbles.PropertyChanged.SourceGenerator.SyntaxFactoryHelper
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
-    internal class RoslynBindExtensionCreator : RoslynBindBase
+    internal class RoslynOneWayBindExtensionCreator : RoslynBindBase
     {
         public override string Create(IEnumerable<IDatum> sources)
         {
             var members = sources.Cast<BindInvocationInfo>().Select(Create).ToList();
 
-            if (members.Count > 0)
+            if (members.Count == 0)
             {
-                var compilation = CompilationUnit(default, members, RoslynHelpers.GetReactiveExtensionUsings());
-
-                return compilation.ToFullString();
+                return null;
             }
 
-            return null;
+            var compilation = CompilationUnit(default, members, RoslynHelpers.GetReactiveExtensionUsings());
+
+            return compilation.ToFullString();
         }
 
         private static ClassDeclarationSyntax Create(BindInvocationInfo classDatum)
@@ -32,7 +32,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             var visibility = new[] { SyntaxKind.InternalKeyword, SyntaxKind.StaticKeyword, SyntaxKind.PartialKeyword };
 
             // generates the BindExtensions with Bind methods overload.
-            return ClassDeclaration("BindExtensions", visibility, CreateBind(classDatum.ViewModelArgument, classDatum.ViewArgument, classDatum.Accessibility, classDatum.HasConverters, true).ToList(), 1);
+            return ClassDeclaration("BindExtensions", visibility, CreateOneWayBind(classDatum.ViewModelArgument, classDatum.ViewArgument, classDatum.Accessibility, classDatum.HasConverters, true).ToList(), 1);
         }
     }
 }

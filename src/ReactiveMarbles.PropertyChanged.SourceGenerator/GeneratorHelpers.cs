@@ -54,7 +54,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 }
 
                 var propertyInvocationSymbol = model.GetSymbolInfo(child).Symbol;
-                var propertyDeclarationSyntax = propertyInvocationSymbol.DeclaringSyntaxReferences.First().GetSyntax();
+                var propertyDeclarationSyntax = propertyInvocationSymbol.DeclaringSyntaxReferences[0].GetSyntax();
                 var propertyDeclarationModel = compilation.GetSemanticModel(propertyDeclarationSyntax.SyntaxTree);
                 var propertyDeclarationSymbol = propertyDeclarationModel.GetDeclaredSymbol(propertyDeclarationSyntax);
                 var propertyAccessibility = propertyDeclarationSymbol.DeclaredAccessibility;
@@ -75,60 +75,24 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             return false;
         }
 
-        public static MethodDatum CreateSingleExpressionMethodDatum(List<ExpressionArgument> outputTypeGroup)
-        {
-            MethodDatum methodDatum = null;
-            var (_, expressionChain, inputTypeSymbol, outputTypeSymbol, _) = outputTypeGroup[0];
-            var (inputTypeName, outputTypeName) = (inputTypeSymbol.ToDisplayString(), outputTypeSymbol.ToDisplayString());
-
-            var accessModifier = inputTypeSymbol.DeclaredAccessibility;
-            if (outputTypeSymbol.DeclaredAccessibility < inputTypeSymbol.DeclaredAccessibility)
-            {
-                accessModifier = outputTypeSymbol.DeclaredAccessibility;
-            }
-
-            switch (outputTypeGroup.Count)
-            {
-                case 1:
-                    methodDatum = new SingleExpressionOptimizedImplMethodDatum(inputTypeName, outputTypeName, accessModifier, expressionChain);
-                    break;
-                case > 1:
-                {
-                    var mapName = $"__generated{inputTypeSymbol.GetVariableName()}{outputTypeSymbol.GetVariableName()}Map";
-
-                    var entries = new List<MapEntryDatum>(outputTypeGroup.Count);
-                    foreach (var argumentDatum in outputTypeGroup)
-                    {
-                        var mapKey = argumentDatum.LambdaBodyString;
-                        var mapEntry = new MapEntryDatum(mapKey, argumentDatum.ExpressionChain);
-                        entries.Add(mapEntry);
-                    }
-
-                    var map = new MapDatum(mapName, entries);
-                    methodDatum = new SingleExpressionDictionaryImplMethodDatum(inputTypeName, outputTypeName, accessModifier, map);
-                    break;
-                }
-            }
-
-            return methodDatum;
-        }
-
         public static bool GetExpression(GeneratorExecutionContext context, LambdaExpressionSyntax lambdaExpression, Compilation compilation, SemanticModel model, out ExpressionArgument expressionArgument)
         {
             var expressionChain = GetExpressionChain(context, lambdaExpression, model);
 
             expressionArgument = null;
-            if (expressionChain != null)
+            if (expressionChain == null)
             {
-                var lambdaInputType = expressionChain[0].InputType;
-                var lambdaOutputType = expressionChain[expressionChain.Count - 1].OutputType;
-                var inputTypeAccess = lambdaInputType.GetVisibility();
-
-                var containsPrivateOrProtectedMember =
-                    inputTypeAccess.IsPrivateOrProtected() ||
-                    ContainsPrivateOrProtectedMember(compilation, model, lambdaExpression);
-                expressionArgument = new ExpressionArgument(lambdaExpression.Body.ToString(), expressionChain, lambdaInputType, lambdaOutputType, containsPrivateOrProtectedMember);
+                return expressionChain != null;
             }
+
+            var lambdaInputType = expressionChain[0].InputType;
+            var lambdaOutputType = expressionChain[expressionChain.Count - 1].OutputType;
+            var inputTypeAccess = lambdaInputType.GetVisibility();
+
+            var containsPrivateOrProtectedMember =
+                inputTypeAccess.IsPrivateOrProtected() ||
+                ContainsPrivateOrProtectedMember(compilation, model, lambdaExpression);
+            expressionArgument = new ExpressionArgument(lambdaExpression.Body.ToString(), expressionChain, lambdaInputType, lambdaOutputType, containsPrivateOrProtectedMember);
 
             return expressionChain != null;
         }
@@ -138,7 +102,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             var inputTypeSymbol = methodSymbol.TypeArguments[0];
             var accessModifier = inputTypeSymbol.GetVisibility();
 
-            for (int i = 1; i < methodSymbol.TypeArguments.Length; ++i)
+            for (var i = 1; i < methodSymbol.TypeArguments.Length; ++i)
             {
                 var outputTypeSymbol = methodSymbol.TypeArguments[i];
                 var outputTypeAccess = outputTypeSymbol.GetVisibility();
@@ -151,7 +115,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             var containsPrivateOrProtectedTypeArgument = accessModifier.IsPrivateOrProtected();
             var types = methodSymbol.TypeArguments;
 
-            return new(accessModifier, types, containsPrivateOrProtectedTypeArgument);
+            return new MultiExpressionMethodDatum(accessModifier, types, containsPrivateOrProtectedTypeArgument);
         }
 
         public static List<ExpressionChain> GetExpressionChain(GeneratorExecutionContext context, LambdaExpressionSyntax lambdaExpression, SemanticModel model)
@@ -166,7 +130,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 var inputType = model.GetTypeInfo(expressionChain.ChildNodes().ElementAt(0)).Type as INamedTypeSymbol;
                 var outputType = model.GetTypeInfo(expressionChain.ChildNodes().ElementAt(1)).Type as INamedTypeSymbol;
 
-                members.Add(new(name, inputType, outputType));
+                members.Add(new ExpressionChain(name, inputType, outputType));
 
                 expression = expressionChain.Expression;
                 expressionChain = expression as MemberAccessExpressionSyntax;

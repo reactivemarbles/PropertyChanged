@@ -10,24 +10,34 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
     internal class BindGenerator : IGenerator
     {
-        private static readonly RoslynBindExtensionCreator _bindExtensionCreator = new RoslynBindExtensionCreator();
-        private static readonly RoslynBindPartialClassCreator _bindPartialCreator = new RoslynBindPartialClassCreator();
+        private static readonly RoslynBindExtensionCreator _bindExtensionCreator = new();
+        private static readonly RoslynBindPartialClassCreator _bindPartialCreator = new();
+        private static readonly RoslynOneWayBindExtensionCreator _oneWayBindExtensionCreator = new();
+        private static readonly RoslynOneWayBindPartialClassCreator _oneWayPartialCreator = new();
 
         public IEnumerable<(string FileName, string SourceCode)> GenerateSourceFromInvocations(ITypeSymbol type, HashSet<InvocationInfo> invocations)
         {
             var publicInvocations = new List<ExtensionBindInvocationInfo>();
             var privateInvocations = new List<PartialBindInvocationInfo>();
+            var publicOneWayInvocations = new List<ExtensionOneWayBindInvocationInfo>();
+            var privateOneWayInvocations = new List<PartialOneWayBindInvocationInfo>();
 
             foreach (var invocation in invocations)
             {
-                if (invocation is ExtensionBindInvocationInfo bindInvocation)
+                switch (invocation)
                 {
-                    publicInvocations.Add(bindInvocation);
-                }
-
-                if (invocation is PartialBindInvocationInfo partialBindInvocation)
-                {
-                    privateInvocations.Add(partialBindInvocation);
+                    case ExtensionBindInvocationInfo bindInvocation:
+                        publicInvocations.Add(bindInvocation);
+                        break;
+                    case PartialBindInvocationInfo partialBindInvocation:
+                        privateInvocations.Add(partialBindInvocation);
+                        break;
+                    case PartialOneWayBindInvocationInfo partialOneWayBindInvocation:
+                        privateOneWayInvocations.Add(partialOneWayBindInvocation);
+                        break;
+                    case ExtensionOneWayBindInvocationInfo oneWayExtensionBind:
+                        publicOneWayInvocations.Add(oneWayExtensionBind);
+                        break;
                 }
             }
 

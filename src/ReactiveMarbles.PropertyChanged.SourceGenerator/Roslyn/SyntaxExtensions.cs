@@ -6,9 +6,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 
 using Microsoft.CodeAnalysis;
-
-using ReactiveMarbles.PropertyChanged.SourceGenerator;
-
 using static ReactiveMarbles.PropertyChanged.SourceGenerator.SyntaxFactoryHelpers;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator

@@ -25,7 +25,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
            {
                null => throw new ArgumentNullException(nameof(input)),
                "" => throw new ArgumentException($"{nameof(input)} cannot be empty", nameof(input)),
-               _ => input[0].ToString().ToUpper() + input.Substring(1)
+               _ => input[0].ToString().ToUpper() + input.Substring(1),
            };
 
         public static List<AncestorClassInfo> GetAncestors(this ITypeSymbol inputType)
@@ -34,7 +34,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             var containingType = inputType.ContainingType;
             while (containingType != null)
             {
-                ancestorClasses.Add(new(containingType.Name, containingType.DeclaredAccessibility));
+                ancestorClasses.Add(new AncestorClassInfo(containingType.Name, containingType.DeclaredAccessibility));
                 containingType = containingType.ContainingType;
             }
 
@@ -47,10 +47,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             return string.IsNullOrEmpty(containingNamespace?.Name) ? string.Empty : containingNamespace.ToDisplayString();
         }
 
-        public static void ReportDiagnostic(this GeneratorExecutionContext context, DiagnosticDescriptor descriptor, Location location = null)
-        {
-            context.ReportDiagnostic(Diagnostic.Create(descriptor: descriptor, location: location));
-        }
+        public static void ReportDiagnostic(this GeneratorExecutionContext context, DiagnosticDescriptor descriptor, Location location = null) => context.ReportDiagnostic(Diagnostic.Create(descriptor: descriptor, location: location));
 
         public static void BinaryListInsert<TKey, TItem>(this SortedList<TKey, List<TItem>> dictionary, TKey key, TItem item, IComparer<TItem> comparer = null)
         {

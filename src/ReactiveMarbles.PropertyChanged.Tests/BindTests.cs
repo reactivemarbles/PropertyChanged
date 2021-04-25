@@ -80,7 +80,7 @@ namespace ReactiveMarbles.PropertyChanged.Tests
             a.B = b;
             var c = new C
             {
-                Test = "Host Value"
+                Test = "Host Value",
             };
             b.C = c;
 
@@ -99,8 +99,8 @@ namespace ReactiveMarbles.PropertyChanged.Tests
             {
                 C = new C
                 {
-                    Test = "Test3"
-                }
+                    Test = "Test3",
+                },
             };
             Assert.Equal("Test3", bindToC.Test);
         }

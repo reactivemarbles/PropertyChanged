@@ -2,10 +2,8 @@
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
-using System;
 using System.Collections.Generic;
-using System.Text;
-
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -18,7 +16,12 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
     {
         public abstract string Create(IEnumerable<IDatum> sources);
 
-        internal static IEnumerable<MemberDeclarationSyntax> Create(ExpressionArgument viewModelArgument, ExpressionArgument viewArgument, Accessibility accessibility, bool hasConverters, bool isExtension)
+        protected static IEnumerable<MemberDeclarationSyntax> CreateOneWayBind(ExpressionArgument viewModelArgument, ExpressionArgument viewArgument, Accessibility accessibility, bool hasConverters, bool isExtension)
+        {
+            return Enumerable.Empty<MemberDeclarationSyntax>();
+        }
+
+        protected static IEnumerable<MemberDeclarationSyntax> CreateBind(ExpressionArgument viewModelArgument, ExpressionArgument viewArgument, Accessibility accessibility, bool hasConverters, bool isExtension)
         {
             var statements = new List<StatementSyntax>();
 
@@ -110,7 +113,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                                 AssignmentExpression(
                                     SyntaxKind.SimpleAssignmentExpression,
                                     MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, "targetObject", viewArgument.ExpressionChain[viewArgument.ExpressionChain.Count - 1].Name),
-                                    "x")))
+                                    "x"))),
                         })),
 
                     // generates: targetObs.Subscribe(x => fromObject.[propertyName] = x);
@@ -123,8 +126,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                                 AssignmentExpression(
                                     SyntaxKind.SimpleAssignmentExpression,
                                     MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, fromName, viewModelArgument.ExpressionChain[viewModelArgument.ExpressionChain.Count - 1].Name),
-                                    "x")))
-                        }))
+                                    "x"))),
+                        })),
                 })));
 
             // generates: Bind() method.

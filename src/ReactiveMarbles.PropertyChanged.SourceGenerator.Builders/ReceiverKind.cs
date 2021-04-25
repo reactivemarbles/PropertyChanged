@@ -15,7 +15,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         This,
 
         /// <summary>
-        /// The reciever is a instance reference.
+        /// The receiver is a instance reference.
         /// </summary>
         Instance,
     }

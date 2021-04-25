@@ -104,12 +104,9 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 return default;
             }
 
-            if (arguments.Count == 1)
-            {
-                return SyntaxFactory.AttributeArgumentList(SingletonSeparatedList(arguments.First()));
-            }
-
-            return SyntaxFactory.AttributeArgumentList(SeparatedList(arguments));
+            return SyntaxFactory.AttributeArgumentList(arguments.Count == 1 ?
+                SingletonSeparatedList(arguments.First()) :
+                SeparatedList(arguments));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -139,13 +136,10 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static AttributeTargetSpecifierSyntax AttributeTargetSpecifier(SyntaxKind target)
-        {
-            return SyntaxFactory.AttributeTargetSpecifier(Token(target), Token(SyntaxKind.ColonToken).AddTrialingSpaces());
-        }
+        public static AttributeTargetSpecifierSyntax AttributeTargetSpecifier(SyntaxKind target) => SyntaxFactory.AttributeTargetSpecifier(Token(target), Token(SyntaxKind.ColonToken).AddTrialingSpaces());
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UsingDirectiveSyntax UsingDirective(string identifier) => SyntaxFactory.UsingDirective(Token(SyntaxKind.UsingKeyword).AddTrialingSpaces(), default(SyntaxToken), null, IdentifierName(identifier), Token(SyntaxKind.SemicolonToken).AddTrialingNewLines());
+        public static UsingDirectiveSyntax UsingDirective(string identifier) => SyntaxFactory.UsingDirective(Token(SyntaxKind.UsingKeyword).AddTrialingSpaces(), default, null, IdentifierName(identifier), Token(SyntaxKind.SemicolonToken).AddTrialingNewLines());
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static SeparatedSyntaxList<TNode> SeparatedList<TNode>(IReadOnlyCollection<TNode> nodes)
@@ -175,12 +169,9 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 return default;
             }
 
-            if (nodes.Count == 1)
-            {
-                return SyntaxFactory.ArgumentList(SingletonSeparatedList(nodes.First()));
-            }
-
-            return SyntaxFactory.ArgumentList(SeparatedList(nodes));
+            return SyntaxFactory.ArgumentList(nodes.Count == 1 ?
+                SingletonSeparatedList(nodes.First()) :
+                SeparatedList(nodes));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -290,12 +281,10 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
             var (openBrace, closeBrace) = GetBrackets();
 
-            if (nodes.Count == 1)
-            {
-                return SyntaxFactory.BracketedArgumentList(openBrace, SingletonSeparatedList(nodes.First()), closeBrace);
-            }
-
-            return SyntaxFactory.BracketedArgumentList(openBrace, SeparatedList(nodes), closeBrace);
+            return SyntaxFactory.BracketedArgumentList(
+                openBrace,
+                nodes.Count == 1 ? SingletonSeparatedList(nodes.First()) : SeparatedList(nodes),
+                closeBrace);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -306,12 +295,9 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 return default;
             }
 
-            if (nodes.Count == 1)
-            {
-                return SingletonSeparatedList(nodes.First());
-            }
-
-            return SyntaxFactory.SeparatedList(GetIndentedNodes(nodes, level));
+            return nodes.Count == 1 ?
+                SingletonSeparatedList(nodes.First()) :
+                SyntaxFactory.SeparatedList(GetIndentedNodes(nodes, level));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -468,7 +454,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
             explicitInterface = explicitInterface?.AddLeadingSpaces();
 
-            SyntaxToken token = body == default ? Token(SyntaxKind.SemicolonToken) : default;
+            var token = body == default ? Token(SyntaxKind.SemicolonToken) : default;
 
             return SyntaxFactory.MethodDeclaration(attributeList, modifiersList, type, explicitInterface, name, typeParameterList, parametersList, typeParameterConstraintList, body, arrowSyntax, token);
         }
@@ -623,15 +609,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static BaseListSyntax BaseList(BaseTypeSyntax baseType)
-        {
-            if (baseType == null)
-            {
-                return default;
-            }
-
-            return SyntaxFactory.BaseList(Token(SyntaxKind.ColonToken).AddLeadingSpaces().AddTrialingSpaces(), SingletonSeparatedList(baseType));
-        }
+        public static BaseListSyntax BaseList(BaseTypeSyntax baseType) =>
+            baseType == null ? default : SyntaxFactory.BaseList(Token(SyntaxKind.ColonToken).AddLeadingSpaces().AddTrialingSpaces(), SingletonSeparatedList(baseType));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ExpressionStatementSyntax ExpressionStatement(ExpressionSyntax expression) =>
@@ -677,10 +656,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static TypeArgumentListSyntax TypeArgumentList(IReadOnlyCollection<TypeSyntax> types)
-        {
-            return types == null || types.Count == 0 ? SyntaxFactory.TypeArgumentList() : SyntaxFactory.TypeArgumentList(SeparatedList(types));
-        }
+        public static TypeArgumentListSyntax TypeArgumentList(IReadOnlyCollection<TypeSyntax> types) => types == null || types.Count == 0 ? SyntaxFactory.TypeArgumentList() : SyntaxFactory.TypeArgumentList(SeparatedList(types));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static EqualsValueClauseSyntax EqualsValueClause(ExpressionSyntax value) => SyntaxFactory.EqualsValueClause(SyntaxFactory.Token(SyntaxKind.EqualsToken).AddLeadingSpaces().AddTrialingSpaces(), value);

@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis;
 using ReactiveMarbles.PropertyChanged.SourceGenerator.Builders;
 
 using Xunit;
-using Xunit.Abstractions;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
 {

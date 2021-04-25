@@ -11,14 +11,14 @@ using static ReactiveMarbles.PropertyChanged.SourceGenerator.SyntaxFactoryHelper
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
-    internal class RoslynBindPartialClassCreator : RoslynBindBase
+    internal class RoslynOneWayBindPartialClassCreator : RoslynBindBase
     {
         public override string Create(IEnumerable<IDatum> sources)
         {
             var members = new List<MemberDeclarationSyntax>();
 
             foreach (var group in sources
-                .OfType<PartialBindInvocationInfo>()
+                .OfType<PartialOneWayBindInvocationInfo>()
                 .GroupBy(x => x.NamespaceName))
             {
                 var classes = group.Select(Create).ToList();
@@ -33,17 +33,17 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 }
             }
 
-            if (members.Count > 0)
+            if (members.Count == 0)
             {
-                var compilation = CompilationUnit(default, members, RoslynHelpers.GetReactiveExtensionUsings());
-
-                return compilation.ToFullString();
+                return null;
             }
 
-            return null;
+            var compilation = CompilationUnit(default, members, RoslynHelpers.GetReactiveExtensionUsings());
+
+            return compilation.ToFullString();
         }
 
-        private static ClassDeclarationSyntax Create(PartialBindInvocationInfo classDatum)
+        private static ClassDeclarationSyntax Create(PartialOneWayBindInvocationInfo classDatum)
         {
             var visibility = classDatum.ViewModelArgument.InputType.DeclaredAccessibility.GetAccessibilityTokens().Concat(new[] { SyntaxKind.PartialKeyword }).ToList();
 

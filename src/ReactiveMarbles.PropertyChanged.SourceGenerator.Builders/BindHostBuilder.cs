@@ -19,7 +19,6 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         private Accessibility _propertyAccess;
         private Accessibility _viewModelPropertyAccess;
         private string _invocation;
-        private string _propertyTypeName;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BindHostBuilder"/> class.
@@ -40,7 +39,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         /// <summary>
         /// Gets the type name of the <b>Value</b> property.
         /// </summary>
-        public string PropertyTypeName => _propertyTypeName;
+        public string PropertyTypeName { get; private set; }
 
         /// <summary>
         /// Sets the type of the <b>Value</b> property.
@@ -49,7 +48,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         /// <returns>A reference to this builder.</returns>
         public BindHostBuilder WithPropertyType(BaseUserSourceBuilder value)
         {
-            _propertyTypeName = value.GetTypeName();
+            PropertyTypeName = value.GetTypeName();
             return this;
         }
 
@@ -60,7 +59,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         /// <returns>A reference to this builder.</returns>
         public BindHostBuilder WithPropertyType(string value)
         {
-            _propertyTypeName = value;
+            PropertyTypeName = value;
             return this;
         }
 
@@ -142,9 +141,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         }
 
         /// <inheritdoc/>
-        public override IEnumerable<string> GetNamespaces()
-        {
-            return new[]
+        public override IEnumerable<string> GetNamespaces() =>
+            new[]
             {
                 "System",
                 "System.Collections.Generic",
@@ -152,7 +150,6 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
                 "System.Linq.Expressions",
                 "System.Runtime.CompilerServices",
             };
-        }
 
         /// <inheritdoc/>
         protected override string CreateClass(string nestedClasses)
@@ -160,7 +157,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
             var viewModelPropertyAccess = _viewModelPropertyAccess.ToFriendlyString();
             var viewModelPropertyTypeName = _viewModelPropertyType.GetTypeName().Replace('+', '.');
             var propertyAccess = _propertyAccess.ToFriendlyString();
-            var propertyTypeName = _propertyTypeName.Replace('+', '.');
+            var propertyTypeName = PropertyTypeName.Replace('+', '.');
 
             return $@"
     {ClassAccess.ToFriendlyString()} partial class {ClassName} : INotifyPropertyChanged
@@ -235,15 +232,9 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
                 viewArgs = viewArgs + ", " + viewModelConvertFunc + ", " + viewConvertFunc;
             }
 
-            string invocation;
-            if (invocationKind == InvocationKind.MemberAccess)
-            {
-                invocation = $"{receiver}.Bind({targetName}, {viewModelArgs}, {viewArgs})";
-            }
-            else
-            {
-                invocation = $"BindExtensions.Bind({receiver}, {targetName}, {viewModelArgs}, {viewArgs})";
-            }
+            var invocation = invocationKind == InvocationKind.MemberAccess ?
+                $"{receiver}.Bind({targetName}, {viewModelArgs}, {viewArgs})" :
+                $"BindExtensions.Bind({receiver}, {targetName}, {viewModelArgs}, {viewArgs})";
 
             return invocation;
         }

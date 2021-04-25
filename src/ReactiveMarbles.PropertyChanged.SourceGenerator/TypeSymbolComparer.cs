@@ -10,7 +10,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
     internal class TypeSymbolComparer : IComparer<ITypeSymbol>
     {
-        public static TypeSymbolComparer Default { get; } = new TypeSymbolComparer();
+        public static TypeSymbolComparer Default { get; } = new();
 
         public int Compare(ITypeSymbol x, ITypeSymbol y)
         {
@@ -34,10 +34,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 return 0;
             }
 
-            var xNamed = x as INamedTypeSymbol;
-            var yNamed = y as INamedTypeSymbol;
-
-            if (xNamed != null && yNamed != null)
+            if (x is INamedTypeSymbol xNamed && y is INamedTypeSymbol yNamed)
             {
                 return xNamed.ToDisplayString().CompareTo(yNamed.ToDisplayString());
             }

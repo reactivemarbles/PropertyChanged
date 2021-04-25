@@ -38,7 +38,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         public static BindFixture Create(BindHostBuilder hostTypeInfo, ITestOutputHelper testOutputHelper, params string[] extraSources)
         {
             var sources = extraSources.Prepend(hostTypeInfo.BuildRoot()).ToArray();
-            Compilation compilation = CompilationUtil.CreateCompilation(sources);
+            var compilation = CompilationUtil.CreateCompilation(sources);
             return new BindFixture(hostTypeInfo, compilation, testOutputHelper);
         }
 
@@ -68,25 +68,13 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             _valuePropertyType = assembly.GetType(_hostTypeInfo.PropertyTypeName);
         }
 
-        public BindHostProxy NewHostInstance()
-        {
-            return new BindHostProxy(CreateInstance(_hostType));
-        }
+        public BindHostProxy NewHostInstance() => new(CreateInstance(_hostType));
 
-        public WhenChangedHostProxy NewViewModelPropertyInstance()
-        {
-            return new WhenChangedHostProxy(CreateInstance(_viewModelPropertyType));
-        }
+        public WhenChangedHostProxy NewViewModelPropertyInstance() => new(CreateInstance(_viewModelPropertyType));
 
-        public object NewValuePropertyInstance()
-        {
-            return CreateInstance(_valuePropertyType);
-        }
+        public object NewValuePropertyInstance() => CreateInstance(_valuePropertyType);
 
-        private static object CreateInstance(Type type)
-        {
-            return Activator.CreateInstance(type, bindingAttr: BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, null, null);
-        }
+        private static object CreateInstance(Type type) => Activator.CreateInstance(type, bindingAttr: BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, null, null);
 
         private static Assembly GetAssembly(Compilation compilation)
         {
@@ -113,7 +101,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 File.Delete(file);
             }
 
-            int i = 0;
+            var i = 0;
             foreach (var compile in compilation.SyntaxTrees)
             {
                 var text = compile.GetText().ToString();

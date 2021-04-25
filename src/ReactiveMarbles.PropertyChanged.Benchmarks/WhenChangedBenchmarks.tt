@@ -1,7 +1,6 @@
 <#@ template debug="false" hostspecific="false" language="C#" #>
 <#@ assembly name="System.Core.dll" #>
 <#@ assembly name="System.Collections.dll" #>
-<#@ import namespace="System.Collections.Generic" #>
 <#@ import namespace="System.Linq" #>
 <#@ output extension=".cs" #>
 // Copyright (c) 2019-2020 ReactiveUI Association Incorporated. All rights reserved.
@@ -56,9 +55,9 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
         public int Changes;
 
 <#
-        for(int i = 0; i < depths.Length; i++)
+        for(var i = 0; i < depths.Length; i++)
         {
-            int depth = depths[i]; #>
+            var depth = depths[i]; #>
         [GlobalSetup(Targets = new[] { <#= string.Join(", ", participants.Select(x => $"\"{GetBenchmarkName(SubscribeAndChange, depth, x.Alias)}\"")) #> })]
         public void Depth<#= depth #>Setup()
         {
@@ -76,10 +75,10 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
         }
 
 <#
-        for(int i = 0; i < depths.Length; i++)
+        for(var i = 0; i < depths.Length; i++)
         {
-            int depth = depths[i];
-            for (int j = 0; j < participants.Length; j++)
+            var depth = depths[i];
+            for (var j = 0; j < participants.Length; j++)
             {
                 var (Alias, MethodName, FullClassName) = participants[j]; #>
         [BenchmarkCategory("Subscribe and Change Depth <#= depth #>")]
@@ -95,10 +94,10 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
 <#            } #>
 <#      } #>
 <#
-        for(int i = 0; i < depths.Length; i++)
+        for(var i = 0; i < depths.Length; i++)
         {
-            int depth = depths[i];
-            for (int j = 0; j < participants.Length; j++)
+            var depth = depths[i];
+            for (var j = 0; j < participants.Length; j++)
             {
                 var (Alias, MethodName, FullClassName) = participants[j];
                 var benchmarkName = GetBenchmarkName(Change, depth, Alias); #>

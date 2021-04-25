@@ -1,11 +1,9 @@
 ﻿<#@ template debug="false" hostspecific="false" language="C#" #>
 <#@ assembly name="System.Core" #>
 <#@ import namespace="System.Linq" #>
-<#@ import namespace="System.Text" #>
-<#@ import namespace="System.Collections.Generic" #>
 <#@ output extension=".cs" #>
 <# 
-var maxDepth = 12;
+const int maxDepth = 12;
 #>
 // Copyright (c) 2019-2021 ReactiveUI Association Incorporated. All rights reserved.
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
@@ -45,7 +43,7 @@ public static partial class NotifyPropertyChangedExtensions
         throw new Exception("The impementation should have been generated.");
     }
 <#
-for (int depth = 2; depth <= maxDepth; depth++)
+for (var depth = 2; depth <= maxDepth; depth++)
 {
 #>
 
@@ -54,7 +52,7 @@ for (int depth = 2; depth <= maxDepth; depth++)
     /// </summary>
     /// <param name="objectToMonitor">The object to monitor.</param>
 <#
-    for (int i = 1; i <= depth; ++i)
+    for (var i = 1; i <= depth; ++i)
     {
 #>
     /// <param name="propertyExpression<#= i #>">A expression to the value<#= i #>.</param>
@@ -67,7 +65,7 @@ for (int depth = 2; depth <= maxDepth; depth++)
     /// <param name="callerLineNumber">The caller line number.</param>
     /// <typeparam name="TObj">The type of initial object.</typeparam>
 <#
-    for (int i = 1; i <= depth; ++i)
+    for (var i = 1; i <= depth; ++i)
     {
 #>
     /// <typeparam name="TTempReturn<#= i #>">The return type of the value<#= i #>.</typeparam>
@@ -82,7 +80,7 @@ for (int depth = 2; depth <= maxDepth; depth++)
     public static IObservable<TReturn> WhenChanged<TObj, <#= expressionReturn #>, TReturn>(
         this TObj objectToMonitor,
 <#
-    for (int i = 1; i <= depth; ++i)
+    for (var i = 1; i <= depth; ++i)
     {
 #>
         Expression<Func<TObj, TTempReturn<#= i #>>> propertyExpression<#= i #>,

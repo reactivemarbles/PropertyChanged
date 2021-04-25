@@ -23,7 +23,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 .Cast<PartialClassDatum>()
                 .GroupBy(x => x.NamespaceName))
             {
-                var classes = group.Select(x => Create(x)).ToList();
+                var classes = group.Select(Create).ToList();
                 if (!string.IsNullOrWhiteSpace(group.Key))
                 {
                     var groupNamespace = NamespaceDeclaration(group.Key, classes, true);
@@ -49,7 +49,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         {
             var visibility = classDatum.AccessModifier.GetAccessibilityTokens().Concat(new[] { SyntaxKind.PartialKeyword }).ToList();
 
-            var currentClass = ClassDeclaration(classDatum.Name, visibility, classDatum.MethodData.SelectMany(x => Create(x)).ToList(), 1);
+            var currentClass = ClassDeclaration(classDatum.Name, visibility, classDatum.MethodData.SelectMany(Create).ToList(), 1);
 
             foreach (var ancestor in classDatum.AncestorClasses)
             {
@@ -73,10 +73,10 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         {
             var mapEntries = new List<AssignmentExpressionSyntax>();
 
-            foreach (var entry in methodDatum.Map.Entries)
+            foreach (var (key, readOnlyCollection) in methodDatum.Map.Entries)
             {
-                var observable = RoslynHelpers.GetObservableChain("this", entry.Members);
-                mapEntries.Add(RoslynHelpers.MapEntry(entry.Key, observable));
+                var observable = RoslynHelpers.GetObservableChain("this", readOnlyCollection);
+                mapEntries.Add(RoslynHelpers.MapEntry(key, observable));
             }
 
             yield return RoslynHelpers.MapDictionary(methodDatum.InputTypeName, methodDatum.OutputTypeName, methodDatum.Map.MapName, mapEntries);
@@ -93,7 +93,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             var statements = new List<StatementSyntax>(methodDatum.TempReturnTypes.Count);
             var combineArguments = new List<ArgumentSyntax>(methodDatum.TempReturnTypes.Count);
 
-            for (int i = 0; i < methodDatum.TempReturnTypes.Count; ++i)
+            for (var i = 0; i < methodDatum.TempReturnTypes.Count; ++i)
             {
                 var type = methodDatum.TempReturnTypes[i];
                 var obsName = "obs" + (i + 1);

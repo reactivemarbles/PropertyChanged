@@ -23,9 +23,6 @@ namespace ReactiveMarbles.PropertyChanged.Tests.Moqs
             OnPropertyChanged(propertyName);
         }
 
-        protected virtual void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
+        protected virtual void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }

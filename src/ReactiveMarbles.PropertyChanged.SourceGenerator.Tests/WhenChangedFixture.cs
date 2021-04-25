@@ -34,7 +34,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         public static WhenChangedFixture Create(WhenChangedHostBuilder hostTypeInfo, ITestOutputHelper testOutputHelper, params string[] extraSources)
         {
             var sources = extraSources.Prepend(hostTypeInfo.BuildRoot()).ToArray();
-            Compilation compilation = CompilationUtil.CreateCompilation(sources);
+            var compilation = CompilationUtil.CreateCompilation(sources);
             return new WhenChangedFixture(hostTypeInfo, compilation, testOutputHelper);
         }
 
@@ -50,7 +50,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             compilationDiagnostics = newCompilation.GetDiagnostics();
 
             var compilationErrors = compilationDiagnostics.Where(x => x.Severity == DiagnosticSeverity.Error).Select(x => x.GetMessage()).ToList();
-            Sources = string.Join(Environment.NewLine, newCompilation.SyntaxTrees.Select(x => x.ToString()).Where(x => !x.Contains("The impementation should have been generated.")));
+            Sources = string.Join(Environment.NewLine, newCompilation.SyntaxTrees.Select(x => x.ToString()).Where(x => !x.Contains("The implementation should have been generated.")));
 
             if (compilationErrors.Count > 0)
             {
@@ -63,25 +63,16 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             _valuePropertyType = assembly.GetType(_hostTypeInfo.ValuePropertyTypeName);
         }
 
-        public WhenChangedHostProxy NewHostInstance()
-        {
-            return new WhenChangedHostProxy(CreateInstance(_hostType));
-        }
+        public WhenChangedHostProxy NewHostInstance() => new(CreateInstance(_hostType));
 
-        public object NewValuePropertyInstance()
-        {
-            return CreateInstance(_valuePropertyType);
-        }
+        public object NewValuePropertyInstance() => CreateInstance(_valuePropertyType);
 
-        private static object CreateInstance(Type type)
-        {
-            return Activator.CreateInstance(type, bindingAttr: BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, null, null);
-        }
+        private static object CreateInstance(Type type) => Activator.CreateInstance(type, bindingAttr: BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, null, null);
 
         private static Assembly GetAssembly(Compilation compilation)
         {
             using var ms = new MemoryStream();
-            var result = compilation.Emit(ms);
+            compilation.Emit(ms);
             ms.Seek(0, SeekOrigin.Begin);
             return Assembly.Load(ms.ToArray());
         }
@@ -103,7 +94,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 File.Delete(file);
             }
 
-            int i = 0;
+            var i = 0;
             foreach (var compile in compilation.SyntaxTrees)
             {
                 var text = compile.GetText().ToString();

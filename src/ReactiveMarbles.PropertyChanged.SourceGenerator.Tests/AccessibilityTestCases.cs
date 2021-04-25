@@ -9,9 +9,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
 {
     internal static class AccessibilityTestCases
     {
-        public static IEnumerable<object[]> GetValidAccessModifierCombinations()
-        {
-            return new[]
+        public static IEnumerable<object[]> GetValidAccessModifierCombinations() =>
+            new[]
             {
                 new object[] { Accessibility.Public, Accessibility.Private, Accessibility.Private, Accessibility.Private },
                 new object[] { Accessibility.Public, Accessibility.Private, Accessibility.ProtectedAndInternal, Accessibility.Private },
@@ -290,6 +289,5 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 new object[] { Accessibility.Internal, Accessibility.Public, Accessibility.Public, Accessibility.ProtectedOrInternal },
                 new object[] { Accessibility.Internal, Accessibility.Public, Accessibility.Public, Accessibility.Public },
             };
-        }
     }
 }

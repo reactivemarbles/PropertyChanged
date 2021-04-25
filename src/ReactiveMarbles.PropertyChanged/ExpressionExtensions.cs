@@ -13,7 +13,7 @@ namespace ReactiveMarbles.PropertyChanged
     internal static class ExpressionExtensions
     {
         private static readonly ConcurrentDictionary<string, object> _actionCache =
-            new ConcurrentDictionary<string, object>();
+            new();
 
         internal static List<MemberExpression> GetExpressionChain(this Expression expression)
         {

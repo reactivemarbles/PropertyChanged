@@ -14,7 +14,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
     {
         private const string ExtensionClassFullName = "BindExtensions";
         private const string BindName = "Bind";
-        private const string OnewayBindName = "OneWayBind";
+        private const string OneWayBindName = "OneWayBind";
 
         public IEnumerable<InvocationInfo> GetInvocations(GeneratorExecutionContext context, Compilation compilation, SyntaxReceiver syntaxReceiver)
         {
@@ -33,7 +33,12 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                     continue;
                 }
 
-                bool hasConverters = false;
+                if (!methodSymbol.Name.Equals(OneWayBindName) && !methodSymbol.Name.Equals(BindName))
+                {
+                    continue;
+                }
+
+                var hasConverters = false;
                 var expressions = new List<(LambdaExpressionSyntax Expression, ArgumentSyntax Argument)>();
 
                 if (invocationExpression.ArgumentList.Arguments.Count < 3)
@@ -54,14 +59,14 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                         continue;
                     }
 
-                    if (argumentType.Name.Equals("Func"))
+                    switch (argumentType.Name)
                     {
-                        hasConverters = true;
-                    }
-
-                    if (argumentType.Name.Equals("Expression"))
-                    {
-                        expressions.Add((argument.Expression as LambdaExpressionSyntax, argument));
+                        case "Func":
+                            hasConverters = true;
+                            break;
+                        case "Expression":
+                            expressions.Add((argument.Expression as LambdaExpressionSyntax, argument));
+                            break;
                     }
                 }
 
@@ -105,9 +110,9 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
                 var inputTypeSymbol = methodSymbol.TypeArguments[0];
                 var accessModifier = inputTypeSymbol.GetVisibility();
-                bool involvesInternalType = false;
+                var involvesInternalType = false;
 
-                for (int i = 1; i < methodSymbol.TypeArguments.Length; ++i)
+                for (var i = 1; i < methodSymbol.TypeArguments.Length; ++i)
                 {
                     var outputTypeSymbol = methodSymbol.TypeArguments[i];
                     var outputTypeAccess = outputTypeSymbol.GetVisibility();
@@ -126,11 +131,13 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                     accessModifier = Accessibility.Internal;
                 }
 
-                bool isTwoWayBind = methodSymbol.Name.Equals(BindName);
+                var isTwoWayBind = methodSymbol.Name.Equals(BindName);
 
                 if (!viewModelExpressionArgument.ContainsPrivateOrProtectedMember && !viewExpressionArgument.ContainsPrivateOrProtectedMember)
                 {
-                    yield return new ExtensionBindInvocationInfo(viewModelExpressionArgument.InputType, accessModifier, hasConverters, viewModelExpressionArgument, viewExpressionArgument);
+                    yield return isTwoWayBind ?
+                        new ExtensionBindInvocationInfo(viewModelExpressionArgument.InputType, accessModifier, hasConverters, viewModelExpressionArgument, viewExpressionArgument) :
+                        new ExtensionOneWayBindInvocationInfo(viewModelExpressionArgument.InputType, accessModifier, hasConverters, viewModelExpressionArgument, viewExpressionArgument);
                 }
                 else
                 {
@@ -138,7 +145,9 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                     var ancestorClasses = viewModelExpressionArgument.InputType.GetAncestors();
                     var name = viewModelExpressionArgument.InputType.Name;
 
-                    yield return new PartialBindInvocationInfo(namespaceName, name, ancestorClasses, viewModelExpressionArgument.InputType, accessModifier, hasConverters, viewModelExpressionArgument, viewExpressionArgument);
+                    yield return isTwoWayBind ?
+                        new PartialBindInvocationInfo(namespaceName, name, ancestorClasses, viewModelExpressionArgument.InputType, accessModifier, hasConverters, viewModelExpressionArgument, viewExpressionArgument) :
+                        new PartialOneWayBindInvocationInfo(namespaceName, name, ancestorClasses, viewModelExpressionArgument.InputType, accessModifier, hasConverters, viewModelExpressionArgument, viewExpressionArgument);
                 }
 
                 var isExplicitInvocation = methodSymbol.MethodKind == MethodKind.Ordinary;

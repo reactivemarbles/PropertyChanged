@@ -12,8 +12,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
     internal class WhenChangedGenerator : IGenerator
     {
-        private ISourceCreator _extensionClassCreator;
-        private ISourceCreator _partialClassCreator;
+        private readonly ISourceCreator _extensionClassCreator;
+        private readonly ISourceCreator _partialClassCreator;
 
         public WhenChangedGenerator()
         {
@@ -29,20 +29,25 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             var publicMultiItems = new HashSet<MultiExpressionMethodDatum>();
             foreach (var invocation in invocations)
             {
-                if (invocation is WhenChangedExpressionInvocationInfo whenChangedExpressionInvocationInfo)
+                switch (invocation)
                 {
-                    var list = whenChangedExpressionInvocationInfo.IsPublic ? publicExpressions : privateExpressions;
-                    list.Add(whenChangedExpressionInvocationInfo.ExpressionArgument);
-                }
+                    case WhenChangedExpressionInvocationInfo whenChangedExpressionInvocationInfo:
+                        {
+                            var list = whenChangedExpressionInvocationInfo.IsPublic ? publicExpressions : privateExpressions;
+                            list.Add(whenChangedExpressionInvocationInfo.ExpressionArgument);
+                            break;
+                        }
 
-                if (invocation is WhenChangedMultiMethodInvocationInfo multiInvocationInfo)
-                {
-                    if (multiInvocationInfo.IsPublic)
-                    {
-                        publicMultiItems.Add(multiInvocationInfo.MultiExpression);
-                    }
+                    case WhenChangedMultiMethodInvocationInfo(_, var isPublic, var multiExpressionMethodDatum):
+                        {
+                            if (isPublic)
+                            {
+                                publicMultiItems.Add(multiExpressionMethodDatum);
+                            }
 
-                    privateMultiItems.Add(multiInvocationInfo.MultiExpression);
+                            privateMultiItems.Add(multiExpressionMethodDatum);
+                            break;
+                        }
                 }
             }
 

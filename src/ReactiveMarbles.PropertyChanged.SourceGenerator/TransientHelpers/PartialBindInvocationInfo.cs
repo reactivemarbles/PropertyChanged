@@ -11,7 +11,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
     internal sealed record PartialBindInvocationInfo(
         string NamespaceName,
         string ClassName,
-        List<AncestorClassInfo> AncestorClasses,
+        IReadOnlyList<AncestorClassInfo> AncestorClasses,
         ITypeSymbol Type,
         Accessibility Accessibility,
         bool HasConverters,

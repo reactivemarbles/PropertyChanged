@@ -6,5 +6,5 @@ using System.Collections.Generic;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
-    internal sealed record MapDatum(string MapName, List<MapEntryDatum> Entries);
+    internal sealed record MapDatum(string MapName, IReadOnlyList<MapEntryDatum> Entries);
 }

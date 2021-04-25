@@ -43,7 +43,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         /// <returns>A reference to this builder.</returns>
         public WhenChangedHostBuilder WithPropertyType(BaseUserSourceBuilder value)
         {
-            _propertyTypeNameFunc = () => value.GetTypeName();
+            _propertyTypeNameFunc = value.GetTypeName;
             return this;
         }
 
@@ -123,9 +123,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         }
 
         /// <inheritdoc/>
-        public override IEnumerable<string> GetNamespaces()
-        {
-            return new[]
+        public override IEnumerable<string> GetNamespaces() =>
+            new[]
             {
                 "System",
                 "System.Collections.Generic",
@@ -133,7 +132,6 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
                 "System.Linq.Expressions",
                 "System.Runtime.CompilerServices",
             };
-        }
 
         /// <inheritdoc/>
         protected override string CreateClass(string nestedClasses)
@@ -196,15 +194,9 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         {
             var receiver = receiverKind == ReceiverKind.This ? "this" : "instance";
 
-            string invocation;
-            if (invocationKind == InvocationKind.MemberAccess)
-            {
-                invocation = $"{receiver}.WhenChanged({args})";
-            }
-            else
-            {
-                invocation = $"NotifyPropertyChangedExtensions.WhenChanged({receiver}, {args})";
-            }
+            var invocation = invocationKind == InvocationKind.MemberAccess ?
+                $"{receiver}.WhenChanged({args})" :
+                $"NotifyPropertyChangedExtensions.WhenChanged({receiver}, {args})";
 
             return invocation;
         }

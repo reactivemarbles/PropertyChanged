@@ -33,7 +33,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                         Argument(expressionName),
                         Argument("callerMemberName"),
                         Argument("callerFilePath"),
-                        Argument("callerLineNumber")
+                        Argument("callerLineNumber"),
                 });
 
         public static IReadOnlyCollection<UsingDirectiveSyntax> GetReactiveExtensionUsings() =>
@@ -62,7 +62,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 new[]
                 {
                     AccessorDeclaration(SyntaxKind.GetAccessorDeclaration, default, default, ArrowExpressionClause(IdentifierName(fieldName))),
-                    AccessorDeclaration(SyntaxKind.SetAccessorDeclaration, default, default, ArrowExpressionClause(InvocationExpression("RaiseAndSetIfChanged", new[] { Argument(fieldName, Token(SyntaxKind.RefKeyword)), Argument("value") })))
+                    AccessorDeclaration(SyntaxKind.SetAccessorDeclaration, default, default, ArrowExpressionClause(InvocationExpression("RaiseAndSetIfChanged", new[] { Argument(fieldName, Token(SyntaxKind.RefKeyword)), Argument("value") }))),
                 },
                 1);
 
@@ -115,18 +115,18 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                                         GenericName("EqualityComparer", new[] { IdentifierName("T") }),
                                         "Default"),
                                     "Equals"),
-                                new ArgumentSyntax[]
+                                new[]
                                 {
                                     Argument("fieldValue"),
-                                    Argument("value")
+                                    Argument("value"),
                                 }),
                             Block(
                                 new StatementSyntax[]
                                 {
                                     ExpressionStatement(AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, "fieldValue", "value")),
-                                    ExpressionStatement(InvocationExpression("OnPropertyChanged", new[] { Argument("propertyName") }))
+                                    ExpressionStatement(InvocationExpression("OnPropertyChanged", new[] { Argument("propertyName") })),
                                 },
-                                1))
+                                1)),
                     },
                     0));
 
@@ -142,7 +142,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 parameterList.Add(Parameter(inputType, "source", new[] { SyntaxKind.ThisKeyword }));
             }
 
-            for (int i = 0; i < returnTypes.Count; ++i)
+            for (var i = 0; i < returnTypes.Count; ++i)
             {
                 var returnType = returnTypes[i];
                 var propertyName = "propertyExpression" + (i + 1);
@@ -153,7 +153,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 parameterList.Add(parameter);
             }
 
-            var conversionTypes = returnTypes.Select(x => IdentifierName(x)).Concat(new[] { IdentifierName(outputType) }).ToList();
+            var conversionTypes = returnTypes.Select(IdentifierName).Concat(new[] { IdentifierName(outputType) }).ToList();
 
             parameterList.Add(Parameter(GenericName("Func", conversionTypes), "conversionFunc"));
 
@@ -202,8 +202,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                         new[]
                         {
                             IdentifierName(inputType),
-                            IdentifierName(returnType)
-                        })
+                            IdentifierName(returnType),
+                        }),
                 });
 
         public static MethodDeclarationSyntax WhenChanged(string inputType, string outputType, bool isExtension, Accessibility accessibility, BlockSyntax body)
@@ -225,7 +225,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                     SyntaxKind.SimpleAssignmentExpression,
                     ImplicitElementAccess(new[]
                         {
-                            Argument(LiteralExpression(SyntaxKind.StringLiteralExpression, Literal(keyName)))
+                            Argument(LiteralExpression(SyntaxKind.StringLiteralExpression, Literal(keyName))),
                         }),
                     SimpleLambdaExpression(Parameter("source"), observableExpression));
 
@@ -242,8 +242,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                             "IObservable",
                             new TypeSyntax[]
                             {
-                                IdentifierName(outputTypeName)
-                            })
+                                IdentifierName(outputTypeName),
+                            }),
                     }),
                 mapName,
                 EqualsValueClause(ObjectCreationExpression(dictionaryType, default, InitializerExpression(SyntaxKind.ObjectInitializerExpression, initializerMembers))),
@@ -251,7 +251,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 {
                     SyntaxKind.PrivateKeyword,
                     SyntaxKind.StaticKeyword,
-                    SyntaxKind.ReadOnlyKeyword
+                    SyntaxKind.ReadOnlyKeyword,
                 },
                 1);
         }
@@ -270,12 +270,12 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                                     SyntaxKind.SimpleMemberAccessExpression,
                                     expressionParameterName,
                                     "Body"),
-                                "ToString")))
+                                "ToString"))),
                         }),
                     "Invoke"),
                 new[]
                 {
-                    Argument(invokeName)
+                    Argument(invokeName),
                 });
 
         public static LocalDeclarationStatementSyntax InvokeWhenChangedVariable(string type, string obsName, string expressionName, string source) =>
@@ -295,25 +295,20 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                             "Select"),
                         new[]
                         {
-                            Argument(SimpleLambdaExpression(Parameter(inputName), ObservableNotifyPropertyChanged(returnType, inputName, memberName)))
+                            Argument(SimpleLambdaExpression(Parameter(inputName), ObservableNotifyPropertyChanged(returnType, inputName, memberName))),
                         }),
                     "Switch"));
 
-        public static InvocationExpressionSyntax GetObservableChain(string inputName, List<ExpressionChain> members)
+        public static InvocationExpressionSyntax GetObservableChain(string inputName, IReadOnlyList<ExpressionChain> members)
         {
             InvocationExpressionSyntax observable = null;
-            for (int i = 0; i < members.Count; ++i)
+            for (var i = 0; i < members.Count; ++i)
             {
                 var (name, _, outputType) = members[i];
 
-                if (i == 0)
-                {
-                    observable = ObservableNotifyPropertyChanged(outputType.ToDisplayString(), inputName, name);
-                }
-                else
-                {
-                    observable = SelectObservableNotifyPropertyChangedSwitch(observable, outputType.ToDisplayString(), "source", name);
-                }
+                observable = i == 0 ?
+                    ObservableNotifyPropertyChanged(outputType.ToDisplayString(), inputName, name) :
+                    SelectObservableNotifyPropertyChangedSwitch(observable, outputType.ToDisplayString(), "source", name);
             }
 
             return observable;
@@ -335,11 +330,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                                         ReturnStatement(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, "Disposable", "Empty"))),
                                     ExpressionStatement(InvocationExpression(
                                         MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, "observer", "OnNext"),
-                                        new ArgumentSyntax[] { Argument(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, inputName, memberName)) })),
+                                        new[] { Argument(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, inputName, memberName)) })),
                                     LocalDeclarationStatement(
                                         VariableDeclaration(
                                             "PropertyChangedEventHandler",
-                                            new VariableDeclaratorSyntax[]
+                                            new[]
                                             {
                                                 VariableDeclarator(
                                                     "handler",
@@ -347,7 +342,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                                                         new[]
                                                         {
                                                             Parameter("sender"),
-                                                            Parameter("e")
+                                                            Parameter("e"),
                                                         },
                                                         Block(
                                                             new StatementSyntax[]
@@ -365,22 +360,22 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                                                                                     SyntaxKind.SimpleMemberAccessExpression,
                                                                                     "observer",
                                                                                     "OnNext"),
-                                                                                new ArgumentSyntax[]
+                                                                                new[]
                                                                                 {
-                                                                                    Argument(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, inputName, memberName))
-                                                                                }))
+                                                                                    Argument(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, inputName, memberName)),
+                                                                                })),
                                                                         },
-                                                                        3))
+                                                                        3)),
                                                             },
-                                                            2))))
+                                                            2)))),
                                             })),
                                     ExpressionStatement(AssignmentExpression(SyntaxKind.AddAssignmentExpression, MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, inputName, "PropertyChanged"), IdentifierName("handler"))),
                                     ReturnStatement(InvocationExpression(
                                         MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, "Disposable", "Create"),
-                                        new ArgumentSyntax[]
+                                        new[]
                                         {
                                             Argument(TupleExpression(
-                                                new ArgumentSyntax[]
+                                                new[]
                                                 {
                                                     Argument(inputName, "Parent"),
                                                     Argument("handler", "Handler"),
@@ -390,18 +385,18 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                                                 AssignmentExpression(
                                                     SyntaxKind.SubtractAssignmentExpression,
                                                     MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, inputName, "PropertyChanged"),
-                                                    MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, "x", "Handler"))))
-                                        }))
+                                                    MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, "x", "Handler")))),
+                                        })),
                                 },
                                 1))),
                 });
 
         public static IEnumerable<ParameterSyntax> CallerMembersParameters() =>
-            new ParameterSyntax[]
+            new[]
             {
                 Parameter(new[] { AttributeList(Attribute("CallerMemberName")) }, "string", "callerMemberName", EqualsValueClause(NullLiteral())),
                 Parameter(new[] { AttributeList(Attribute("CallerFilePath")) }, "string", "callerFilePath", EqualsValueClause(NullLiteral())),
-                Parameter(new[] { AttributeList(Attribute("CallerLineNumber")) }, "int", "callerLineNumber", EqualsValueClause(LiteralExpression(0)))
+                Parameter(new[] { AttributeList(Attribute("CallerLineNumber")) }, "int", "callerLineNumber", EqualsValueClause(LiteralExpression(0))),
             };
 
         public static MethodDeclarationSyntax GetMethodToProperty(string propertyType, string propertyName, string methodName, Accessibility accessibility) =>
@@ -440,7 +435,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         public static ArgumentSyntax LambdaNoVariableUseArgument(string variableName, string propertyName) =>
             Argument(SimpleLambdaExpression(Parameter(variableName), IdentifierName(propertyName)));
 
-        public static ArgumentSyntax LambdaNoVariableUseArgument(string variableName, IEnumerable<string> properties) =>
+        public static ArgumentSyntax LambdaNoVariableUseArgument(string variableName, IReadOnlyCollection<string> properties) =>
             Argument(SimpleLambdaExpression(
                 Parameter(variableName),
                 properties.Skip(1).Aggregate<string, ExpressionSyntax>(

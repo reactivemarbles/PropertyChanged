@@ -10,14 +10,12 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
     public class EmptyClassBuilder : BaseUserSourceBuilder<EmptyClassBuilder>
     {
         /// <inheritdoc/>
-        protected override string CreateClass(string nestedClasses)
-        {
-            return $@"
+        protected override string CreateClass(string nestedClasses) =>
+            $@"
     {ClassAccess.ToFriendlyString()} partial class {ClassName}
     {{
         {nestedClasses}
     }}
 ";
-        }
     }
 }

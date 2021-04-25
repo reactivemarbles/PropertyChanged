@@ -6,5 +6,5 @@ using System.Collections.Generic;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
-    internal abstract record ClassDatum(string Name, List<MethodDatum> MethodData) : IDatum;
+    internal abstract record ClassDatum(string Name, IReadOnlyList<MethodDatum> MethodData) : IDatum;
 }

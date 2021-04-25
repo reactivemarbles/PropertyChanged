@@ -28,6 +28,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         {
             var assemblyPath = Path.GetDirectoryName(typeof(object).Assembly.Location);
 
+            if (assemblyPath == null || string.IsNullOrWhiteSpace(assemblyPath))
+            {
+                throw new InvalidOperationException("Could not find a valid assembly path.");
+            }
+
             return CSharpCompilation.Create(
                 assemblyName: "compilation",
                 syntaxTrees: sources.Select(x => CSharpSyntaxTree.ParseText(x, new CSharpParseOptions(LanguageVersion.Latest))),

@@ -11,7 +11,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
     {
         private readonly ITypeSymbol _inputType;
 
-        public InputTypeGroup(ITypeSymbol inputType, List<OutputTypeGroup> outputTypeGroups)
+        public InputTypeGroup(ITypeSymbol inputType, IReadOnlyList<OutputTypeGroup> outputTypeGroups)
         {
             _inputType = inputType;
             OutputTypeGroups = outputTypeGroups;
@@ -25,12 +25,10 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
         public string Name => _inputType.Name;
 
-        public string FullName => _inputType.ToDisplayString();
-
-        public List<AncestorClassInfo> AncestorClasses { get; }
+        public IReadOnlyList<AncestorClassInfo> AncestorClasses { get; }
 
         public Accessibility AccessModifier => _inputType.DeclaredAccessibility;
 
-        public List<OutputTypeGroup> OutputTypeGroups { get; }
+        public IReadOnlyList<OutputTypeGroup> OutputTypeGroups { get; }
     }
 }

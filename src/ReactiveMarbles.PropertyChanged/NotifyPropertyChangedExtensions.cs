@@ -36,7 +36,7 @@ namespace ReactiveMarbles.PropertyChanged
                 throw new ArgumentNullException(nameof(propertyExpression));
             }
 
-            IObservable<INotifyPropertyChanged> currentObservable = Observable.Return((INotifyPropertyChanged)objectToMonitor);
+            var currentObservable = Observable.Return((INotifyPropertyChanged)objectToMonitor);
 
             var expressionChain = propertyExpression.Body.GetExpressionChain();
 
@@ -135,17 +135,17 @@ namespace ReactiveMarbles.PropertyChanged
             return Observable.Create<T>(
                     observer =>
                     {
-                        PropertyChangedEventHandler handler = (object sender, PropertyChangedEventArgs e) =>
+                        void Handler(object sender, PropertyChangedEventArgs e)
                         {
                             if (e.PropertyName == memberName)
                             {
                                 observer.OnNext(getter(parent));
                             }
-                        };
+                        }
 
-                        parent.PropertyChanged += handler;
+                        parent.PropertyChanged += Handler;
 
-                        return Disposable.Create((parent, handler), x => x.parent.PropertyChanged -= x.handler);
+                        return Disposable.Create(parent, x => x.PropertyChanged -= Handler);
                     })
                 .StartWith(getter(parent));
         }
@@ -159,17 +159,17 @@ namespace ReactiveMarbles.PropertyChanged
             return Observable.Create<(object Sender, T Value)>(
                     observer =>
                     {
-                        PropertyChangedEventHandler handler = (object sender, PropertyChangedEventArgs e) =>
+                        void Handler(object sender, PropertyChangedEventArgs e)
                         {
                             if (e.PropertyName == memberName)
                             {
                                 observer.OnNext((sender, getter(parent)));
                             }
-                        };
+                        }
 
-                        parent.PropertyChanged += handler;
+                        parent.PropertyChanged += Handler;
 
-                        return Disposable.Create((parent, handler), x => x.parent.PropertyChanged -= x.handler);
+                        return Disposable.Create(parent, x => x.PropertyChanged -= Handler);
                     })
                 .StartWith((parent, getter(parent)));
         }

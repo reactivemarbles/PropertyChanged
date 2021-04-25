@@ -6,5 +6,5 @@ using System.Collections.Generic;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
-    internal sealed record MapEntryDatum(string Key, List<ExpressionChain> Members);
+    internal sealed record MapEntryDatum(string Key, IReadOnlyList<ExpressionChain> Members);
 }

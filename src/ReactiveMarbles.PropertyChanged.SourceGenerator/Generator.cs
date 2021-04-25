@@ -17,10 +17,10 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
     [Generator]
     public class Generator : ISourceGenerator
     {
-        private static readonly IExtractor[] _extractors = new IExtractor[]
+        private static readonly IExtractor[] _extractors =
         {
             new WhenChangedExtractor(),
-            new BindExtractor()
+            new BindExtractor(),
         };
 
         private static readonly BindGenerator _bindGenerator = new();
@@ -49,19 +49,17 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             {
                 foreach (var item in extractor.GetInvocations(context, compilation, syntaxReceiver))
                 {
-                    if (item is WhenChangedMultiMethodInvocationInfo whenChangedMulti)
+                    switch (item)
                     {
-                        whenChangedInvocations.ListInsert(item.Type, whenChangedMulti);
-                    }
-
-                    if (item is WhenChangedExpressionInvocationInfo whenChangedExpression)
-                    {
-                        whenChangedInvocations.ListInsert(item.Type, whenChangedExpression);
-                    }
-
-                    if (item is BindInvocationInfo bindInfo)
-                    {
-                        bindInvocations.ListInsert(item.Type, bindInfo);
+                        case WhenChangedMultiMethodInvocationInfo whenChangedMulti:
+                            whenChangedInvocations.ListInsert(item.Type, whenChangedMulti);
+                            break;
+                        case WhenChangedExpressionInvocationInfo whenChangedExpression:
+                            whenChangedInvocations.ListInsert(item.Type, whenChangedExpression);
+                            break;
+                        case BindInvocationInfo bindInfo:
+                            bindInvocations.ListInsert(item.Type, bindInfo);
+                            break;
                     }
                 }
             }

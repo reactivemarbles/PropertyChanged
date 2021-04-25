@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace ReactiveMarbles.PropertyChanged
+namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
     internal class SyntaxReceiver : ISyntaxReceiver
     {
@@ -19,25 +19,27 @@ namespace ReactiveMarbles.PropertyChanged
         /// <inheritdoc />
         public void OnVisitSyntaxNode(SyntaxNode syntaxNode)
         {
-            if (syntaxNode is InvocationExpressionSyntax invocationExpression)
+            if (syntaxNode is not InvocationExpressionSyntax invocationExpression)
             {
-                var methodName = (invocationExpression.Expression as MemberAccessExpressionSyntax)?.Name.ToString() ??
-                    (invocationExpression.Expression as MemberBindingExpressionSyntax)?.Name.ToString();
+                return;
+            }
 
-                if (string.Equals(methodName, "WhenChanged"))
-                {
-                    WhenChangedMethods.Add(invocationExpression);
-                }
+            var methodName = (invocationExpression.Expression as MemberAccessExpressionSyntax)?.Name.ToString() ??
+                             (invocationExpression.Expression as MemberBindingExpressionSyntax)?.Name.ToString();
 
-                if (string.Equals(methodName, "Bind"))
-                {
-                    BindMethods.Add(invocationExpression);
-                }
+            if (string.Equals(methodName, "WhenChanged"))
+            {
+                WhenChangedMethods.Add(invocationExpression);
+            }
 
-                if (string.Equals(methodName, "OneWayBind"))
-                {
-                    OneWayBindMethods.Add(invocationExpression);
-                }
+            if (string.Equals(methodName, "Bind"))
+            {
+                BindMethods.Add(invocationExpression);
+            }
+
+            if (string.Equals(methodName, "OneWayBind"))
+            {
+                OneWayBindMethods.Add(invocationExpression);
             }
         }
     }
