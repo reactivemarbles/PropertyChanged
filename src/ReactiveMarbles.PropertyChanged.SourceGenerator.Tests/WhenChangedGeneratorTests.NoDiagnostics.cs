@@ -132,7 +132,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .WithPropertyType(hostPropertyTypeInfo)
                 .WithPropertyAccess(Accessibility.Public);
 
-            var fixture = WhenChangedFixture.Create(hostTypeInfo, _testOutputHelper, hostPropertyTypeInfo.BuildRoot());
+            var fixture = WhenChangedFixture.Create(hostTypeInfo, _testLogger, hostPropertyTypeInfo.BuildRoot());
             fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, saveCompilation: false);
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -174,7 +174,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .WithPropertyType(hostPropertyTypeInfo)
                 .WithPropertyAccess(Accessibility.Public);
 
-            var fixture = WhenChangedFixture.Create(hostTypeInfo, _testOutputHelper, hostPropertyTypeInfo.BuildRoot());
+            var fixture = WhenChangedFixture.Create(hostTypeInfo, _testLogger, hostPropertyTypeInfo.BuildRoot());
             fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, saveCompilation: false);
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -232,7 +232,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         {
             hostTypeInfo.WithInvocation(InvocationKind.MemberAccess, ReceiverKind.This, x => x.Value);
             var propertyTypeSource = typesHaveSameRoot ? string.Empty : hostPropertyTypeInfo.BuildRoot();
-            var fixture = WhenChangedFixture.Create(hostTypeInfo, _testOutputHelper, propertyTypeSource);
+            var fixture = WhenChangedFixture.Create(hostTypeInfo, _testLogger, propertyTypeSource);
             fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, saveCompilation: false);
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
@@ -254,7 +254,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         {
             hostTypeInfo.WithInvocation(InvocationKind.MemberAccess, ReceiverKind.This, x => x.Child, x => x.Value, (a, b) => "result" + a + b);
             var propertyTypeSource = typesHaveSameRoot ? string.Empty : hostPropertyTypeInfo.BuildRoot();
-            var fixture = WhenChangedFixture.Create(hostTypeInfo, _testOutputHelper, propertyTypeSource);
+            var fixture = WhenChangedFixture.Create(hostTypeInfo, _testLogger, propertyTypeSource);
             fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, saveCompilation: false);
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
