@@ -17,25 +17,38 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
     internal class WhenChangedFixture
     {
         private readonly WhenChangedHostBuilder _hostTypeInfo;
+        private readonly WhenChangedHostBuilder _receiverTypeInfo;
         private readonly Compilation _compilation;
-        private readonly ITestOutputHelper _testOutputHelper;
+        private readonly ITestOutputHelper _testLogger;
         private Type _hostType;
+        private Type _receiverType;
         private Type _valuePropertyType;
 
-        private WhenChangedFixture(WhenChangedHostBuilder hostTypeInfo, Compilation compilation, ITestOutputHelper testOutputHelper)
+        private WhenChangedFixture(WhenChangedHostBuilder hostTypeInfo, WhenChangedHostBuilder receiverTypeInfo, Compilation compilation, ITestOutputHelper testLogger)
         {
             _hostTypeInfo = hostTypeInfo;
+            _receiverTypeInfo = receiverTypeInfo;
             _compilation = compilation;
-            _testOutputHelper = testOutputHelper;
+            _testLogger = testLogger;
         }
 
         public string Sources { get; private set; }
 
         public static WhenChangedFixture Create(WhenChangedHostBuilder hostTypeInfo, ITestOutputHelper testOutputHelper, params string[] extraSources)
         {
-            var sources = extraSources.Prepend(hostTypeInfo.BuildRoot()).ToArray();
-            var compilation = CompilationUtil.CreateCompilation(sources);
-            return new WhenChangedFixture(hostTypeInfo, compilation, testOutputHelper);
+            return Create(hostTypeInfo, hostTypeInfo, testOutputHelper, extraSources);
+        }
+
+        public static WhenChangedFixture Create(WhenChangedHostBuilder hostTypeInfo, WhenChangedHostBuilder receiverTypeInfo, ITestOutputHelper testOutputHelper, params string[] extraSources)
+        {
+            var sources = extraSources.Prepend(receiverTypeInfo.BuildRoot());
+            if (receiverTypeInfo != hostTypeInfo)
+            {
+                sources = sources.Prepend(hostTypeInfo.BuildRoot());
+            }
+
+            var compilation = CompilationUtil.CreateCompilation(sources.ToArray());
+            return new WhenChangedFixture(hostTypeInfo, receiverTypeInfo, compilation, testOutputHelper);
         }
 
         public void RunGenerator(out ImmutableArray<Diagnostic> compilationDiagnostics, out ImmutableArray<Diagnostic> generatorDiagnostics, bool saveCompilation = false, string directory = @"C:\Users\Glenn\source\repos\ConsoleApp8\ConsoleApp8")
@@ -54,16 +67,19 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
 
             if (compilationErrors.Count > 0)
             {
-                _testOutputHelper.WriteLine(Sources);
+                _testLogger.WriteLine(Sources);
                 throw new XunitException(string.Join('\n', compilationErrors));
             }
 
             var assembly = GetAssembly(newCompilation);
             _hostType = assembly.GetType(_hostTypeInfo.GetTypeName());
-            _valuePropertyType = assembly.GetType(_hostTypeInfo.ValuePropertyTypeName);
+            _receiverType = assembly.GetType(_receiverTypeInfo.GetTypeName());
+            _valuePropertyType = assembly.GetType(_receiverTypeInfo.ValuePropertyTypeName);
         }
 
         public WhenChangedHostProxy NewHostInstance() => new(CreateInstance(_hostType));
+
+        public WhenChangedHostProxy NewReceiverInstance() => new(CreateInstance(_receiverType));
 
         public object NewValuePropertyInstance() => CreateInstance(_valuePropertyType);
 

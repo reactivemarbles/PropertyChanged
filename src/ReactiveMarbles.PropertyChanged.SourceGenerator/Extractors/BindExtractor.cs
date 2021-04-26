@@ -108,28 +108,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                     continue;
                 }
 
-                var inputTypeSymbol = methodSymbol.TypeArguments[0];
-                var accessModifier = inputTypeSymbol.GetVisibility();
-                var involvesInternalType = false;
-
-                for (var i = 1; i < methodSymbol.TypeArguments.Length; ++i)
-                {
-                    var outputTypeSymbol = methodSymbol.TypeArguments[i];
-                    var outputTypeAccess = outputTypeSymbol.GetVisibility();
-                    if (outputTypeAccess < accessModifier)
-                    {
-                        accessModifier = outputTypeAccess;
-                    }
-                    else if (outputTypeAccess == Accessibility.Internal)
-                    {
-                        involvesInternalType = true;
-                    }
-                }
-
-                if (accessModifier == Accessibility.Protected && involvesInternalType)
-                {
-                    accessModifier = Accessibility.Internal;
-                }
+                var accessModifier = methodSymbol.TypeArguments.GetMinVisibility();
 
                 var isTwoWayBind = methodSymbol.Name.Equals(BindName);
 

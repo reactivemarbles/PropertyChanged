@@ -99,18 +99,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
         public static MultiExpressionMethodDatum GetMultiExpression(IMethodSymbol methodSymbol)
         {
-            var inputTypeSymbol = methodSymbol.TypeArguments[0];
-            var accessModifier = inputTypeSymbol.GetVisibility();
-
-            for (var i = 1; i < methodSymbol.TypeArguments.Length; ++i)
-            {
-                var outputTypeSymbol = methodSymbol.TypeArguments[i];
-                var outputTypeAccess = outputTypeSymbol.GetVisibility();
-                if (outputTypeAccess < accessModifier || (accessModifier == Accessibility.Protected && outputTypeAccess == Accessibility.Internal))
-                {
-                    accessModifier = outputTypeAccess;
-                }
-            }
+            var accessModifier = methodSymbol.TypeArguments.GetMinVisibility();
 
             var containsPrivateOrProtectedTypeArgument = accessModifier.IsPrivateOrProtected();
             var types = methodSymbol.TypeArguments;
