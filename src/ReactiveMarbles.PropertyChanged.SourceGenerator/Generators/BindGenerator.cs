@@ -2,58 +2,57 @@
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
+using System;
 using System.Collections.Generic;
-
+using System.Linq;
 using Microsoft.CodeAnalysis;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
     internal class BindGenerator : IGenerator
     {
-        private static readonly RoslynBindExtensionCreator _bindExtensionCreator = new();
-        private static readonly RoslynBindPartialClassCreator _bindPartialCreator = new();
-        private static readonly RoslynOneWayBindExtensionCreator _oneWayBindExtensionCreator = new();
-        private static readonly RoslynOneWayBindPartialClassCreator _oneWayPartialCreator = new();
+        private readonly Dictionary<Type, (RoslynBindBase Extractor, List<BindInvocationInfo> BindInfoList, string Name)> _extractors = new()
+        {
+            [typeof(ExtensionBindInvocationInfo)] = (new RoslynBindExtensionCreator(), new List<BindInvocationInfo>(), "TwoWayExtensions"),
+            [typeof(PartialBindInvocationInfo)] = (new RoslynBindPartialClassCreator(), new List<BindInvocationInfo>(), "TwoWayPartial"),
+            [typeof(ExtensionOneWayBindInvocationInfo)] = (new RoslynOneWayBindExtensionCreator(), new List<BindInvocationInfo>(), "OneWayExtensions"),
+            [typeof(RoslynOneWayBindPartialClassCreator)] = (new RoslynOneWayBindPartialClassCreator(), new List<BindInvocationInfo>(), "OneWayPartial"),
+        };
 
         public IEnumerable<(string FileName, string SourceCode)> GenerateSourceFromInvocations(ITypeSymbol type, HashSet<InvocationInfo> invocations)
         {
-            var publicInvocations = new List<ExtensionBindInvocationInfo>();
-            var privateInvocations = new List<PartialBindInvocationInfo>();
-            var publicOneWayInvocations = new List<ExtensionOneWayBindInvocationInfo>();
-            var privateOneWayInvocations = new List<PartialOneWayBindInvocationInfo>();
-
-            foreach (var invocation in invocations)
+            foreach (var invocation in invocations.OfType<BindInvocationInfo>())
             {
-                switch (invocation)
+                var (_, bindInfoList, _) = _extractors[invocation.GetType()];
+
+                bindInfoList.Add(invocation);
+            }
+
+            foreach (var extractorType in _extractors)
+            {
+                var (extractor, bindInfoList, name) = extractorType.Value;
+
+                var value = Generate(type, bindInfoList, name, extractor);
+
+                if (value != null)
                 {
-                    case ExtensionBindInvocationInfo bindInvocation:
-                        publicInvocations.Add(bindInvocation);
-                        break;
-                    case PartialBindInvocationInfo partialBindInvocation:
-                        privateInvocations.Add(partialBindInvocation);
-                        break;
-                    case PartialOneWayBindInvocationInfo partialOneWayBindInvocation:
-                        privateOneWayInvocations.Add(partialOneWayBindInvocation);
-                        break;
-                    case ExtensionOneWayBindInvocationInfo oneWayExtensionBind:
-                        publicOneWayInvocations.Add(oneWayExtensionBind);
-                        break;
+                    yield return value.Value;
                 }
             }
+        }
 
-            var extensionsSource = _bindExtensionCreator.Create(publicInvocations);
-
-            if (!string.IsNullOrWhiteSpace(extensionsSource))
+        private (string FileName, string SourceCode)? Generate(ITypeSymbol type, IReadOnlyList<BindInvocationInfo> bindingInvocations, string bindType, ISourceCreator generator)
+        {
+            if (bindingInvocations.Count == 0)
             {
-                yield return ($"{type.ToDisplayString()}_Bind.extensions.g.cs", extensionsSource);
+                return default;
             }
 
-            var partialSource = _bindPartialCreator.Create(privateInvocations);
+            var extensionsSource = generator.Create(bindingInvocations);
 
-            if (!string.IsNullOrWhiteSpace(partialSource))
-            {
-                yield return ($"{type.ToDisplayString()}_Bind.partial.g.cs", partialSource);
-            }
+            return !string.IsNullOrWhiteSpace(extensionsSource) ?
+                ($"{type.ToDisplayString()}_{bindType}.extensions.g.cs", extensionsSource) :
+                default;
         }
     }
 }
