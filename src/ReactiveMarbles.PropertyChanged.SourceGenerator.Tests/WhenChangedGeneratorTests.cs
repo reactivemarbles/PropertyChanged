@@ -16,7 +16,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         /// <summary>
         /// Initializes a new instance of the <see cref="WhenChangedGeneratorTests"/> class.
         /// </summary>
-        /// <param name="testOutputHelper">The logger provided by xUnit.</param>
-        public WhenChangedGeneratorTests(ITestOutputHelper testOutputHelper) => _testLogger = testOutputHelper;
+        /// <param name="testLogger">The logger provided by xUnit.</param>
+        public WhenChangedGeneratorTests(ITestOutputHelper testLogger) => _testLogger = testLogger;
     }
 }

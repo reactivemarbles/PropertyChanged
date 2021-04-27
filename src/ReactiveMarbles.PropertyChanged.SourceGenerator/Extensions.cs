@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 
@@ -101,6 +102,34 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             {
                 outputGroup.ExpressionArguments.Insert(~index, expression);
             }
+        }
+
+        public static Accessibility GetMinVisibility(this ImmutableArray<ITypeSymbol> typeSymbols)
+        {
+            var inputTypeAccess = typeSymbols[0].GetVisibility();
+            var accessibility = Accessibility.Public;
+            var oneOrMoreOfTheOutputTypesIsInternal = false;
+
+            for (int i = 1; i < typeSymbols.Length; ++i)
+            {
+                var typeAccess = typeSymbols[i].GetVisibility();
+                if (typeAccess < accessibility)
+                {
+                    accessibility = typeAccess;
+                }
+
+                if (typeAccess == Accessibility.Internal)
+                {
+                    oneOrMoreOfTheOutputTypesIsInternal = true;
+                }
+            }
+
+            if (inputTypeAccess == Accessibility.Protected && oneOrMoreOfTheOutputTypesIsInternal && accessibility > Accessibility.Private)
+            {
+                accessibility = Accessibility.Internal;
+            }
+
+            return accessibility;
         }
 
         public static Accessibility GetVisibility(this ITypeSymbol typeSymbol)

@@ -188,7 +188,7 @@ public class HostClass : INotifyPropertyChanged
                 .WithClassAccess(Accessibility.Public);
             var source = new WhenChangedHostBuilder()
                 .WithClassName("Host")
-                .WithInvocation(InvocationKind.Explicit, ReceiverKind.This, x => x.Value)
+                .WithInvocation(InvocationKind.Explicit, x => x.Value)
                 .WithClassAccess(Accessibility.Public)
                 .WithPropertyType(hostPropertyTypeInfo)
                 .WithPropertyAccess(propertyAccess)
@@ -212,7 +212,7 @@ public class HostClass : INotifyPropertyChanged
                 .WithClassAccess(Accessibility.Public);
             var hostTypeInfo = new WhenChangedHostBuilder()
                 .WithClassName("Host")
-                .WithInvocation(InvocationKind.Explicit, ReceiverKind.This, x => x.Value)
+                .WithInvocation(InvocationKind.Explicit, x => x.Value)
                 .WithClassAccess(hostTypeAccess)
                 .WithPropertyType(hostPropertyTypeInfo)
                 .WithPropertyAccess(Accessibility.Public);

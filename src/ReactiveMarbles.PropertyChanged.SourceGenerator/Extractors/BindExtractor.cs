@@ -103,6 +103,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 context.ReportDiagnostic(DiagnosticWarnings.ExpressionMustBeInline, expressions[1].Argument.GetLocation());
                 yield break;
             }
+            
+            var accessModifier = methodSymbol.TypeArguments.GetMinVisibility();
 
             if (!GeneratorHelpers.GetExpression(context, viewModelExpression, compilation, model, out var viewModelExpressionArgument))
             {

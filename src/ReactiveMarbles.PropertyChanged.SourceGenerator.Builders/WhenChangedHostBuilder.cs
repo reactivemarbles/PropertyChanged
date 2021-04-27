@@ -17,6 +17,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
     /// <remarks>'Host' refers to the class that contains a WhenChanged invocation.</remarks>
     public class WhenChangedHostBuilder : BaseUserSourceBuilder<WhenChangedHostBuilder>
     {
+        private WhenChangedHostBuilder _externalReceiverTypeInfo;
         private Accessibility _propertyAccess;
         private Func<string> _propertyTypeNameFunc;
         private string _invocation;
@@ -28,7 +29,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         {
             _propertyAccess = Accessibility.Public;
             _propertyTypeNameFunc = () => "string";
-            WithInvocation(InvocationKind.MemberAccess, ReceiverKind.This, x => x.Value);
+            WithInvocation(InvocationKind.MemberAccess, x => x.Value);
         }
 
         /// <summary>
@@ -73,15 +74,26 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         /// Sets the WhenChanged invocation.
         /// </summary>
         /// <param name="invocationKind">The invocation kind.</param>
-        /// <param name="receiverKind">The receiver kind.</param>
         /// <param name="expression">The expression.</param>
+        /// <param name="externalReceiverTypeInfo">The type info of an object that will invoke WhenChanged via instance rather than 'this'.</param>
         /// <returns>A reference to this builder.</returns>
         public WhenChangedHostBuilder WithInvocation(
             InvocationKind invocationKind,
-            ReceiverKind receiverKind,
-            Expression<Func<WhenChangedHostProxy, object>> expression)
+            Expression<Func<WhenChangedHostProxy, object>> expression,
+            WhenChangedHostBuilder externalReceiverTypeInfo = null)
         {
-            _invocation = GetWhenChangedInvocation(invocationKind, receiverKind, expression.ToString());
+            _invocation = GetWhenChangedInvocation(invocationKind, externalReceiverTypeInfo, expression.ToString());
+            return this;
+        }
+
+        /// <summary>
+        /// Sets the WhenChanged invocation.
+        /// </summary>
+        /// <param name="invocation">The invocation.</param>
+        /// <returns>A reference to this builder.</returns>
+        public WhenChangedHostBuilder WithInvocation(string invocation)
+        {
+            _invocation = invocation;
             return this;
         }
 
@@ -89,19 +101,39 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         /// Sets the WhenChanged invocation.
         /// </summary>
         /// <param name="invocationKind">The invocation kind.</param>
-        /// <param name="receiverKind">The receiver kind.</param>
         /// <param name="expression1">The first expression.</param>
         /// <param name="expression2">The second expression.</param>
         /// <param name="conversionFunc">The conversion function.</param>
+        /// <param name="externalReceiverTypeInfo">The type info of an object that will invoke WhenChanged via instance rather than 'this'.</param>
         /// <returns>A reference to this builder.</returns>
         public WhenChangedHostBuilder WithInvocation(
             InvocationKind invocationKind,
-            ReceiverKind receiverKind,
             Expression<Func<WhenChangedHostProxy, object>> expression1,
             Expression<Func<WhenChangedHostProxy, object>> expression2,
-            Expression<Func<object, object, object>> conversionFunc)
+            Expression<Func<object, object, object>> conversionFunc,
+            WhenChangedHostBuilder externalReceiverTypeInfo = null)
         {
-            _invocation = GetWhenChangedInvocation(invocationKind, receiverKind, $"{expression1}, {expression2}, {conversionFunc}");
+            _invocation = GetWhenChangedInvocation(invocationKind, externalReceiverTypeInfo, $"{expression1}, {expression2}, {conversionFunc}");
+            return this;
+        }
+
+        /// <summary>
+        /// Sets the WhenChanged invocation.
+        /// </summary>
+        /// <param name="invocationKind">The invocation kind.</param>
+        /// <param name="expression1">The first expression.</param>
+        /// <param name="expression2">The second expression.</param>
+        /// <param name="conversionFunc">The conversion function.</param>
+        /// <param name="externalReceiverTypeInfo">The type info of an object that will invoke WhenChanged via instance rather than 'this'.</param>
+        /// <returns>A reference to this builder.</returns>
+        public WhenChangedHostBuilder WithInvocation(
+            InvocationKind invocationKind,
+            Expression<Func<WhenChangedHostProxy, object>> expression1,
+            Expression<Func<WhenChangedHostProxy, object>> expression2,
+            string conversionFunc,
+            WhenChangedHostBuilder externalReceiverTypeInfo = null)
+        {
+            _invocation = GetWhenChangedInvocation(invocationKind, externalReceiverTypeInfo, $"{expression1}, {expression2}, {conversionFunc}");
             return this;
         }
 
@@ -110,15 +142,15 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         /// </summary>
         /// <param name="depth">The depth of the expression chain.</param>
         /// <param name="invocationKind">The invocation kind.</param>
-        /// <param name="receiverKind">The receiver kind.</param>
+        /// <param name="externalReceiverTypeInfo">The type info of an object that will invoke WhenChanged via instance rather than 'this'.</param>
         /// <returns>A reference to this builder.</returns>
         public WhenChangedHostBuilder WithInvocation(
             int depth,
             InvocationKind invocationKind,
-            ReceiverKind receiverKind)
+            WhenChangedHostBuilder externalReceiverTypeInfo = null)
         {
             var expression = string.Join(".", Enumerable.Range(1, depth - 1).Select(_ => "Child").Prepend("x => x").Append("Value"));
-            _invocation = GetWhenChangedInvocation(invocationKind, receiverKind, expression);
+            _invocation = GetWhenChangedInvocation(invocationKind, externalReceiverTypeInfo, expression);
             return this;
         }
 
@@ -140,6 +172,13 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
             var propertyTypeName = _propertyTypeNameFunc.Invoke();
             propertyTypeName = propertyTypeName.Replace('+', '.');
 
+            var receiverProperty = string.Empty;
+            if (_externalReceiverTypeInfo != null)
+            {
+                var receiverAccess = _externalReceiverTypeInfo._propertyAccess.ToFriendlyString();
+                receiverProperty = $"{receiverAccess} {_externalReceiverTypeInfo.GetTypeName()} Receiver {{ get; set; }}";
+            }
+
             return $@"
     {ClassAccess.ToFriendlyString()} partial class {ClassName} : INotifyPropertyChanged
     {{
@@ -159,10 +198,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
             get => _child;
             set => RaiseAndSetIfChanged(ref _child, value);
         }}
+
+        {receiverProperty}
         
         public IObservable<object> {MethodNames.GetWhenChangedObservable}()
         {{
-            var instance = this;
             return {_invocation};
         }}
 
@@ -187,18 +227,17 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
 ";
         }
 
-        private static string GetWhenChangedInvocation(
+        private string GetWhenChangedInvocation(
             InvocationKind invocationKind,
-            ReceiverKind receiverKind,
+            WhenChangedHostBuilder externalReceiverTypeInfo,
             string args)
         {
-            var receiver = receiverKind == ReceiverKind.This ? "this" : "instance";
+            _externalReceiverTypeInfo = externalReceiverTypeInfo;
+            var receiver = externalReceiverTypeInfo == null ? "this" : "Receiver";
 
-            var invocation = invocationKind == InvocationKind.MemberAccess ?
+            return invocationKind == InvocationKind.MemberAccess ?
                 $"{receiver}.WhenChanged({args})" :
                 $"NotifyPropertyChangedExtensions.WhenChanged({receiver}, {args})";
-
-            return invocation;
         }
     }
 }

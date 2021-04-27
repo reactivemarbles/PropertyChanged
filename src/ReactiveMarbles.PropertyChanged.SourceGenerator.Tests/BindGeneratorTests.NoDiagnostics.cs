@@ -27,7 +27,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         {
             var testCases = AccessibilityTestCases.GetValidAccessModifierCombinations().Select(x => ((Accessibility)x[0], (Accessibility)x[1], (Accessibility)x[2], (Accessibility)x[3]));
 
-            var vmPropertiesAccessList = new[] { Accessibility.Public, Accessibility.Internal, Accessibility.ProtectedOrInternal };
+            var vmPropertiesAccessList = new[] { Accessibility.Internal };
 
             foreach (var (hostContainerType, hostTypeAccess, vmTypeAccess, hostPropertiesAccess) in testCases)
             {
@@ -52,7 +52,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         {
             var viewModelHostDetails = new WhenChangedHostBuilder()
                 .WithClassAccess(vmTypeAccess)
-                .WithInvocation(InvocationKind.MemberAccess, ReceiverKind.This, x => x.Value)
+                .WithInvocation(InvocationKind.MemberAccess, x => x.Value)
                 .WithPropertyType("string")
                 .WithPropertyAccess(vmPropertiesAccess)
                 .WithClassName("ViewModelHost");
@@ -73,7 +73,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .AddNestedClass(hostTypeInfo);
 
             var fixture = BindFixture.Create(hostTypeInfo, _testLogger);
-            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, true);
+            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, saveCompilation: false);
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
             Assert.Empty(compilationDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));

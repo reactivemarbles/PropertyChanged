@@ -24,16 +24,37 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         [InlineData(InvocationKind.Explicit)]
         public void NoDiagnostics_InstanceReceiverKind(InvocationKind invocationKind)
         {
-            var hostPropertyTypeInfo = new EmptyClassBuilder()
+            var receiverPropertyTypeInfo = new EmptyClassBuilder()
                 .WithClassAccess(Accessibility.Public);
+            var externalReceiverTypeInfo = new WhenChangedHostBuilder()
+                .WithClassName("ReactiveType")
+                .WithClassAccess(Accessibility.Public)
+                .WithPropertyType(receiverPropertyTypeInfo)
+                .WithPropertyAccess(Accessibility.Public)
+                .WithInvocation("null");
             var hostTypeInfo = new WhenChangedHostBuilder()
                 .WithClassName("Host")
-                .WithInvocation(invocationKind, ReceiverKind.Instance, x => x.Value)
                 .WithClassAccess(Accessibility.Public)
-                .WithPropertyType(hostPropertyTypeInfo)
-                .WithPropertyAccess(Accessibility.Public);
+                .WithInvocation(invocationKind, x => x.Value, externalReceiverTypeInfo);
 
-            AssertTestCase_MultiExpression(hostTypeInfo, hostPropertyTypeInfo, typesHaveSameRoot: false);
+            var fixture = WhenChangedFixture.Create(hostTypeInfo, externalReceiverTypeInfo, _testLogger, receiverPropertyTypeInfo.BuildRoot());
+            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, saveCompilation: false);
+
+            Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
+            Assert.Empty(compilationDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
+
+            var host = fixture.NewHostInstance();
+            var receiver = fixture.NewReceiverInstance();
+            host.Receiver = receiver;
+            receiver.Value = fixture.NewValuePropertyInstance();
+            var observable = host.GetWhenChangedObservable(_ => _testLogger.WriteLine(fixture.Sources));
+            object value = null;
+            observable.Subscribe(x => value = x);
+            Assert.Equal(receiver.Value, value);
+            receiver.Value = fixture.NewValuePropertyInstance();
+            Assert.Equal(receiver.Value, value);
+            receiver.Value = null;
+            Assert.Equal(receiver.Value, value);
         }
 
         /// <summary>
@@ -56,12 +77,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .WithClassAccess(propertyTypeAccess);
             var hostTypeInfo = new WhenChangedHostBuilder()
                 .WithClassName("Host")
-                .WithInvocation(InvocationKind.Explicit, ReceiverKind.This, x => x.Child, x => x.Value, (a, b) => "result" + a + b)
                 .WithClassAccess(hostTypeAccess)
                 .WithPropertyType(hostPropertyTypeInfo)
                 .WithPropertyAccess(propertyAccess);
 
-            AssertTestCase_MultiExpression(hostTypeInfo, hostPropertyTypeInfo, typesHaveSameRoot: false);
+            AssertTestCase_MultiExpression(hostTypeInfo, hostPropertyTypeInfo.BuildRoot());
         }
 
         /// <summary>
@@ -81,13 +101,12 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .WithNamespace(hostPropertyTypeNamespace);
             var hostTypeInfo = new WhenChangedHostBuilder()
                 .WithClassName("Host")
-                .WithInvocation(InvocationKind.MemberAccess, ReceiverKind.This, x => x.Child, x => x.Value, (a, b) => "result" + a + b)
                 .WithClassAccess(Accessibility.Public)
                 .WithPropertyType(hostPropertyTypeInfo)
                 .WithPropertyAccess(Accessibility.Public)
                 .WithNamespace(hostTypeNamespace);
 
-            AssertTestCase_MultiExpression(hostTypeInfo, hostPropertyTypeInfo, typesHaveSameRoot: false);
+            AssertTestCase_MultiExpression(hostTypeInfo, hostPropertyTypeInfo.BuildRoot());
         }
 
         /// <summary>
@@ -104,12 +123,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             var hostTypeInfo = new WhenChangedHostBuilder()
                 .WithClassName("ClassName")
                 .WithNamespace("Namespace2")
-                .WithInvocation(InvocationKind.MemberAccess, ReceiverKind.This, x => x.Child, x => x.Value, (a, b) => "result" + a + b)
                 .WithClassAccess(Accessibility.Public)
                 .WithPropertyType(hostPropertyTypeInfo)
                 .WithPropertyAccess(Accessibility.Public);
 
-            AssertTestCase_MultiExpression(hostTypeInfo, hostPropertyTypeInfo, typesHaveSameRoot: false);
+            AssertTestCase_MultiExpression(hostTypeInfo, hostPropertyTypeInfo.BuildRoot());
         }
 
         /// <summary>
@@ -125,7 +143,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             var hostTypeInfo = new WhenChangedHostBuilder()
                 .WithClassName("ClassName")
                 .WithNamespace("Namespace2")
-                .WithInvocation(InvocationKind.MemberAccess, ReceiverKind.This, x => x.Child.Value)
+                .WithInvocation(InvocationKind.MemberAccess, x => x.Child.Value)
                 .WithClassAccess(Accessibility.Public)
                 .WithPropertyType(hostPropertyTypeInfo)
                 .WithPropertyAccess(Accessibility.Public);
@@ -167,7 +185,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             var hostTypeInfo = new WhenChangedHostBuilder()
                 .WithClassName("ClassName")
                 .WithNamespace("Namespace2")
-                .WithInvocation(InvocationKind.MemberAccess, ReceiverKind.This, x => x.Child.Child.Value)
+                .WithInvocation(InvocationKind.MemberAccess, x => x.Child.Child.Value)
                 .WithClassAccess(Accessibility.Public)
                 .WithPropertyType(hostPropertyTypeInfo)
                 .WithPropertyAccess(Accessibility.Public);
@@ -213,7 +231,6 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .WithClassAccess(propertyTypeAccess);
             var hostTypeInfo = new WhenChangedHostBuilder()
                 .WithClassName("Host")
-                .WithInvocation(InvocationKind.MemberAccess, ReceiverKind.This, x => x.Child, x => x.Value, (a, b) => "result" + a + b)
                 .WithClassAccess(hostTypeAccess)
                 .AddNestedClass(hostPropertyTypeInfo)
                 .WithPropertyType(hostPropertyTypeInfo)
@@ -223,12 +240,57 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .WithClassAccess(hostContainerTypeAccess)
                 .AddNestedClass(hostTypeInfo);
 
-            AssertTestCase_MultiExpression(hostTypeInfo, hostPropertyTypeInfo, typesHaveSameRoot: true);
+            AssertTestCase_MultiExpression(hostTypeInfo);
+        }
+
+        /// <summary>
+        /// Make sure two custom types are handled correctly..
+        /// </summary>
+        [Fact]
+        public void NoDiagnostics_PrivateHostPropertyTypeAndInternalOutputType()
+        {
+            var hostPropertyTypeInfo = new EmptyClassBuilder()
+                .WithClassAccess(Accessibility.Private);
+            var customType = new EmptyClassBuilder()
+                .WithClassName("Output")
+                .WithClassAccess(Accessibility.Internal);
+            var hostTypeInfo = new WhenChangedHostBuilder()
+                .WithClassName("Host")
+                .WithInvocation(InvocationKind.MemberAccess, x => x.Child, x => x.Value, "(a, b) => b != null ? new HostContainer.Output() : null")
+                .WithClassAccess(Accessibility.Protected)
+                .AddNestedClass(hostPropertyTypeInfo)
+                .WithPropertyType(hostPropertyTypeInfo)
+                .WithPropertyAccess(Accessibility.Private);
+            var hostContainerTypeInfo = new EmptyClassBuilder()
+                .WithClassName("HostContainer")
+                .WithClassAccess(Accessibility.Public)
+                .AddNestedClass(hostTypeInfo)
+                .AddNestedClass(customType);
+
+            var fixture = WhenChangedFixture.Create(hostTypeInfo, _testLogger);
+            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, saveCompilation: false);
+
+            Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
+            Assert.Empty(compilationDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
+
+            var host = fixture.NewHostInstance();
+            host.Value = fixture.NewValuePropertyInstance();
+            var observable = host.GetWhenChangedObservable(_ => _testLogger.WriteLine(fixture.Sources));
+            object value = null;
+            observable.Subscribe(x => value = x);
+
+            // TODO: Better series of checks. Currently can't compare values because of reference
+            // equality and we don't have access to the instance that the conversionFunc creates.
+            Assert.NotNull(value);
+            host.Value = null;
+            Assert.Null(value);
+            host.Value = fixture.NewValuePropertyInstance();
+            Assert.NotNull(value);
         }
 
         private void AssertTestCase_SingleExpression(WhenChangedHostBuilder hostTypeInfo, BaseUserSourceBuilder hostPropertyTypeInfo, bool typesHaveSameRoot)
         {
-            hostTypeInfo.WithInvocation(InvocationKind.MemberAccess, ReceiverKind.This, x => x.Value);
+            hostTypeInfo.WithInvocation(InvocationKind.MemberAccess, x => x.Value);
             var propertyTypeSource = typesHaveSameRoot ? string.Empty : hostPropertyTypeInfo.BuildRoot();
             var fixture = WhenChangedFixture.Create(hostTypeInfo, _testLogger, propertyTypeSource);
             fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, saveCompilation: false);
@@ -248,11 +310,10 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             Assert.Equal(host.Value, value);
         }
 
-        private void AssertTestCase_MultiExpression(WhenChangedHostBuilder hostTypeInfo, BaseUserSourceBuilder hostPropertyTypeInfo, bool typesHaveSameRoot)
+        private void AssertTestCase_MultiExpression(WhenChangedHostBuilder hostTypeInfo, params string[] extraSources)
         {
-            hostTypeInfo.WithInvocation(InvocationKind.MemberAccess, ReceiverKind.This, x => x.Child, x => x.Value, (a, b) => "result" + a + b);
-            var propertyTypeSource = typesHaveSameRoot ? string.Empty : hostPropertyTypeInfo.BuildRoot();
-            var fixture = WhenChangedFixture.Create(hostTypeInfo, _testLogger, propertyTypeSource);
+            hostTypeInfo.WithInvocation(InvocationKind.MemberAccess, x => x.Child, x => x.Value, (a, b) => "result" + a + b);
+            var fixture = WhenChangedFixture.Create(hostTypeInfo, _testLogger, extraSources);
             fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, saveCompilation: false);
 
             Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));

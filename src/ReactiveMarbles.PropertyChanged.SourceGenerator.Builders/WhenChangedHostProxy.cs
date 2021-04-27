@@ -11,6 +11,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
     /// </summary>
     public class WhenChangedHostProxy : HostProxyBase
     {
+        private WhenChangedHostProxy _receiver;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="WhenChangedHostProxy"/> class.
         /// </summary>
@@ -27,6 +29,20 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         {
             get => ReflectionUtil.GetProperty(Source, nameof(Value));
             set => ReflectionUtil.SetProperty(Source, nameof(Value), value);
+        }
+
+        /// <summary>
+        /// Gets or sets the receiver.
+        /// </summary>
+        public WhenChangedHostProxy Receiver
+        {
+            get => _receiver;
+
+            set
+            {
+                _receiver = value;
+                ReflectionUtil.SetProperty(Source, nameof(Receiver), value?.Source);
+            }
         }
 
         /// <summary>
