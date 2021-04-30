@@ -23,8 +23,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             new BindExtractor(),
         };
 
-        private static readonly BindGenerator _bindGenerator = new();
         private static readonly WhenChangedGenerator _whenChangedGenerator = new();
+        private static readonly BindGenerator _bindGenerator = new();
 
         /// <inheritdoc/>
         public void Initialize(GeneratorInitializationContext context) => context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());

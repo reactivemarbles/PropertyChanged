@@ -11,24 +11,24 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
     internal class BindGenerator : IGenerator
     {
-        private readonly Dictionary<Type, (RoslynBindBase Extractor, List<BindInvocationInfo> BindInfoList, string Name)> _extractors = new()
-        {
-            [typeof(ExtensionBindInvocationInfo)] = (new RoslynBindExtensionCreator(), new List<BindInvocationInfo>(), "TwoWayExtensions"),
-            [typeof(PartialBindInvocationInfo)] = (new RoslynBindPartialClassCreator(), new List<BindInvocationInfo>(), "TwoWayPartial"),
-            [typeof(ExtensionOneWayBindInvocationInfo)] = (new RoslynOneWayBindExtensionCreator(), new List<BindInvocationInfo>(), "OneWayExtensions"),
-            [typeof(PartialOneWayBindInvocationInfo)] = (new RoslynOneWayBindPartialClassCreator(), new List<BindInvocationInfo>(), "OneWayPartial"),
-        };
-
         public IEnumerable<(string FileName, string SourceCode)> GenerateSourceFromInvocations(ITypeSymbol type, HashSet<InvocationInfo> invocations)
         {
+            var extractors = new Dictionary<Type, (RoslynBindBase Extractor, List<BindInvocationInfo> List, string Name)>()
+            {
+                [typeof(ExtensionBindInvocationInfo)] = (new RoslynBindExtensionCreator(), new List<BindInvocationInfo>(), "TwoWayExtensions"),
+                [typeof(PartialBindInvocationInfo)] = (new RoslynBindPartialClassCreator(), new List<BindInvocationInfo>(), "TwoWayPartial"),
+                [typeof(ExtensionOneWayBindInvocationInfo)] = (new RoslynOneWayBindExtensionCreator(), new List<BindInvocationInfo>(), "OneWayExtensions"),
+                [typeof(PartialOneWayBindInvocationInfo)] = (new RoslynOneWayBindPartialClassCreator(), new List<BindInvocationInfo>(), "OneWayPartial"),
+            };
+
             foreach (var invocation in invocations.OfType<BindInvocationInfo>())
             {
-                var (_, bindInfoList, _) = _extractors[invocation.GetType()];
+                var (_, bindInfoList, _) = extractors[invocation.GetType()];
 
                 bindInfoList.Add(invocation);
             }
 
-            foreach (var extractorType in _extractors)
+            foreach (var extractorType in extractors)
             {
                 var (extractor, bindInfoList, name) = extractorType.Value;
 

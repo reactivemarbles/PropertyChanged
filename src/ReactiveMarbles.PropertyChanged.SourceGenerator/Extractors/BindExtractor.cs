@@ -57,8 +57,6 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 yield break;
             }
 
-            var targetType = model.GetTypeInfo(invocationExpression.ArgumentList.Arguments[0].Expression).ConvertedType;
-
             foreach (var argument in invocationExpression.ArgumentList.Arguments.Skip(1))
             {
                 var argumentType = model.GetTypeInfo(argument.Expression).ConvertedType;
