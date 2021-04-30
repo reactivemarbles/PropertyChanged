@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis;
 using ReactiveMarbles.PropertyChanged.SourceGenerator.Builders;
 
 using Xunit.Abstractions;
-using Xunit.Sdk;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
 {
@@ -59,7 +58,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             if (compilationErrors.Count > 0)
             {
                 _testOutputHelper.WriteLine(Sources);
-                throw new XunitException(string.Join('\n', compilationErrors));
+                throw new InvalidOperationException(string.Join('\n', compilationErrors));
             }
 
             var assembly = GetAssembly(newCompilation);

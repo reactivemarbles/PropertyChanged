@@ -16,7 +16,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             [typeof(ExtensionBindInvocationInfo)] = (new RoslynBindExtensionCreator(), new List<BindInvocationInfo>(), "TwoWayExtensions"),
             [typeof(PartialBindInvocationInfo)] = (new RoslynBindPartialClassCreator(), new List<BindInvocationInfo>(), "TwoWayPartial"),
             [typeof(ExtensionOneWayBindInvocationInfo)] = (new RoslynOneWayBindExtensionCreator(), new List<BindInvocationInfo>(), "OneWayExtensions"),
-            [typeof(RoslynOneWayBindPartialClassCreator)] = (new RoslynOneWayBindPartialClassCreator(), new List<BindInvocationInfo>(), "OneWayPartial"),
+            [typeof(PartialOneWayBindInvocationInfo)] = (new RoslynOneWayBindPartialClassCreator(), new List<BindInvocationInfo>(), "OneWayPartial"),
         };
 
         public IEnumerable<(string FileName, string SourceCode)> GenerateSourceFromInvocations(ITypeSymbol type, HashSet<InvocationInfo> invocations)

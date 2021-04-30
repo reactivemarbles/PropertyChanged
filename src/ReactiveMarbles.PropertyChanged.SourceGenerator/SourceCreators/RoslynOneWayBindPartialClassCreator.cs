@@ -47,7 +47,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         {
             var visibility = classDatum.ViewModelArgument.InputType.DeclaredAccessibility.GetAccessibilityTokens().Concat(new[] { SyntaxKind.PartialKeyword }).ToList();
 
-            var currentClass = ClassDeclaration(classDatum.ClassName, visibility, CreateBind(classDatum.ViewModelArgument, classDatum.ViewArgument, classDatum.Accessibility, classDatum.HasConverters, false).ToList(), 1);
+            var currentClass = ClassDeclaration(classDatum.ClassName, visibility, CreateOneWayBind(classDatum.ViewModelArgument, classDatum.ViewArgument, classDatum.Accessibility, classDatum.HasConverters, false).ToList(), 1);
 
             foreach (var ancestor in classDatum.AncestorClasses)
             {

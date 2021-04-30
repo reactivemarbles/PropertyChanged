@@ -3,8 +3,13 @@
 // See the LICENSE file in the project root for full license information.
 
 using System.Linq;
+
+using FluentAssertions;
+
 using Microsoft.CodeAnalysis;
+
 using ReactiveMarbles.PropertyChanged.SourceGenerator.Builders;
+
 using Xunit;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
@@ -232,9 +237,9 @@ public class HostClass : INotifyPropertyChanged
             var compilationDiagnostics = newCompilation.GetDiagnostics();
             var compilationErrors = compilationDiagnostics.Where(x => x.Severity == DiagnosticSeverity.Error).Select(x => x.GetMessage()).ToList();
 
-            Assert.Empty(compilationErrors);
-            Assert.Single(generatorDiagnostics);
-            Assert.Equal(expectedDiagnostic, generatorDiagnostics[0].Descriptor);
+            compilationErrors.Should().BeEmpty();
+            generatorDiagnostics.Should().HaveCount(1);
+            expectedDiagnostic.Should().Be(generatorDiagnostics[0].Descriptor);
         }
 
         internal static class Method

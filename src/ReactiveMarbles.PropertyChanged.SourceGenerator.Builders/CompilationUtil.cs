@@ -34,7 +34,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
             }
 
             return CSharpCompilation.Create(
-                assemblyName: "compilation",
+                assemblyName: "compilation" + Guid.NewGuid(),
                 syntaxTrees: sources.Select(x => CSharpSyntaxTree.ParseText(x, new CSharpParseOptions(LanguageVersion.Latest))),
                 references: new[]
                 {
@@ -51,7 +51,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
                     MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "System.ObjectModel.dll")),
                     MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "System.Private.CoreLib.dll")),
                 },
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, deterministic: true));
         }
 
         /// <summary>

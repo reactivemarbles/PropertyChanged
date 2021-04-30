@@ -4,8 +4,13 @@
 
 using System;
 using System.Linq;
+
+using FluentAssertions;
+
 using Microsoft.CodeAnalysis;
+
 using ReactiveMarbles.PropertyChanged.SourceGenerator.Builders;
+
 using Xunit;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
@@ -37,24 +42,24 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .WithClassAccess(Accessibility.Public)
                 .WithInvocation(invocationKind, x => x.Value, externalReceiverTypeInfo);
 
-            var fixture = WhenChangedFixture.Create(hostTypeInfo, externalReceiverTypeInfo, _testLogger, receiverPropertyTypeInfo.BuildRoot());
+            var fixture = WhenChangedFixture.Create(hostTypeInfo, externalReceiverTypeInfo, TestContext, receiverPropertyTypeInfo.BuildRoot());
             fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, saveCompilation: false);
 
-            Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
-            Assert.Empty(compilationDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
+            generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning).Should().BeEmpty();
+            compilationDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning).Should().BeEmpty();
 
             var host = fixture.NewHostInstance();
             var receiver = fixture.NewReceiverInstance();
             host.Receiver = receiver;
             receiver.Value = fixture.NewValuePropertyInstance();
-            var observable = host.GetWhenChangedObservable(_ => _testLogger.WriteLine(fixture.Sources));
+            var observable = host.GetWhenChangedObservable(_ => TestContext.WriteLine(fixture.Sources));
             object value = null;
             observable.Subscribe(x => value = x);
-            Assert.Equal(receiver.Value, value);
+            receiver.Value.Should().Equals(value);
             receiver.Value = fixture.NewValuePropertyInstance();
-            Assert.Equal(receiver.Value, value);
+            receiver.Value.Should().Equals(value);
             receiver.Value = null;
-            Assert.Equal(receiver.Value, value);
+            receiver.Value.Should().Equals(value);
         }
 
         /// <summary>
@@ -148,28 +153,28 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .WithPropertyType(hostPropertyTypeInfo)
                 .WithPropertyAccess(Accessibility.Public);
 
-            var fixture = WhenChangedFixture.Create(hostTypeInfo, _testLogger, hostPropertyTypeInfo.BuildRoot());
+            var fixture = WhenChangedFixture.Create(hostTypeInfo, TestContext, hostPropertyTypeInfo.BuildRoot());
             fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, saveCompilation: false);
 
-            Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
-            Assert.Empty(compilationDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
+            generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning).Should().BeEmpty();
+            compilationDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning).Should().BeEmpty();
 
             var host = fixture.NewHostInstance();
             host.Child = fixture.NewHostInstance();
             host.Child.Value = fixture.NewValuePropertyInstance();
-            var observable = host.GetWhenChangedObservable(_ => _testLogger.WriteLine(fixture.Sources));
+            var observable = host.GetWhenChangedObservable(_ => TestContext.WriteLine(fixture.Sources));
             object value = null;
             observable.Subscribe(x => value = x);
-            Assert.Equal(host.Child.Value, value);
+            host.Child.Value.Should().Be(value);
 
             // According to the current design, no emission should occur when the chain is "broken".
             host.Child = null;
-            Assert.NotNull(value);
+            value.Should().NotBeNull();
 
             host.Child = fixture.NewHostInstance();
-            Assert.Equal(host.Child.Value, value);
+            host.Child.Value.Should().Be(value);
             host.Child.Value = fixture.NewValuePropertyInstance();
-            Assert.Equal(host.Child.Value, value);
+            host.Child.Value.Should().Be(value);
         }
 
         /// <summary>
@@ -190,30 +195,30 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .WithPropertyType(hostPropertyTypeInfo)
                 .WithPropertyAccess(Accessibility.Public);
 
-            var fixture = WhenChangedFixture.Create(hostTypeInfo, _testLogger, hostPropertyTypeInfo.BuildRoot());
+            var fixture = WhenChangedFixture.Create(hostTypeInfo, TestContext, hostPropertyTypeInfo.BuildRoot());
             fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, saveCompilation: false);
 
-            Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
-            Assert.Empty(compilationDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
+            generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning).Should().BeEmpty();
+            compilationDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning).Should().BeEmpty();
 
             var host = fixture.NewHostInstance();
             host.Child = fixture.NewHostInstance();
             host.Child.Child = fixture.NewHostInstance();
             host.Child.Child.Value = fixture.NewValuePropertyInstance();
-            var observable = host.GetWhenChangedObservable(_ => _testLogger.WriteLine(fixture.Sources));
+            var observable = host.GetWhenChangedObservable(_ => TestContext.WriteLine(fixture.Sources));
             object value = null;
             observable.Subscribe(x => value = x);
-            Assert.Equal(host.Child.Child.Value, value);
+            host.Child.Child.Value.Should().Be(value);
 
             // According to the current design, no emission should occur when the chain is "broken".
             host.Child = null;
-            Assert.NotNull(value);
+            value.Should().NotBeNull();
 
             host.Child = fixture.NewHostInstance();
             host.Child.Child = fixture.NewHostInstance();
-            Assert.Equal(host.Child.Value, value);
+            host.Child.Value.Should().Be(value);
             host.Child.Child.Value = fixture.NewValuePropertyInstance();
-            Assert.Equal(host.Child.Child.Value, value);
+            host.Child.Child.Value.Should().Be(value);
         }
 
         /// <summary>
@@ -267,73 +272,70 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .AddNestedClass(hostTypeInfo)
                 .AddNestedClass(customType);
 
-            var fixture = WhenChangedFixture.Create(hostTypeInfo, _testLogger);
+            var fixture = WhenChangedFixture.Create(hostTypeInfo, TestContext);
             fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, saveCompilation: false);
 
-            Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
-            Assert.Empty(compilationDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
+            generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning).Should().BeEmpty();
+            compilationDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning).Should().BeEmpty();
 
             var host = fixture.NewHostInstance();
             host.Value = fixture.NewValuePropertyInstance();
-            var observable = host.GetWhenChangedObservable(_ => _testLogger.WriteLine(fixture.Sources));
+            var observable = host.GetWhenChangedObservable(_ => TestContext.WriteLine(fixture.Sources));
             object value = null;
             observable.Subscribe(x => value = x);
 
             // TODO: Better series of checks. Currently can't compare values because of reference
             // equality and we don't have access to the instance that the conversionFunc creates.
-            Assert.NotNull(value);
+            value.Should().NotBeNull();
             host.Value = null;
-            Assert.Null(value);
+            value.Should().BeNull();
             host.Value = fixture.NewValuePropertyInstance();
-            Assert.NotNull(value);
+            value.Should().NotBeNull();
         }
 
         private void AssertTestCase_SingleExpression(WhenChangedHostBuilder hostTypeInfo, BaseUserSourceBuilder hostPropertyTypeInfo, bool typesHaveSameRoot)
         {
             hostTypeInfo.WithInvocation(InvocationKind.MemberAccess, x => x.Value);
             var propertyTypeSource = typesHaveSameRoot ? string.Empty : hostPropertyTypeInfo.BuildRoot();
-            var fixture = WhenChangedFixture.Create(hostTypeInfo, _testLogger, propertyTypeSource);
+            var fixture = WhenChangedFixture.Create(hostTypeInfo, TestContext, propertyTypeSource);
             fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, saveCompilation: false);
 
-            Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
-            Assert.Empty(compilationDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
+            generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning).Should().BeEmpty();
+            compilationDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning).Should().BeEmpty();
 
             var host = fixture.NewHostInstance();
             host.Value = fixture.NewValuePropertyInstance();
-            var observable = host.GetWhenChangedObservable(_ => _testLogger.WriteLine(fixture.Sources));
+            var observable = host.GetWhenChangedObservable(_ => TestContext.WriteLine(fixture.Sources));
             object value = null;
             observable.Subscribe(x => value = x);
-            Assert.Equal(host.Value, value);
+            host.Value.Should().Be(value);
             host.Value = fixture.NewValuePropertyInstance();
-            Assert.Equal(host.Value, value);
+            host.Value.Should().Be(value);
             host.Value = null;
-            Assert.Equal(host.Value, value);
+            host.Value.Should().Be(value);
         }
 
         private void AssertTestCase_MultiExpression(WhenChangedHostBuilder hostTypeInfo, params string[] extraSources)
         {
             hostTypeInfo.WithInvocation(InvocationKind.MemberAccess, x => x.Child, x => x.Value, (a, b) => "result" + a + b);
-            var fixture = WhenChangedFixture.Create(hostTypeInfo, _testLogger, extraSources);
+            var fixture = WhenChangedFixture.Create(hostTypeInfo, TestContext, extraSources);
             fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, saveCompilation: false);
 
-            Assert.Empty(generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
-            Assert.Empty(compilationDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning));
+            generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning).Should().BeEmpty();
+            compilationDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning).Should().BeEmpty();
 
-            static string Convert(WhenChangedHostProxy host)
-            {
-                return "result" + host.Child + host.Value;
-            }
+            static string Convert(WhenChangedHostProxy host) => "result" + host.Child + host.Value;
 
             var host = fixture.NewHostInstance();
             host.Value = fixture.NewValuePropertyInstance();
-            var observable = host.GetWhenChangedObservable(_ => _testLogger.WriteLine(fixture.Sources));
+            var observable = host.GetWhenChangedObservable(_ => TestContext.WriteLine(fixture.Sources));
             object value = null;
             observable.Subscribe(x => value = x);
-            Assert.Equal(Convert(host), value);
+            Convert(host).Should().Be(value.ToString());
             host.Value = fixture.NewValuePropertyInstance();
-            Assert.Equal(Convert(host), value);
+            Convert(host).Should().Be(value.ToString());
             host.Value = null;
-            Assert.Equal(Convert(host), value);
+            Convert(host).Should().Be(value.ToString());
         }
     }
 }

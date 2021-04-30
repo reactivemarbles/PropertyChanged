@@ -18,7 +18,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         private BaseUserSourceBuilder _viewModelPropertyType;
         private Accessibility _propertyAccess;
         private Accessibility _viewModelPropertyAccess;
-        private string _invocation;
+        private string _twoWayBindInvocation;
+        private string _oneWayBindInvocation;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BindHostBuilder"/> class.
@@ -28,7 +29,6 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
             _viewModelPropertyType = null;
             _viewModelPropertyAccess = Accessibility.Public;
             _propertyAccess = Accessibility.Public;
-            WithTwoWayInvocation(InvocationKind.MemberAccess, ReceiverKind.This, x => x.Value, x => x.Value);
         }
 
         /// <summary>
@@ -97,7 +97,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         }
 
         /// <summary>
-        /// Sets the WhenChanged invocation.
+        /// Sets the Bind invocation.
         /// </summary>
         /// <param name="invocationKind">The invocation kind.</param>
         /// <param name="receiverKind">The receiver kind.</param>
@@ -112,12 +112,12 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
             Expression<Func<WhenChangedHostProxy, object>> viewExpression,
             string target = "ViewModel")
         {
-            _invocation = GetTwoWayBindInvocation(invocationKind, receiverKind, viewModelExpression.ToString(), viewExpression.ToString(), target);
+            _twoWayBindInvocation = GetTwoWayBindInvocation(invocationKind, receiverKind, viewModelExpression.ToString(), viewExpression.ToString(), target);
             return this;
         }
 
         /// <summary>
-        /// Sets the WhenChanged invocation.
+        /// Sets the Bind invocation.
         /// </summary>
         /// <param name="invocationKind">The invocation kind.</param>
         /// <param name="receiverKind">The receiver kind.</param>
@@ -136,7 +136,49 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
             Expression<Func<object, object, object>> viewConvert,
             string target = "ViewModel")
         {
-            _invocation = GetTwoWayBindInvocation(invocationKind, receiverKind, viewModelExpression.ToString(), viewExpression.ToString(), target, viewModelConvert.ToString(), viewConvert.ToString());
+            _twoWayBindInvocation = GetTwoWayBindInvocation(invocationKind, receiverKind, viewModelExpression.ToString(), viewExpression.ToString(), target, viewModelConvert.ToString(), viewConvert.ToString());
+            return this;
+        }
+
+        /// <summary>
+        /// Sets the OneWayBind invocation.
+        /// </summary>
+        /// <param name="invocationKind">The invocation kind.</param>
+        /// <param name="receiverKind">The receiver kind.</param>
+        /// <param name="viewModelExpression">The view model expression.</param>
+        /// <param name="viewExpression">The view expression.</param>
+        /// <param name="target">The target parameter.</param>
+        /// <returns>A reference to this builder.</returns>
+        public BindHostBuilder WithOneWayInvocation(
+            InvocationKind invocationKind,
+            ReceiverKind receiverKind,
+            Expression<Func<BindHostProxy, object>> viewModelExpression,
+            Expression<Func<WhenChangedHostProxy, object>> viewExpression,
+            string target = "ViewModel")
+        {
+            _oneWayBindInvocation = GetOneWayBindInvocation(invocationKind, receiverKind, viewModelExpression.ToString(), viewExpression.ToString(), target);
+            return this;
+        }
+
+        /// <summary>
+        /// Sets the OneWayBind invocation.
+        /// </summary>
+        /// <param name="invocationKind">The invocation kind.</param>
+        /// <param name="receiverKind">The receiver kind.</param>
+        /// <param name="viewModelExpression">The view model expression.</param>
+        /// <param name="viewExpression">The view expression.</param>
+        /// <param name="viewModelConvert">The view model conversion function.</param>
+        /// <param name="target">The target parameter.</param>
+        /// <returns>A reference to this builder.</returns>
+        public BindHostBuilder WithOneWayInvocation(
+            InvocationKind invocationKind,
+            ReceiverKind receiverKind,
+            Expression<Func<BindHostProxy, object>> viewModelExpression,
+            Expression<Func<WhenChangedHostProxy, object>> viewExpression,
+            Expression<Func<object, object, object>> viewModelConvert,
+            string target = "ViewModel")
+        {
+            _oneWayBindInvocation = GetOneWayBindInvocation(invocationKind, receiverKind, viewModelExpression.ToString(), viewExpression.ToString(), target, viewModelConvert.ToString());
             return this;
         }
 
@@ -158,6 +200,26 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
             var viewModelPropertyTypeName = _viewModelPropertyType.GetTypeName().Replace('+', '.');
             var propertyAccess = _propertyAccess.ToFriendlyString();
             var propertyTypeName = PropertyTypeName.Replace('+', '.');
+            string oneWayBindString = string.Empty;
+            string twoWayBindString = string.Empty;
+
+            if (_oneWayBindInvocation != null)
+            {
+                oneWayBindString = @$"public IDisposable {MethodNames.GetOneWayBindSubscription}()
+        {{
+            var instance = this;
+            return {_oneWayBindInvocation};
+        }}";
+            }
+
+            if (_twoWayBindInvocation != null)
+            {
+                twoWayBindString = @$"public IDisposable {MethodNames.GetTwoWayBindSubscription}()
+        {{
+            var instance = this;
+            return {_twoWayBindInvocation};
+        }}";
+            }
 
             return $@"
     {ClassAccess.ToFriendlyString()} partial class {ClassName} : INotifyPropertyChanged
@@ -178,12 +240,10 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
             get => _viewModel;
             set => RaiseAndSetIfChanged(ref _viewModel, value);
         }}
-        
-        public IDisposable {MethodNames.GetTwoWayBindSubscription}()
-        {{
-            var instance = this;
-            return {_invocation};
-        }}
+              
+        {oneWayBindString}
+
+        {twoWayBindString}
 
         public IObservable<object> {MethodNames.GetWhenChangedViewModelObservable}()
         {{
@@ -232,11 +292,29 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
                 viewArgs = viewArgs + ", " + viewModelConvertFunc + ", " + viewConvertFunc;
             }
 
-            var invocation = invocationKind == InvocationKind.MemberAccess ?
+            return invocationKind == InvocationKind.MemberAccess ?
                 $"{receiver}.Bind({targetName}, {viewModelArgs}, {viewArgs})" :
                 $"BindExtensions.Bind({receiver}, {targetName}, {viewModelArgs}, {viewArgs})";
+        }
 
-            return invocation;
+        private static string GetOneWayBindInvocation(
+            InvocationKind invocationKind,
+            ReceiverKind viewModelKind,
+            string viewModelArgs,
+            string viewArgs,
+            string targetName,
+            string viewModelConvertFunc = null)
+        {
+            var receiver = viewModelKind == ReceiverKind.This ? "this" : "instance";
+
+            if (viewModelConvertFunc != null)
+            {
+                viewArgs = viewArgs + ", " + viewModelConvertFunc;
+            }
+
+            return invocationKind == InvocationKind.MemberAccess ?
+                $"{receiver}.OneWayBind({targetName}, {viewModelArgs}, {viewArgs})" :
+                $"BindExtensions.OneWayBind({receiver}, {targetName}, {viewModelArgs}, {viewArgs})";
         }
     }
 }
