@@ -21,12 +21,18 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         private Accessibility _propertyAccess;
         private Func<string> _propertyTypeNameFunc;
         private string _invocation;
+        private string _methodName;
+        private string _extensionClassName;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="WhenChangedHostBuilder"/> class.
         /// </summary>
-        public WhenChangedHostBuilder()
+        /// <param name="methodName">The method name.</param>
+        /// <param name="extensionClassName">The extension class name.</param>
+        public WhenChangedHostBuilder(string methodName = "WhenChanged", string extensionClassName = "NotifyPropertyChangedExtensions")
         {
+            _methodName = methodName;
+            _extensionClassName = extensionClassName;
             _propertyAccess = Accessibility.Public;
             _propertyTypeNameFunc = () => "string";
             WithInvocation(InvocationKind.MemberAccess, x => x.Value);
@@ -36,6 +42,24 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         /// Gets the type name of the <b>Value</b> property.
         /// </summary>
         public string ValuePropertyTypeName => _propertyTypeNameFunc.Invoke();
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="WhenChangedHostBuilder"/> class for WhenChanged.
+        /// </summary>
+        /// <returns>An instance of the builder.</returns>
+        public static WhenChangedHostBuilder Changed()
+        {
+            return new("WhenChanged", "NotifyPropertyChangedExtensions");
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="WhenChangedHostBuilder"/> class for WhenChanging.
+        /// </summary>
+        /// <returns>An instance of the builder.</returns>
+        public static WhenChangedHostBuilder Changing()
+        {
+            return new("WhenChanging", "NotifyPropertyChangingExtensions");
+        }
 
         /// <summary>
         /// Sets the type of the <b>Value</b> property.
@@ -180,10 +204,12 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
             }
 
             return $@"
-    {ClassAccess.ToFriendlyString()} partial class {ClassName} : INotifyPropertyChanged
+    {ClassAccess.ToFriendlyString()} partial class {ClassName} : INotifyPropertyChanged, INotifyPropertyChanging
     {{
         private {propertyTypeName} _value;
         private {ClassName} _child;
+
+        public event PropertyChangingEventHandler PropertyChanging;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -213,8 +239,14 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
                 return;
             }}
 
+            OnPropertyChanging(propertyName);
             fieldValue = value;
             OnPropertyChanged(propertyName);
+        }}
+
+        protected virtual void OnPropertyChanging(string propertyName)
+        {{
+            PropertyChanging?.Invoke(this, new PropertyChangingEventArgs(propertyName));
         }}
 
         protected virtual void OnPropertyChanged(string propertyName)
@@ -236,8 +268,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
             var receiver = externalReceiverTypeInfo == null ? "this" : "Receiver";
 
             return invocationKind == InvocationKind.MemberAccess ?
-                $"{receiver}.WhenChanged({args})" :
-                $"NotifyPropertyChangedExtensions.WhenChanged({receiver}, {args})";
+                $"{receiver}.{_methodName}({args})" :
+                $"{_extensionClassName}.{_methodName}({receiver}, {args})";
         }
     }
 }

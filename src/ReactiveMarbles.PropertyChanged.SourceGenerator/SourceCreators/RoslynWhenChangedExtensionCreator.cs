@@ -15,6 +15,35 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
     internal class RoslynWhenChangedExtensionCreator : ISourceCreator
     {
+        private string _className;
+        private string _methodName;
+        private string _eventName;
+        private string _handlerName;
+
+        private RoslynWhenChangedExtensionCreator(
+            string className,
+            string methodName,
+            string eventName,
+            string handlerName)
+        {
+            _className = className;
+            _methodName = methodName;
+            _eventName = eventName;
+            _handlerName = handlerName;
+        }
+
+        public string MethodName => _methodName;
+
+        public static RoslynWhenChangedExtensionCreator WhenChanging()
+        {
+            return new("NotifyPropertyChangingExtensions", Constants.WhenChangingMethodName, "PropertyChanging", "PropertyChangingEventHandler");
+        }
+
+        public static RoslynWhenChangedExtensionCreator WhenChanged()
+        {
+            return new("NotifyPropertyChangedExtensions", Constants.WhenChangedMethodName, "PropertyChanged", "PropertyChangedEventHandler");
+        }
+
         public string Create(IEnumerable<IDatum> sources)
         {
             var members = sources.Cast<ExtensionClassDatum>().Select(Create).ToList();
@@ -29,13 +58,13 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             return null;
         }
 
-        private static ClassDeclarationSyntax Create(ExtensionClassDatum classDatum)
+        private ClassDeclarationSyntax Create(ExtensionClassDatum classDatum)
         {
             var visibility = new[] { SyntaxKind.InternalKeyword, SyntaxKind.StaticKeyword, SyntaxKind.PartialKeyword };
-            return ClassDeclaration("NotifyPropertyChangedExtensions", visibility, classDatum.MethodData.SelectMany(Create).ToList(), 1);
+            return ClassDeclaration(_className, visibility, classDatum.MethodData.SelectMany(Create).ToList(), 1);
         }
 
-        private static IEnumerable<MemberDeclarationSyntax> Create(MethodDatum method) =>
+        private IEnumerable<MemberDeclarationSyntax> Create(MethodDatum method) =>
             method switch
             {
                 SingleExpressionDictionaryImplMethodDatum methodDatum => Create(methodDatum),
@@ -44,26 +73,26 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 _ => throw new InvalidOperationException("Unknown type of datum."),
             };
 
-        private static IEnumerable<MemberDeclarationSyntax> Create(SingleExpressionDictionaryImplMethodDatum methodDatum)
+        private IEnumerable<MemberDeclarationSyntax> Create(SingleExpressionDictionaryImplMethodDatum methodDatum)
         {
             var mapEntries = new List<AssignmentExpressionSyntax>();
 
             foreach (var (key, entries) in methodDatum.Map.Entries)
             {
-                var observable = RoslynHelpers.GetObservableChain("source", entries);
+                var observable = RoslynHelpers.GetObservableChain("source", entries, _eventName, _handlerName);
                 mapEntries.Add(RoslynHelpers.MapEntry(key, observable));
             }
 
             yield return RoslynHelpers.MapDictionary(methodDatum.InputTypeName, methodDatum.OutputTypeName, methodDatum.Map.MapName, mapEntries);
-            yield return RoslynHelpers.WhenChanged(methodDatum.InputTypeName, methodDatum.OutputTypeName, true, methodDatum.AccessModifier, ArrowExpressionClause(RoslynHelpers.MapInvokeExpression("source", methodDatum.Map.MapName, "propertyExpression")));
+            yield return RoslynHelpers.WhenChanged(_methodName, methodDatum.InputTypeName, methodDatum.OutputTypeName, true, methodDatum.AccessModifier, ArrowExpressionClause(RoslynHelpers.MapInvokeExpression("source", methodDatum.Map.MapName, "propertyExpression")));
         }
 
-        private static IEnumerable<MemberDeclarationSyntax> Create(SingleExpressionOptimizedImplMethodDatum methodDatum)
+        private IEnumerable<MemberDeclarationSyntax> Create(SingleExpressionOptimizedImplMethodDatum methodDatum)
         {
-            yield return RoslynHelpers.WhenChanged(methodDatum.InputTypeName, methodDatum.OutputTypeName, true, methodDatum.AccessModifier, ArrowExpressionClause(RoslynHelpers.GetObservableChain("source", methodDatum.Members)));
+            yield return RoslynHelpers.WhenChanged(_methodName, methodDatum.InputTypeName, methodDatum.OutputTypeName, true, methodDatum.AccessModifier, ArrowExpressionClause(RoslynHelpers.GetObservableChain("source", methodDatum.Members, _eventName, _handlerName)));
         }
 
-        private static IEnumerable<MemberDeclarationSyntax> Create(MultiExpressionMethodDatum methodDatum)
+        private IEnumerable<MemberDeclarationSyntax> Create(MultiExpressionMethodDatum methodDatum)
         {
             var statements = new List<StatementSyntax>(methodDatum.TempReturnTypes.Count);
             var combineArguments = new List<ArgumentSyntax>(methodDatum.TempReturnTypes.Count);
@@ -72,7 +101,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             {
                 var type = methodDatum.TempReturnTypes[i];
                 var obsName = "obs" + (i + 1);
-                var whenChangedVariable = RoslynHelpers.InvokeWhenChangedVariable(type, obsName, "propertyExpression" + (i + 1), "source");
+                var whenChangedVariable = RoslynHelpers.InvokeWhenChangedVariable(_methodName, type, obsName, "propertyExpression" + (i + 1), "source");
                 statements.Add(whenChangedVariable);
                 combineArguments.Add(Argument(obsName));
             }
@@ -87,7 +116,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                         "CombineLatest"),
                     combineArguments)));
 
-            yield return RoslynHelpers.WhenChangedConversion(methodDatum.InputType.ToDisplayString(), methodDatum.OutputType.ToDisplayString(), methodDatum.TempReturnTypes, true, methodDatum.AccessModifier, Block(statements, 1));
+            yield return RoslynHelpers.WhenChangedConversion(_methodName, methodDatum.InputType.ToDisplayString(), methodDatum.OutputType.ToDisplayString(), methodDatum.TempReturnTypes, true, methodDatum.AccessModifier, Block(statements, 1));
         }
     }
 }

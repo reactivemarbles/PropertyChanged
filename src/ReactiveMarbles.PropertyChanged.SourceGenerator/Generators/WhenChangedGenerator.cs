@@ -14,11 +14,25 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
     {
         private readonly ISourceCreator _extensionClassCreator;
         private readonly ISourceCreator _partialClassCreator;
+        private readonly string _methodName;
 
-        public WhenChangedGenerator()
+        private WhenChangedGenerator(
+            RoslynWhenChangedExtensionCreator extensionClassCreator,
+            RoslynWhenChangedPartialClassCreator partialClassCreator)
         {
-            _extensionClassCreator = new RoslynWhenChangedExtensionCreator();
-            _partialClassCreator = new RoslynWhenChangedPartialClassCreator();
+            _methodName = extensionClassCreator.MethodName;
+            _extensionClassCreator = extensionClassCreator;
+            _partialClassCreator = partialClassCreator;
+        }
+
+        public static WhenChangedGenerator WhenChanging()
+        {
+            return new(RoslynWhenChangedExtensionCreator.WhenChanging(), RoslynWhenChangedPartialClassCreator.WhenChanging());
+        }
+
+        public static WhenChangedGenerator WhenChanged()
+        {
+            return new(RoslynWhenChangedExtensionCreator.WhenChanged(), RoslynWhenChangedPartialClassCreator.WhenChanged());
         }
 
         public IEnumerable<(string FileName, string SourceCode)> GenerateSourceFromInvocations(ITypeSymbol type, HashSet<InvocationInfo> invocations)
@@ -67,14 +81,14 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
             if (!string.IsNullOrWhiteSpace(extensionsSource))
             {
-                yield return ($"{type.ToDisplayString()}_WhenChanged.extensions.g.cs", extensionsSource);
+                yield return ($"{type.ToDisplayString()}_{_methodName}.extensions.g.cs", extensionsSource);
             }
 
             var partialSource = _partialClassCreator.Create(partialClassData);
 
             if (!string.IsNullOrWhiteSpace(partialSource))
             {
-                yield return ($"{type.ToDisplayString()}_WhenChanged.partial.g.cs", partialSource);
+                yield return ($"{type.ToDisplayString()}_{_methodName}.partial.g.cs", partialSource);
             }
         }
 

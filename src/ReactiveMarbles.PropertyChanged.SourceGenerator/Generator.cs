@@ -17,13 +17,12 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
     [Generator]
     public class Generator : ISourceGenerator
     {
-        private static readonly IExtractor[] _extractors =
-        {
-            new WhenChangedExtractor(),
-            new BindExtractor(),
-        };
+        private static readonly WhenChangedExtractor _whenChangedExtractor = new("NotifyPropertyChangedExtensions", syntaxReceiver => syntaxReceiver.WhenChangedMethods);
+        private static readonly WhenChangedExtractor _whenChangingExtractor = new("NotifyPropertyChangingExtensions", syntaxReceiver => syntaxReceiver.WhenChangingMethods);
+        private static readonly BindExtractor _bindExtractor = new();
 
-        private static readonly WhenChangedGenerator _whenChangedGenerator = new();
+        private static readonly WhenChangedGenerator _whenChangedGenerator = WhenChangedGenerator.WhenChanged();
+        private static readonly WhenChangedGenerator _whenChangingGenerator = WhenChangedGenerator.WhenChanging();
         private static readonly BindGenerator _bindGenerator = new();
 
         /// <inheritdoc/>
@@ -33,8 +32,12 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         public void Execute(GeneratorExecutionContext context)
         {
             var options = (context.Compilation as CSharpCompilation)?.SyntaxTrees[0].Options as CSharpParseOptions;
-            var compilation = context.Compilation.AddSyntaxTrees(CSharpSyntaxTree.ParseText(Constants.WhenChangedSource, options), CSharpSyntaxTree.ParseText(Constants.BindSource, options));
-            context.AddSource("WhenChanged.Stubs.g.cs", Constants.WhenChangedSource);
+            var compilation = context.Compilation.AddSyntaxTrees(
+                CSharpSyntaxTree.ParseText(Constants.WhenChangingSource, options),
+                CSharpSyntaxTree.ParseText(Constants.WhenChangedSource, options),
+                CSharpSyntaxTree.ParseText(Constants.BindSource, options));
+            context.AddSource($"{Constants.WhenChangingMethodName}.Stubs.g.cs", Constants.WhenChangingSource);
+            context.AddSource($"{Constants.WhenChangedMethodName}.Stubs.g.cs", Constants.WhenChangedSource);
             context.AddSource("Binding.Stubs.g.cs", Constants.BindSource);
 
             if (context.SyntaxReceiver is not SyntaxReceiver syntaxReceiver)
@@ -44,29 +47,34 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
             var bindInvocations = new SortedList<ITypeSymbol, HashSet<InvocationInfo>>(TypeSymbolComparer.Default);
             var whenChangedInvocations = new SortedList<ITypeSymbol, HashSet<InvocationInfo>>(TypeSymbolComparer.Default);
+            var whenChangingInvocations = new SortedList<ITypeSymbol, HashSet<InvocationInfo>>(TypeSymbolComparer.Default);
 
-            foreach (var extractor in _extractors)
+            foreach (var item in _whenChangedExtractor.GetInvocations(context, compilation, syntaxReceiver))
             {
-                foreach (var item in extractor.GetInvocations(context, compilation, syntaxReceiver))
-                {
-                    switch (item)
-                    {
-                        case WhenChangedMultiMethodInvocationInfo whenChangedMulti:
-                            whenChangedInvocations.ListInsert(item.Type, whenChangedMulti);
-                            break;
-                        case WhenChangedExpressionInvocationInfo whenChangedExpression:
-                            whenChangedInvocations.ListInsert(item.Type, whenChangedExpression);
-                            break;
-                        case BindInvocationInfo bindInfo:
-                            bindInvocations.ListInsert(item.Type, bindInfo);
-                            break;
-                    }
-                }
+                whenChangedInvocations.ListInsert(item.Type, item);
+            }
+
+            foreach (var item in _whenChangingExtractor.GetInvocations(context, compilation, syntaxReceiver))
+            {
+                whenChangingInvocations.ListInsert(item.Type, item);
+            }
+
+            foreach (var item in _bindExtractor.GetInvocations(context, compilation, syntaxReceiver))
+            {
+                bindInvocations.ListInsert(item.Type, item);
             }
 
             foreach (var kvp in whenChangedInvocations)
             {
                 foreach (var (fileName, source) in _whenChangedGenerator.GenerateSourceFromInvocations(kvp.Key, kvp.Value))
+                {
+                    context.AddSource(fileName, SourceText.From(source, Encoding.UTF8));
+                }
+            }
+
+            foreach (var kvp in whenChangingInvocations)
+            {
+                foreach (var (fileName, source) in _whenChangingGenerator.GenerateSourceFromInvocations(kvp.Key, kvp.Value))
                 {
                     context.AddSource(fileName, SourceText.From(source, Encoding.UTF8));
                 }

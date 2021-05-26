@@ -16,9 +16,9 @@ using Xunit;
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
 {
     /// <summary>
-    /// WhenChanged generator tests.
+    /// WhenChanging generator tests.
     /// </summary>
-    public partial class WhenChangedGeneratorTests
+    public partial class WhenChangingGeneratorTests
     {
         /// <summary>
         /// Make sure the ReceiverKind.Instance is handled correctly.
@@ -37,7 +37,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .WithPropertyType(receiverPropertyTypeInfo)
                 .WithPropertyAccess(Accessibility.Public)
                 .WithInvocation("null");
-            var hostTypeInfo = new WhenChangedHostBuilder()
+            var hostTypeInfo = WhenChangedHostBuilder.Changing()
                 .WithClassName("Host")
                 .WithClassAccess(Accessibility.Public)
                 .WithInvocation(invocationKind, x => x.Value, externalReceiverTypeInfo);
@@ -80,7 +80,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         {
             var hostPropertyTypeInfo = new EmptyClassBuilder()
                 .WithClassAccess(propertyTypeAccess);
-            var hostTypeInfo = new WhenChangedHostBuilder()
+            var hostTypeInfo = WhenChangedHostBuilder.Changing()
                 .WithClassName("Host")
                 .WithClassAccess(hostTypeAccess)
                 .WithPropertyType(hostPropertyTypeInfo)
@@ -104,7 +104,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             var hostPropertyTypeInfo = new EmptyClassBuilder()
                 .WithClassAccess(Accessibility.Public)
                 .WithNamespace(hostPropertyTypeNamespace);
-            var hostTypeInfo = new WhenChangedHostBuilder()
+            var hostTypeInfo = WhenChangedHostBuilder.Changing()
                 .WithClassName("Host")
                 .WithClassAccess(Accessibility.Public)
                 .WithPropertyType(hostPropertyTypeInfo)
@@ -125,7 +125,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .WithClassName("ClassName")
                 .WithNamespace("Namespace1")
                 .WithClassAccess(Accessibility.Public);
-            var hostTypeInfo = new WhenChangedHostBuilder()
+            var hostTypeInfo = WhenChangedHostBuilder.Changing()
                 .WithClassName("ClassName")
                 .WithNamespace("Namespace2")
                 .WithClassAccess(Accessibility.Public)
@@ -145,7 +145,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .WithClassName("ClassName")
                 .WithNamespace("Namespace1")
                 .WithClassAccess(Accessibility.Public);
-            var hostTypeInfo = new WhenChangedHostBuilder()
+            var hostTypeInfo = WhenChangedHostBuilder.Changing()
                 .WithClassName("ClassName")
                 .WithNamespace("Namespace2")
                 .WithInvocation(InvocationKind.MemberAccess, x => x.Child.Value)
@@ -163,18 +163,29 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             host.Child = fixture.NewHostInstance();
             host.Child.Value = fixture.NewValuePropertyInstance();
             var observable = host.GetWhenChangedObservable(_ => TestContext.WriteLine(fixture.Sources));
-            object value = null;
-            observable.Subscribe(x => value = x);
-            host.Child.Value.Should().Be(value);
+
+            object emittedValue = null;
+            observable.Subscribe(x => emittedValue = x);
+
+            object initialValue = host.Child.Value;
+            emittedValue.Should().Be(initialValue);
+            object previousValue = emittedValue;
 
             // According to the current design, no emission should occur when the chain is "broken".
             host.Child = null;
-            value.Should().NotBeNull();
+            emittedValue.Should().Be(previousValue);
+            previousValue = emittedValue;
 
             host.Child = fixture.NewHostInstance();
-            host.Child.Value.Should().Be(value);
+            emittedValue.Should().Be(previousValue);
+            previousValue = emittedValue;
+
             host.Child.Value = fixture.NewValuePropertyInstance();
-            host.Child.Value.Should().Be(value);
+            emittedValue.Should().Be(previousValue);
+            previousValue = emittedValue;
+
+            host.Child.Value = null;
+            emittedValue.Should().Be(previousValue);
         }
 
         /// <summary>
@@ -187,7 +198,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .WithClassName("ClassName")
                 .WithNamespace("Namespace1")
                 .WithClassAccess(Accessibility.Public);
-            var hostTypeInfo = new WhenChangedHostBuilder()
+            var hostTypeInfo = WhenChangedHostBuilder.Changing()
                 .WithClassName("ClassName")
                 .WithNamespace("Namespace2")
                 .WithInvocation(InvocationKind.MemberAccess, x => x.Child.Child.Value)
@@ -206,19 +217,30 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             host.Child.Child = fixture.NewHostInstance();
             host.Child.Child.Value = fixture.NewValuePropertyInstance();
             var observable = host.GetWhenChangedObservable(_ => TestContext.WriteLine(fixture.Sources));
-            object value = null;
-            observable.Subscribe(x => value = x);
-            host.Child.Child.Value.Should().Be(value);
+
+            object emittedValue = null;
+            observable.Subscribe(x => emittedValue = x);
+
+            object initialValue = host.Child.Child.Value;
+            emittedValue.Should().Be(initialValue);
+            object previousValue = emittedValue;
 
             // According to the current design, no emission should occur when the chain is "broken".
             host.Child = null;
-            value.Should().NotBeNull();
+            emittedValue.Should().Be(previousValue);
+            previousValue = emittedValue;
 
             host.Child = fixture.NewHostInstance();
             host.Child.Child = fixture.NewHostInstance();
-            host.Child.Value.Should().Be(value);
+            emittedValue.Should().Be(previousValue);
+            previousValue = emittedValue;
+
             host.Child.Child.Value = fixture.NewValuePropertyInstance();
-            host.Child.Child.Value.Should().Be(value);
+            emittedValue.Should().Be(previousValue);
+            previousValue = emittedValue;
+
+            host.Child.Child.Value = null;
+            emittedValue.Should().Be(previousValue);
         }
 
         /// <summary>
@@ -234,7 +256,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         {
             var hostPropertyTypeInfo = new EmptyClassBuilder()
                 .WithClassAccess(propertyTypeAccess);
-            var hostTypeInfo = new WhenChangedHostBuilder()
+            var hostTypeInfo = WhenChangedHostBuilder.Changing()
                 .WithClassName("Host")
                 .WithClassAccess(hostTypeAccess)
                 .AddNestedClass(hostPropertyTypeInfo)
@@ -259,7 +281,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             var customType = new EmptyClassBuilder()
                 .WithClassName("Output")
                 .WithClassAccess(Accessibility.Internal);
-            var hostTypeInfo = new WhenChangedHostBuilder()
+            var hostTypeInfo = WhenChangedHostBuilder.Changing()
                 .WithClassName("Host")
                 .WithInvocation(InvocationKind.MemberAccess, x => x.Child, x => x.Value, "(a, b) => b != null ? new HostContainer.Output() : null")
                 .WithClassAccess(Accessibility.Protected)
@@ -281,16 +303,17 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             var host = fixture.NewHostInstance();
             host.Value = fixture.NewValuePropertyInstance();
             var observable = host.GetWhenChangedObservable(_ => TestContext.WriteLine(fixture.Sources));
-            object value = null;
-            observable.Subscribe(x => value = x);
+
+            object emittedValue = null;
+            observable.Subscribe(x => emittedValue = x);
 
             // TODO: Better series of checks. Currently can't compare values because of reference
             // equality and we don't have access to the instance that the conversionFunc creates.
-            value.Should().NotBeNull();
+            emittedValue.Should().NotBeNull();
             host.Value = null;
-            value.Should().BeNull();
+            emittedValue.Should().NotBeNull();
             host.Value = fixture.NewValuePropertyInstance();
-            value.Should().NotBeNull();
+            emittedValue.Should().BeNull();
         }
 
         private void AssertTestCase_SingleExpression(WhenChangedHostBuilder hostTypeInfo, BaseUserSourceBuilder hostPropertyTypeInfo, bool typesHaveSameRoot)
@@ -329,13 +352,24 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             var host = fixture.NewHostInstance();
             host.Value = fixture.NewValuePropertyInstance();
             var observable = host.GetWhenChangedObservable(_ => TestContext.WriteLine(fixture.Sources));
-            object value = null;
-            observable.Subscribe(x => value = x);
-            Convert(host).Should().Be(value.ToString());
-            host.Value = fixture.NewValuePropertyInstance();
-            Convert(host).Should().Be(value.ToString());
+
+            object emittedValue = null;
+            observable.Subscribe(x => emittedValue = x);
+
+            string initialValue = Convert(host);
+            emittedValue.Should().Be(initialValue);
+            string previousValue = initialValue;
+
             host.Value = null;
-            Convert(host).Should().Be(value.ToString());
+            emittedValue.Should().Be(previousValue);
+            previousValue = Convert(host);
+
+            host.Value = fixture.NewValuePropertyInstance();
+            emittedValue.Should().Be(previousValue);
+            previousValue = Convert(host);
+
+            host.Value = null;
+            emittedValue.Should().Be(previousValue);
         }
     }
 }

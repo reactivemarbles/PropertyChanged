@@ -39,7 +39,6 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
                 references: new[]
                 {
                     MetadataReference.CreateFromFile(typeof(Observable).GetTypeInfo().Assembly.Location),
-                    MetadataReference.CreateFromFile(typeof(WhenChangedGenerator).GetTypeInfo().Assembly.Location),
                     MetadataReference.CreateFromFile(typeof(IServiceProvider).GetTypeInfo().Assembly.Location),
                     MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "mscorlib.dll")),
                     MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "System.dll")),

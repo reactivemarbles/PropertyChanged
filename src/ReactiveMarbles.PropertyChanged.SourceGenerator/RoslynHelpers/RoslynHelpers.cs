@@ -19,15 +19,16 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         /// Generates:
         /// [source].WhenChanged(expressionName).
         /// </summary>
+        /// <param name="methodName">The method name.</param>
         /// <param name="expressionName">The expression.</param>
         /// <param name="source">The source variable.</param>
         /// <returns>The invocation.</returns>
-        public static InvocationExpressionSyntax InvokeWhenChanged(string expressionName, string source) =>
+        public static InvocationExpressionSyntax InvokeWhenChanged(string methodName, string expressionName, string source) =>
             InvocationExpression(
                 MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     IdentifierName(source),
-                    "WhenChanged"),
+                    methodName),
                 new[]
                 {
                         Argument(expressionName),
@@ -130,7 +131,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                     },
                     0));
 
-        public static MethodDeclarationSyntax WhenChangedConversion(string inputType, string outputType, List<string> returnTypes, bool isExtension, Accessibility accessibility, BlockSyntax body)
+        public static MethodDeclarationSyntax WhenChangedConversion(string methodName, string inputType, string outputType, List<string> returnTypes, bool isExtension, Accessibility accessibility, BlockSyntax body)
         {
             var modifiers = accessibility.GetAccessibilityTokens().ToList();
 
@@ -159,7 +160,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
             parameterList.AddRange(CallerMembersParameters());
 
-            return MethodDeclaration(modifiers, $"IObservable<{outputType}>", "WhenChanged", parameterList, 0, body);
+            return MethodDeclaration(modifiers, $"IObservable<{outputType}>", methodName, parameterList, 0, body);
         }
 
         public static MethodDeclarationSyntax Bind(string viewModelInputType, string viewModelOutputType, string viewInputType, string viewOutputType, bool isExtension, bool hasConverters, Accessibility accessibility, BlockSyntax body)
@@ -206,18 +207,18 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                         }),
                 });
 
-        public static MethodDeclarationSyntax WhenChanged(string inputType, string outputType, bool isExtension, Accessibility accessibility, BlockSyntax body)
+        public static MethodDeclarationSyntax WhenChanged(string methodName, string inputType, string outputType, bool isExtension, Accessibility accessibility, BlockSyntax body)
         {
             GetWhenChangedValues(inputType, outputType, isExtension, accessibility, out var modifiers, out var parameterList);
 
-            return MethodDeclaration(modifiers, $"IObservable<{outputType}>", "WhenChanged", parameterList, 0, body);
+            return MethodDeclaration(modifiers, $"IObservable<{outputType}>", methodName, parameterList, 0, body);
         }
 
-        public static MethodDeclarationSyntax WhenChanged(string inputType, string outputType, bool isExtension, Accessibility accessibility, ArrowExpressionClauseSyntax body)
+        public static MethodDeclarationSyntax WhenChanged(string methodName, string inputType, string outputType, bool isExtension, Accessibility accessibility, ArrowExpressionClauseSyntax body)
         {
             GetWhenChangedValues(inputType, outputType, isExtension, accessibility, out var modifiers, out var parameterList);
 
-            return MethodDeclaration(modifiers, $"IObservable<{outputType}>", "WhenChanged", parameterList, 0, body);
+            return MethodDeclaration(modifiers, $"IObservable<{outputType}>", methodName, parameterList, 0, body);
         }
 
         public static AssignmentExpressionSyntax MapEntry(string keyName, InvocationExpressionSyntax observableExpression) =>
@@ -278,13 +279,13 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                     Argument(invokeName),
                 });
 
-        public static LocalDeclarationStatementSyntax InvokeWhenChangedVariable(string type, string obsName, string expressionName, string source) =>
-            LocalDeclarationStatement(VariableDeclaration($"IObservable<{type}>", new[] { VariableDeclarator(obsName, EqualsValueClause(InvokeWhenChanged(expressionName, source))) }));
+        public static LocalDeclarationStatementSyntax InvokeWhenChangedVariable(string methodName, string type, string obsName, string expressionName, string source) =>
+            LocalDeclarationStatement(VariableDeclaration($"IObservable<{type}>", new[] { VariableDeclarator(obsName, EqualsValueClause(InvokeWhenChanged(methodName, expressionName, source))) }));
 
-        public static LocalDeclarationStatementSyntax InvokeWhenChangedSkipVariable(string type, string obsName, string expressionName, string source, int skipNumber) =>
-            LocalDeclarationStatement(VariableDeclaration($"IObservable<{type}>", new[] { VariableDeclarator(obsName, EqualsValueClause(InvocationExpression(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, InvokeWhenChanged(expressionName, source), "Skip"), new[] { Argument(LiteralExpression(skipNumber)) }))) }));
+        public static LocalDeclarationStatementSyntax InvokeWhenChangedSkipVariable(string methodName, string type, string obsName, string expressionName, string source, int skipNumber) =>
+            LocalDeclarationStatement(VariableDeclaration($"IObservable<{type}>", new[] { VariableDeclarator(obsName, EqualsValueClause(InvocationExpression(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, InvokeWhenChanged(methodName, expressionName, source), "Skip"), new[] { Argument(LiteralExpression(skipNumber)) }))) }));
 
-        public static InvocationExpressionSyntax SelectObservableNotifyPropertyChangedSwitch(InvocationExpressionSyntax sourceInvoke, string returnType, string inputName, string memberName) =>
+        public static InvocationExpressionSyntax SelectObservableNotifyPropertyChangedSwitch(InvocationExpressionSyntax sourceInvoke, string returnType, string inputName, string memberName, string eventName, string handlerName) =>
             InvocationExpression(
                 MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
@@ -295,11 +296,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                             "Select"),
                         new[]
                         {
-                            Argument(SimpleLambdaExpression(Parameter(inputName), ObservableNotifyPropertyChanged(returnType, inputName, memberName))),
+                            Argument(SimpleLambdaExpression(Parameter(inputName), ObservableNotifyPropertyChanged(returnType, inputName, memberName, eventName, handlerName))),
                         }),
                     "Switch"));
 
-        public static InvocationExpressionSyntax GetObservableChain(string inputName, IReadOnlyList<ExpressionChain> members)
+        public static InvocationExpressionSyntax GetObservableChain(string inputName, IReadOnlyList<ExpressionChain> members, string eventName, string handlerName)
         {
             InvocationExpressionSyntax observable = null;
             for (var i = 0; i < members.Count; ++i)
@@ -307,14 +308,14 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 var (name, _, outputType) = members[i];
 
                 observable = i == 0 ?
-                    ObservableNotifyPropertyChanged(outputType.ToDisplayString(), inputName, name) :
-                    SelectObservableNotifyPropertyChangedSwitch(observable, outputType.ToDisplayString(), "source", name);
+                    ObservableNotifyPropertyChanged(outputType.ToDisplayString(), inputName, name, eventName, handlerName) :
+                    SelectObservableNotifyPropertyChangedSwitch(observable, outputType.ToDisplayString(), "source", name, eventName, handlerName);
             }
 
             return observable;
         }
 
-        public static InvocationExpressionSyntax ObservableNotifyPropertyChanged(string returnType, string inputName, string memberName) =>
+        public static InvocationExpressionSyntax ObservableNotifyPropertyChanged(string returnType, string inputName, string memberName, string eventName, string handlerName) =>
             InvocationExpression(
                 MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName("Observable"), GenericName("Create", new TypeSyntax[] { IdentifierName(returnType) })),
                 new[]
@@ -333,7 +334,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                                         new[] { Argument(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, inputName, memberName)) })),
                                     LocalDeclarationStatement(
                                         VariableDeclaration(
-                                            "PropertyChangedEventHandler",
+                                            handlerName,
                                             new[]
                                             {
                                                 VariableDeclarator(
@@ -369,7 +370,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                                                             },
                                                             2)))),
                                             })),
-                                    ExpressionStatement(AssignmentExpression(SyntaxKind.AddAssignmentExpression, MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, inputName, "PropertyChanged"), IdentifierName("handler"))),
+                                    ExpressionStatement(AssignmentExpression(SyntaxKind.AddAssignmentExpression, MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, inputName, eventName), IdentifierName("handler"))),
                                     ReturnStatement(InvocationExpression(
                                         MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, "Disposable", "Create"),
                                         new[]
@@ -384,7 +385,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                                                 Parameter("x"),
                                                 AssignmentExpression(
                                                     SyntaxKind.SubtractAssignmentExpression,
-                                                    MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, inputName, "PropertyChanged"),
+                                                    MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, inputName, eventName),
                                                     MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, "x", "Handler")))),
                                         })),
                                 },

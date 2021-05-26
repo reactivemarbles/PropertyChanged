@@ -46,6 +46,24 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         }
 
         /// <summary>
+        /// Gets the observable resulting from the WhenChanging invocation.
+        /// </summary>
+        /// <param name="onError">An action to invoke when the WhenChanging implementation doesn't generate correctly.</param>
+        /// <returns>An observable.</returns>
+        public IObservable<object> GetWhenChangingObservable(Action<Exception> onError)
+        {
+            try
+            {
+                return GetMethod(Source, MethodNames.GetWhenChangingObservable) as IObservable<object>;
+            }
+            catch (Exception ex)
+            {
+                onError?.Invoke(ex);
+                throw;
+            }
+        }
+
+        /// <summary>
         /// Gets the observable resulting from the WhenChanged invocation.
         /// </summary>
         /// <param name="onError">An action to invoke when the WhenChanged implementation doesn't generate correctly.</param>

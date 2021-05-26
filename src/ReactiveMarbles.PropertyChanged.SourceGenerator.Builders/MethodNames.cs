@@ -6,6 +6,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
 {
     internal static class MethodNames
     {
+        public const string GetWhenChangingObservable = "GetWhenChangingObservable";
         public const string GetWhenChangedObservable = "GetWhenChangedObservable";
         public const string GetOneWayBindSubscription = "GetOneWayBindSubscription";
         public const string GetTwoWayBindSubscription = "GetTwoWayBindSubscription";

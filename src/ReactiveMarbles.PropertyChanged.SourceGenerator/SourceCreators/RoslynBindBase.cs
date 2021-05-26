@@ -34,10 +34,10 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             var fromName = isExtension ? "fromObject" : "this";
 
             // generates: var hostObs = fromObject.WhenChanged(fromProperty);
-            statements.Add(RoslynHelpers.InvokeWhenChangedVariable(viewModelOutputType, "hostObs", "fromProperty", fromName));
+            statements.Add(RoslynHelpers.InvokeWhenChangedVariable(Constants.WhenChangedMethodName, viewModelOutputType, "hostObs", "fromProperty", fromName));
 
             // generates: var targetObs = targetObject.WhenChanged(toProperty).Skip(1);
-            statements.Add(RoslynHelpers.InvokeWhenChangedSkipVariable(viewOutputType, "targetObs", "toProperty", "targetObject", 1));
+            statements.Add(RoslynHelpers.InvokeWhenChangedSkipVariable(Constants.WhenChangedMethodName, viewOutputType, "targetObs", "toProperty", "targetObject", 1));
 
             if (hasConverters)
             {

@@ -2,6 +2,7 @@
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -12,11 +13,18 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
     internal class WhenChangedExtractor : IExtractor
     {
-        private const string ExtensionClassFullName = "NotifyPropertyChangedExtensions";
+        private string _extensionClassFullName;
+        private Func<SyntaxReceiver, List<InvocationExpressionSyntax>> _invocationListSelector;
+
+        public WhenChangedExtractor(string extensionClassFullName, Func<SyntaxReceiver, List<InvocationExpressionSyntax>> invocationListSelector)
+        {
+            _extensionClassFullName = extensionClassFullName;
+            _invocationListSelector = invocationListSelector;
+        }
 
         public IEnumerable<InvocationInfo> GetInvocations(GeneratorExecutionContext context, Compilation compilation, SyntaxReceiver syntaxReceiver)
         {
-            foreach (var invocationExpression in syntaxReceiver.WhenChangedMethods)
+            foreach (var invocationExpression in _invocationListSelector.Invoke(syntaxReceiver))
             {
                 var model = compilation.GetSemanticModel(invocationExpression.SyntaxTree);
                 var symbol = model.GetSymbolInfo(invocationExpression).Symbol;
@@ -26,7 +34,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                     continue;
                 }
 
-                if (!methodSymbol.ContainingType.ToDisplayString().Equals(ExtensionClassFullName))
+                if (!methodSymbol.ContainingType.ToDisplayString().Equals(_extensionClassFullName))
                 {
                     continue;
                 }
