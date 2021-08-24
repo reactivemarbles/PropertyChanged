@@ -36,7 +36,7 @@ namespace ReactiveMarbles.PropertyChanged.Tests
 
             Assert.Equal("Hello World", bindToC.Test);
 
-            a.B = new B() { C = new C() };
+            a.B = new() { C = new() };
 
             Assert.Null(bindToC.Test);
         }
@@ -60,11 +60,11 @@ namespace ReactiveMarbles.PropertyChanged.Tests
 
             Assert.Equal("start value", bindToC.Test);
 
-            b.C = new C();
+            b.C = new();
 
             Assert.Null(bindToC.Test);
 
-            b.C = new C { Test = "blah" };
+            b.C = new() { Test = "blah" };
 
             Assert.Equal("blah", bindToC.Test);
         }
@@ -84,8 +84,10 @@ namespace ReactiveMarbles.PropertyChanged.Tests
             };
             b.C = c;
 
-            var bindToC = new C();
-            bindToC.Test = "Target value";
+            var bindToC = new C
+            {
+                Test = "Target value"
+            };
 
             a.Bind(bindToC, x => x.B.C.Test, x => x.Test);
 
@@ -95,9 +97,9 @@ namespace ReactiveMarbles.PropertyChanged.Tests
 
             Assert.Equal("Test2", c.Test);
 
-            a.B = new B
+            a.B = new()
             {
-                C = new C
+                C = new()
                 {
                     Test = "Test3",
                 },
@@ -114,14 +116,18 @@ namespace ReactiveMarbles.PropertyChanged.Tests
             var a = new A();
             var b = new B();
             a.B = b;
-            var c = new C();
-            c.Test = "Host Value";
+            var c = new C
+            {
+                Test = "Host Value"
+            };
             b.C = c;
 
-            var bindToC = new C();
-            bindToC.Test = "Target value";
+            var bindToC = new C
+            {
+                Test = "Target value"
+            };
 
-            a.Bind(bindToC, x => x.B.C, x => x.Test, x => x.Test, y => new C() { Test = y });
+            a.Bind(bindToC, x => x.B.C, x => x.Test, x => x.Test, y => new() { Test = y });
 
             Assert.Equal("Host Value", bindToC.Test);
 

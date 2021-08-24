@@ -22,7 +22,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             var list = types.ToArray();
             InputType = list[0];
             OutputType = list[list.Length - 1];
-            TempReturnTypes = new List<string>(list.Length - 2);
+            TempReturnTypes = new(list.Length - 2);
             for (var i = 1; i < list.Length - 1; i++)
             {
                 TempReturnTypes.Add(list[i].ToDisplayString());
@@ -39,7 +39,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
         public bool ContainsPrivateOrProtectedTypeArgument { get; }
 
-        public bool Equals(MultiExpressionMethodDatum other)
+        public bool Equals(MultiExpressionMethodDatum? other)
         {
             if (other is null)
             {

@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+
 using Microsoft.CodeAnalysis;
 
 using ReactiveMarbles.PropertyChanged.SourceGenerator.Builders;
@@ -35,10 +36,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
 
         public string Sources { get; private set; }
 
-        public static WhenChangedFixture Create(WhenChangedHostBuilder hostTypeInfo, ITestOutputHelper testOutputHelper, params string[] extraSources)
-        {
-            return Create(hostTypeInfo, hostTypeInfo, testOutputHelper, extraSources);
-        }
+        public static WhenChangedFixture Create(WhenChangedHostBuilder hostTypeInfo, ITestOutputHelper testOutputHelper, params string[] extraSources) => Create(hostTypeInfo, hostTypeInfo, testOutputHelper, extraSources);
 
         public static WhenChangedFixture Create(WhenChangedHostBuilder hostTypeInfo, WhenChangedHostBuilder receiverTypeInfo, ITestOutputHelper testOutputHelper, params string[] extraSources)
         {
@@ -49,7 +47,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             }
 
             var compilation = CompilationUtil.CreateCompilation(sources.ToArray());
-            return new WhenChangedFixture(hostTypeInfo, receiverTypeInfo, compilation, testOutputHelper);
+            return new(hostTypeInfo, receiverTypeInfo, compilation, testOutputHelper);
         }
 
         public void RunGenerator(out ImmutableArray<Diagnostic> compilationDiagnostics, out ImmutableArray<Diagnostic> generatorDiagnostics, bool saveCompilation = false, string directory = @"C:\Users\Glenn\source\repos\ConsoleApp8\ConsoleApp8")
@@ -84,7 +82,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
 
         public object NewValuePropertyInstance() => CreateInstance(_valuePropertyType);
 
-        private static object CreateInstance(Type type) => Activator.CreateInstance(type, bindingAttr: BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, null, null);
+        private static object CreateInstance(Type type) => Activator.CreateInstance(type, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, null, null);
 
         private static Assembly GetAssembly(Compilation compilation)
         {

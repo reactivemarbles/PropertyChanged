@@ -9,6 +9,7 @@ using System.ComponentModel;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+
 using ReactiveUI;
 
 namespace ReactiveMarbles.PropertyChanged.Benchmarks.Moqs
@@ -27,9 +28,16 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks.Moqs
 
         public TestClass(int height = 1)
         {
-            if (height < 1) height = 1;
+            if (height < 1)
+            {
+                height = 1;
+            }
+
             Height = height;
-            if (height > 1) Child = new TestClass(height - 1);
+            if (height > 1)
+            {
+                Child = new TestClass(height - 1);
+            }
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -53,8 +61,8 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks.Moqs
                 throw new ArgumentOutOfRangeException(nameof(depth));
             }
 
-            var height = Height;
-            var current = this;
+            int height = Height;
+            TestClass current = this;
             while (--height > depth)
             {
                 current = current?.Child;
@@ -75,31 +83,33 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks.Moqs
         }
 
         public static Expression<Func<TestClass, int>> GetValuePropertyExpression(int depth)
-            => _getValueExpression.GetOrAdd(depth, d =>
-            {
-                if (_childPropertyInfo is null)
-                {
-                    throw new InvalidOperationException(nameof(_childPropertyInfo));
-                }
+        {
+            return _getValueExpression.GetOrAdd(depth, d =>
+                        {
+                            if (_childPropertyInfo is null)
+                            {
+                                throw new InvalidOperationException(nameof(_childPropertyInfo));
+                            }
 
-                if (_valuePropertyInfo is null)
-                {
-                    throw new InvalidOperationException(nameof(_valuePropertyInfo));
-                }
+                            if (_valuePropertyInfo is null)
+                            {
+                                throw new InvalidOperationException(nameof(_valuePropertyInfo));
+                            }
 
-                var parameter = Expression.Parameter(typeof(TestClass), "x");
+                            ParameterExpression parameter = Expression.Parameter(typeof(TestClass), "x");
 
-                var pe = parameter;
-                Expression body = pe;
-                while (d-- > 1)
-                {
-                    body = Expression.Property(body, _childPropertyInfo);
-                }
+                            ParameterExpression pe = parameter;
+                            Expression body = pe;
+                            while (d-- > 1)
+                            {
+                                body = Expression.Property(body, _childPropertyInfo);
+                            }
 
-                body = Expression.Property(body, _valuePropertyInfo);
+                            body = Expression.Property(body, _valuePropertyInfo);
 
-                return Expression.Lambda<Func<TestClass, int>>(body, parameter);
-            });
+                            return Expression.Lambda<Func<TestClass, int>>(body, parameter);
+                        });
+        }
 
         protected void RaiseAndSetIfChanged<T>(ref T fieldValue, T value, [CallerMemberName] string propertyName = null)
         {

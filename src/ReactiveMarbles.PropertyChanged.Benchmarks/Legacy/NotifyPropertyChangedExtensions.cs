@@ -59,15 +59,15 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks.Legacy
 
             IObservable<(object Sender, INotifyPropertyChanged Value)> currentObservable = Observable.Return(((object)null, (INotifyPropertyChanged)objectToMonitor));
 
-            var expressionChain = propertyExpression.Body.GetExpressionChain();
+            System.Collections.Generic.List<MemberExpression> expressionChain = propertyExpression.Body.GetExpressionChain();
 
             if (expressionChain.Count == 0)
             {
                 throw new ArgumentException("There are no fields in the expressions", nameof(propertyExpression));
             }
 
-            var i = 0;
-            foreach (var memberExpression in expressionChain)
+            int i = 0;
+            foreach (MemberExpression memberExpression in expressionChain)
             {
                 if (i == expressionChain.Count - 1)
                 {
@@ -90,14 +90,18 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks.Legacy
 
         private static IObservable<(object Sender, T Value)> GenerateObservable<T>(INotifyPropertyChanged parent, MemberExpression memberExpression)
         {
-            var memberInfo = memberExpression.Member;
-            var memberName = memberInfo.Name;
+            System.Reflection.MemberInfo memberInfo = memberExpression.Member;
+            string memberName = memberInfo.Name;
 
-            var func = GetMemberFuncCache<INotifyPropertyChanged, T>.GetCache(memberInfo);
+            Func<INotifyPropertyChanged, T> func = GetMemberFuncCache<INotifyPropertyChanged, T>.GetCache(memberInfo);
             return Observable.FromEvent<PropertyChangedEventHandler, (object Sender, PropertyChangedEventArgs Args)>(
                     handler =>
                     {
-                        void Handler(object sender, PropertyChangedEventArgs e) => handler((sender, e));
+                        void Handler(object sender, PropertyChangedEventArgs e)
+                        {
+                            handler((sender, e));
+                        }
+
                         return Handler;
                     },
                     x => parent.PropertyChanged += x,

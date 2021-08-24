@@ -4,7 +4,10 @@
 
 using System.Collections.Generic;
 
+using Microsoft.CodeAnalysis;
+
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
-    internal abstract record ClassDatum(string Name, IReadOnlyList<MethodDatum> MethodData) : IDatum;
+    internal abstract record ClassDatum(ITypeSymbol Type, string Name, IReadOnlyList<MethodDatum> MethodData)
+        : TypeDatum(Type);
 }

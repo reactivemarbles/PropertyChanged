@@ -17,12 +17,12 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
     /// <remarks>'Host' refers to the class that contains a WhenChanged invocation.</remarks>
     public class WhenChangedHostBuilder : BaseUserSourceBuilder<WhenChangedHostBuilder>
     {
+        private readonly string _methodName;
+        private readonly string _extensionClassName;
         private WhenChangedHostBuilder _externalReceiverTypeInfo;
         private Accessibility _propertyAccess;
         private Func<string> _propertyTypeNameFunc;
         private string _invocation;
-        private string _methodName;
-        private string _extensionClassName;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="WhenChangedHostBuilder"/> class.
@@ -47,19 +47,13 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         /// Initializes a new instance of the <see cref="WhenChangedHostBuilder"/> class for WhenChanged.
         /// </summary>
         /// <returns>An instance of the builder.</returns>
-        public static WhenChangedHostBuilder Changed()
-        {
-            return new("WhenChanged", "NotifyPropertyChangedExtensions");
-        }
+        public static WhenChangedHostBuilder Changed() => new("WhenChanged", "NotifyPropertyChangedExtensions");
 
         /// <summary>
         /// Initializes a new instance of the <see cref="WhenChangedHostBuilder"/> class for WhenChanging.
         /// </summary>
         /// <returns>An instance of the builder.</returns>
-        public static WhenChangedHostBuilder Changing()
-        {
-            return new("WhenChanging", "NotifyPropertyChangingExtensions");
-        }
+        public static WhenChangedHostBuilder Changing() => new("WhenChanging", "NotifyPropertyChangingExtensions");
 
         /// <summary>
         /// Sets the type of the <b>Value</b> property.

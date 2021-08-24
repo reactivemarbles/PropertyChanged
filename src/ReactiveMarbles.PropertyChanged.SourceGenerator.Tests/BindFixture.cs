@@ -38,7 +38,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         {
             var sources = extraSources.Prepend(hostTypeInfo.BuildRoot()).ToArray();
             var compilation = CompilationUtil.CreateCompilation(sources);
-            return new BindFixture(hostTypeInfo, compilation, testOutputHelper);
+            return new(hostTypeInfo, compilation, testOutputHelper);
         }
 
         public void RunGenerator(out ImmutableArray<Diagnostic> compilationDiagnostics, out ImmutableArray<Diagnostic> generatorDiagnostics, bool saveCompilation = true, string directory = @"C:\Users\Glenn\source\repos\ConsoleApp8\ConsoleApp8")
@@ -73,7 +73,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
 
         public object NewValuePropertyInstance() => CreateInstance(_valuePropertyType);
 
-        private static object CreateInstance(Type type) => Activator.CreateInstance(type, bindingAttr: BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, null, null);
+        private static object CreateInstance(Type type) => Activator.CreateInstance(type, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, null, null);
 
         private static Assembly GetAssembly(Compilation compilation)
         {

@@ -1,20 +1,16 @@
 ﻿<Project Sdk="MSBuild.Sdk.Extras">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
-    <TargetFrameworks Condition=" '$(OS)' == 'Windows_NT' ">$(TargetFrameworks);net461</TargetFrameworks>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Remove="BindExtensions.cs" />
-    <Compile Remove="NotifyPropertyChangedExtensions.cs" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.8.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.2" PrivateAssets="all" />
     <PackageReference Include="System.Reactive" Version="5.0.0" />
+    <PackageReference Include="ReactiveMarbles.RoslynHelpers" Version="1.0.12" />
   </ItemGroup>
 
   <ItemGroup>
@@ -27,24 +23,31 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="BindExtensions.cs" />
-    <EmbeddedResource Include="NotifyPropertyChangedExtensions.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>NotifyPropertyChangedExtensions.tt</DependentUpon>
-      <Generator>MSBuild:Compile</Generator>
-    </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="NotifyPropertyChangedExtensions.tt">
+    <None Update="Properties\Constants.WhenChanged.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>NotifyPropertyChangedExtensions.cs</LastGenOutput>
+      <LastGenOutput>Constants.WhenChanged.cs</LastGenOutput>
+    </None>
+    <None Update="Properties\Constants.WhenChanging.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>Constants.WhenChanging.cs</LastGenOutput>
     </None>
   </ItemGroup>
 
   <ItemGroup>
     <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\Constants.WhenChanged.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Constants.WhenChanged.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Properties\Constants.WhenChanging.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Constants.WhenChanging.tt</DependentUpon>
+    </Compile>
   </ItemGroup>
 
 </Project>

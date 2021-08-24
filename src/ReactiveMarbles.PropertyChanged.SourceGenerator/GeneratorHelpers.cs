@@ -19,6 +19,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             var expression = lambdaExpression.ExpressionBody;
             var expressionChain = expression as MemberAccessExpressionSyntax;
 
+            if (expression is null)
+            {
+                return false;
+            }
+
             while (expressionChain != null)
             {
                 members.Add(expression);
@@ -54,9 +59,20 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 }
 
                 var propertyInvocationSymbol = model.GetSymbolInfo(child).Symbol;
+                if (propertyInvocationSymbol is null)
+                {
+                    return false;
+                }
+
                 var propertyDeclarationSyntax = propertyInvocationSymbol.DeclaringSyntaxReferences[0].GetSyntax();
                 var propertyDeclarationModel = compilation.GetSemanticModel(propertyDeclarationSyntax.SyntaxTree);
                 var propertyDeclarationSymbol = propertyDeclarationModel.GetDeclaredSymbol(propertyDeclarationSyntax);
+
+                if (propertyDeclarationSymbol is null)
+                {
+                    return false;
+                }
+
                 var propertyAccessibility = propertyDeclarationSymbol.DeclaredAccessibility;
 
                 if (propertyAccessibility.IsPrivateOrProtected())
@@ -65,6 +81,12 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 }
 
                 var childTypeSymbol = model.GetTypeInfo(child).ConvertedType;
+
+                if (childTypeSymbol is null)
+                {
+                    return false;
+                }
+
                 var childTypeAccess = childTypeSymbol.GetVisibility();
                 if (childTypeAccess.IsPrivateOrProtected())
                 {
@@ -75,7 +97,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             return false;
         }
 
-        public static bool GetExpression(GeneratorExecutionContext context, LambdaExpressionSyntax lambdaExpression, Compilation compilation, SemanticModel model, out ExpressionArgument expressionArgument)
+        public static bool GetExpression(GeneratorExecutionContext context, LambdaExpressionSyntax lambdaExpression, Compilation compilation, SemanticModel model, out ExpressionArgument? expressionArgument)
         {
             var expressionChain = GetExpressionChain(context, lambdaExpression, model);
 
@@ -92,7 +114,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             var containsPrivateOrProtectedMember =
                 inputTypeAccess.IsPrivateOrProtected() ||
                 ContainsPrivateOrProtectedMember(compilation, model, lambdaExpression);
-            expressionArgument = new ExpressionArgument(lambdaExpression.Body.ToString(), expressionChain, lambdaInputType, lambdaOutputType, containsPrivateOrProtectedMember);
+            expressionArgument = new(lambdaExpression.Body.ToString(), expressionChain, lambdaInputType, lambdaOutputType, containsPrivateOrProtectedMember);
 
             return expressionChain != null;
         }
@@ -104,10 +126,10 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             var containsPrivateOrProtectedTypeArgument = accessModifier.IsPrivateOrProtected();
             var types = methodSymbol.TypeArguments;
 
-            return new MultiExpressionMethodDatum(accessModifier, types, containsPrivateOrProtectedTypeArgument);
+            return new(accessModifier, types, containsPrivateOrProtectedTypeArgument);
         }
 
-        public static List<ExpressionChain> GetExpressionChain(GeneratorExecutionContext context, LambdaExpressionSyntax lambdaExpression, SemanticModel model)
+        public static List<ExpressionChain>? GetExpressionChain(GeneratorExecutionContext context, LambdaExpressionSyntax lambdaExpression, SemanticModel model)
         {
             var members = new List<ExpressionChain>();
             var expression = lambdaExpression.ExpressionBody;
@@ -119,10 +141,40 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 var inputType = model.GetTypeInfo(expressionChain.ChildNodes().ElementAt(0)).Type as INamedTypeSymbol;
                 var outputType = model.GetTypeInfo(expressionChain.ChildNodes().ElementAt(1)).Type as INamedTypeSymbol;
 
-                members.Add(new ExpressionChain(name, inputType, outputType));
+                if (inputType is null)
+                {
+                    context.ReportDiagnostic(
+                        Diagnostic.Create(
+                            DiagnosticWarnings.LambdaParameterMustBeUsed,
+                            lambdaExpression.Body.GetLocation()));
+
+                    return null;
+                }
+
+                if (outputType is null)
+                {
+                    context.ReportDiagnostic(
+                        Diagnostic.Create(
+                            DiagnosticWarnings.LambdaParameterMustBeUsed,
+                            lambdaExpression.Body.GetLocation()));
+
+                    return null;
+                }
+
+                members.Add(new(name, inputType, outputType));
 
                 expression = expressionChain.Expression;
                 expressionChain = expression as MemberAccessExpressionSyntax;
+            }
+
+            if (expression is null)
+            {
+                context.ReportDiagnostic(
+                    Diagnostic.Create(
+                        DiagnosticWarnings.LambdaParameterMustBeUsed,
+                        lambdaExpression.Body.GetLocation()));
+
+                return null;
             }
 
             if (expression is not IdentifierNameSyntax firstLinkInChain)
@@ -130,8 +182,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 // It stopped before reaching the lambda parameter, so the expression is invalid.
                 context.ReportDiagnostic(
                     Diagnostic.Create(
-                        descriptor: DiagnosticWarnings.OnlyPropertyAndFieldAccessAllowed,
-                        location: expression.GetLocation()));
+                        DiagnosticWarnings.OnlyPropertyAndFieldAccessAllowed,
+                        expression.GetLocation()));
 
                 return null;
             }
@@ -148,8 +200,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
             context.ReportDiagnostic(
                 Diagnostic.Create(
-                    descriptor: DiagnosticWarnings.LambdaParameterMustBeUsed,
-                    location: lambdaExpression.Body.GetLocation()));
+                    DiagnosticWarnings.LambdaParameterMustBeUsed,
+                    lambdaExpression.Body.GetLocation()));
 
             return null;
         }

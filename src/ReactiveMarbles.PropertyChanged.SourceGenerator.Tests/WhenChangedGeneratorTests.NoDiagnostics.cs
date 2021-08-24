@@ -43,7 +43,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .WithInvocation(invocationKind, x => x.Value, externalReceiverTypeInfo);
 
             var fixture = WhenChangedFixture.Create(hostTypeInfo, externalReceiverTypeInfo, TestContext, receiverPropertyTypeInfo.BuildRoot());
-            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, saveCompilation: false);
+            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, false);
 
             generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning).Should().BeEmpty();
             compilationDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning).Should().BeEmpty();
@@ -154,7 +154,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .WithPropertyAccess(Accessibility.Public);
 
             var fixture = WhenChangedFixture.Create(hostTypeInfo, TestContext, hostPropertyTypeInfo.BuildRoot());
-            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, saveCompilation: false);
+            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, false);
 
             generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning).Should().BeEmpty();
             compilationDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning).Should().BeEmpty();
@@ -196,7 +196,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .WithPropertyAccess(Accessibility.Public);
 
             var fixture = WhenChangedFixture.Create(hostTypeInfo, TestContext, hostPropertyTypeInfo.BuildRoot());
-            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, saveCompilation: false);
+            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, false);
 
             generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning).Should().BeEmpty();
             compilationDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning).Should().BeEmpty();
@@ -273,7 +273,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .AddNestedClass(customType);
 
             var fixture = WhenChangedFixture.Create(hostTypeInfo, TestContext);
-            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, saveCompilation: false);
+            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, false);
 
             generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning).Should().BeEmpty();
             compilationDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning).Should().BeEmpty();
@@ -298,7 +298,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             hostTypeInfo.WithInvocation(InvocationKind.MemberAccess, x => x.Value);
             var propertyTypeSource = typesHaveSameRoot ? string.Empty : hostPropertyTypeInfo.BuildRoot();
             var fixture = WhenChangedFixture.Create(hostTypeInfo, TestContext, propertyTypeSource);
-            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, saveCompilation: false);
+            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, false);
 
             generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning).Should().BeEmpty();
             compilationDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning).Should().BeEmpty();
@@ -319,7 +319,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         {
             hostTypeInfo.WithInvocation(invocationKind, x => x.Child, x => x.Value, (a, b) => "result" + a + b);
             var fixture = WhenChangedFixture.Create(hostTypeInfo, TestContext, extraSources);
-            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, saveCompilation: true);
+            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, true);
 
             generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning).Should().BeEmpty();
             compilationDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning).Should().BeEmpty();

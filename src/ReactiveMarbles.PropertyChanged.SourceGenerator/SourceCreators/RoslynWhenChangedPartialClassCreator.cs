@@ -9,15 +9,15 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-using static ReactiveMarbles.PropertyChanged.SourceGenerator.SyntaxFactoryHelpers;
+using static ReactiveMarbles.RoslynHelpers.SyntaxFactoryHelpers;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
     internal class RoslynWhenChangedPartialClassCreator : ISourceCreator
     {
-        private string _methodName;
-        private string _eventName;
-        private string _handlerName;
+        private readonly string _methodName;
+        private readonly string _eventName;
+        private readonly string _handlerName;
 
         public RoslynWhenChangedPartialClassCreator(string methodName, string eventName, string handlerName)
         {
@@ -26,17 +26,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             _handlerName = handlerName;
         }
 
-        public static RoslynWhenChangedPartialClassCreator WhenChanging()
-        {
-            return new(Constants.WhenChangingMethodName, "PropertyChanging", "PropertyChangingEventHandler");
-        }
+        public static RoslynWhenChangedPartialClassCreator WhenChanging() => new(Constants.WhenChangingMethodName, "PropertyChanging", "PropertyChangingEventHandler");
 
-        public static RoslynWhenChangedPartialClassCreator WhenChanged()
-        {
-            return new(Constants.WhenChangedMethodName, "PropertyChanged", "PropertyChangedEventHandler");
-        }
+        public static RoslynWhenChangedPartialClassCreator WhenChanged() => new(Constants.WhenChangedMethodName, "PropertyChanged", "PropertyChangedEventHandler");
 
-        public string Create(IEnumerable<IDatum> sources)
+        public string? Create(IEnumerable<IDatum> sources)
         {
             var members = new List<MemberDeclarationSyntax>();
 
@@ -58,7 +52,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
             if (members.Count > 0)
             {
-                var compilation = CompilationUnit(default, members, RoslynHelpers.GetReactiveExtensionUsings());
+                var compilation = CompilationUnit(default, members, RoslynHelpers.GetReactiveExtensionUsingDirectives());
 
                 return compilation.ToFullString();
             }
@@ -97,16 +91,29 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             foreach (var (key, readOnlyCollection) in methodDatum.Map.Entries)
             {
                 var observable = RoslynHelpers.GetObservableChain("this", readOnlyCollection, _eventName, _handlerName);
+
+                if (observable is null)
+                {
+                    continue;
+                }
+
                 mapEntries.Add(RoslynHelpers.MapEntry(key, observable));
             }
 
+            var propertyExpression = RoslynHelpers.MapInvokeExpression("this", methodDatum.Map.MapName, "propertyExpression");
+
             yield return RoslynHelpers.MapDictionary(methodDatum.InputTypeName, methodDatum.OutputTypeName, methodDatum.Map.MapName, mapEntries);
-            yield return RoslynHelpers.WhenChanged(_methodName, methodDatum.InputTypeName, methodDatum.OutputTypeName, false, methodDatum.AccessModifier, ArrowExpressionClause(RoslynHelpers.MapInvokeExpression("this", methodDatum.Map.MapName, "propertyExpression")));
+            yield return RoslynHelpers.WhenChanged(_methodName, methodDatum.InputTypeName, methodDatum.OutputTypeName, false, methodDatum.AccessModifier, ArrowExpressionClause(propertyExpression));
         }
 
         private IEnumerable<MemberDeclarationSyntax> Create(SingleExpressionOptimizedImplMethodDatum methodDatum)
         {
-            yield return RoslynHelpers.WhenChanged(_methodName, methodDatum.InputTypeName, methodDatum.OutputTypeName, false, methodDatum.AccessModifier, ArrowExpressionClause(RoslynHelpers.GetObservableChain("this", methodDatum.Members, _eventName, _handlerName)));
+            var observableChain = RoslynHelpers.GetObservableChain("this", methodDatum.Members, _eventName, _handlerName);
+
+            if (observableChain is not null)
+            {
+                yield return RoslynHelpers.WhenChanged(_methodName, methodDatum.InputTypeName, methodDatum.OutputTypeName, false, methodDatum.AccessModifier, ArrowExpressionClause(observableChain));
+            }
         }
 
         private IEnumerable<MemberDeclarationSyntax> Create(MultiExpressionMethodDatum methodDatum)

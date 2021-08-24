@@ -13,8 +13,8 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks.Legacy
     {
         internal static object GetParentForExpression(this List<Func<object, object>> chain, object startItem)
         {
-            var current = startItem;
-            foreach (var valueFetcher in chain)
+            object current = startItem;
+            foreach (Func<object, object> valueFetcher in chain)
             {
                 current = valueFetcher.Invoke(current);
             }
@@ -24,12 +24,12 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks.Legacy
 
         internal static List<Func<object, object>> GetGetValueMemberChain(this Expression expression)
         {
-            var returnValue = new List<Func<object, object>>();
-            var expressionChain = expression.GetExpressionChain();
+            List<Func<object, object>> returnValue = new List<Func<object, object>>();
+            List<MemberExpression> expressionChain = expression.GetExpressionChain();
 
-            foreach (var value in expressionChain.Take(expressionChain.Count - 1))
+            foreach (MemberExpression value in expressionChain.Take(expressionChain.Count - 1))
             {
-                var valueFetcher = GetMemberFuncCache<object, object>.GetCache(value.Member);
+                Func<object, object> valueFetcher = GetMemberFuncCache<object, object>.GetCache(value.Member);
 
                 returnValue.Add(valueFetcher);
             }
@@ -39,16 +39,16 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks.Legacy
 
         internal static List<MemberExpression> GetExpressionChain(this Expression expression)
         {
-            var expressions = new List<MemberExpression>(16);
+            List<MemberExpression> expressions = new List<MemberExpression>(16);
 
-            var node = expression;
+            Expression node = expression;
 
             while (node.NodeType != ExpressionType.Parameter)
             {
                 switch (node.NodeType)
                 {
                     case ExpressionType.MemberAccess:
-                        var memberExpression = (MemberExpression)node;
+                        MemberExpression memberExpression = (MemberExpression)node;
                         expressions.Add(memberExpression);
                         node = memberExpression.Expression;
                         break;

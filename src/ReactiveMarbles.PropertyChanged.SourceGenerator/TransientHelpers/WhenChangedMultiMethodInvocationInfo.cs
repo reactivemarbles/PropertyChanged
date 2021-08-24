@@ -10,5 +10,5 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         ITypeSymbol Type,
         bool IsPublic,
         MultiExpressionMethodDatum MultiExpression)
-        : InvocationInfo(Type);
+        : TypeDatum(Type);
 }

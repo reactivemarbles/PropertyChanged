@@ -2,12 +2,12 @@
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
-using System.Collections.Generic;
-
 using Microsoft.CodeAnalysis;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
-    internal sealed record ExtensionClassDatum(ITypeSymbol Type, string Name, IReadOnlyList<MethodDatum> MethodData)
-        : ClassDatum(Type, Name, MethodData);
+    /// <summary>
+    /// Contains information about a invocation.
+    /// </summary>
+    internal abstract record TypeDatum(ITypeSymbol Type) : IDatum;
 }

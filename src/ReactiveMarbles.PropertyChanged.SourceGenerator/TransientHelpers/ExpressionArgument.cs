@@ -3,13 +3,14 @@
 // See the LICENSE file in the project root for full license information.
 
 using System.Collections.Generic;
+
 using Microsoft.CodeAnalysis;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
     internal sealed record ExpressionArgument(string LambdaBodyString, IReadOnlyList<ExpressionChain> ExpressionChain, ITypeSymbol InputType, ITypeSymbol OutputType, bool ContainsPrivateOrProtectedMember)
     {
-        public bool Equals(ExpressionArgument other)
+        public bool Equals(ExpressionArgument? other)
         {
             if (other is null)
             {

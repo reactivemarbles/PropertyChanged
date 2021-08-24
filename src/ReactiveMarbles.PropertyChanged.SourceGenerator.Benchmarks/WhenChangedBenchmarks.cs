@@ -2,8 +2,6 @@
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
-using System;
-
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
@@ -20,10 +18,10 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Benchmarks
     [GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory)]
     public class WhenChangedBenchmarks
     {
-	    public Compilation Compilation { get; set; }
+        public Compilation Compilation { get; set; }
 
         [ParamsAllValues]
-        public InvocationKind InvocationKind {  get; set; }
+        public InvocationKind InvocationKind { get; set; }
 
         [ParamsAllValues]
         public ReceiverKind ReceiverKind { get; set; }
@@ -35,7 +33,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Benchmarks
         [GlobalSetup(Targets = new[] { nameof(Depth1WhenChanged) })]
         public void Depth1WhenChangedSetup()
         {
-            var hostPropertyTypeInfo = new EmptyClassBuilder()
+            EmptyClassBuilder hostPropertyTypeInfo = new EmptyClassBuilder()
                 .WithClassAccess(Accessibility);
             string userSource = new WhenChangedHostBuilder()
                 .WithClassAccess(Accessibility)
@@ -50,12 +48,12 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Benchmarks
         [BenchmarkCategory("Change Depth 1")]
         public void Depth1WhenChanged()
         {
-            var newCompilation = CompilationUtil.RunGenerators(Compilation, out _, new Generator());
+            Compilation newCompilation = CompilationUtil.RunGenerators(Compilation, out _, new Generator());
         }
         [GlobalSetup(Targets = new[] { nameof(Depth2WhenChanged) })]
         public void Depth2WhenChangedSetup()
         {
-            var hostPropertyTypeInfo = new EmptyClassBuilder()
+            EmptyClassBuilder hostPropertyTypeInfo = new EmptyClassBuilder()
                 .WithClassAccess(Accessibility);
             string userSource = new WhenChangedHostBuilder()
                 .WithClassAccess(Accessibility)
@@ -70,12 +68,12 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Benchmarks
         [BenchmarkCategory("Change Depth 2")]
         public void Depth2WhenChanged()
         {
-            var newCompilation = CompilationUtil.RunGenerators(Compilation, out _, new Generator());
+            Compilation newCompilation = CompilationUtil.RunGenerators(Compilation, out _, new Generator());
         }
         [GlobalSetup(Targets = new[] { nameof(Depth10WhenChanged) })]
         public void Depth10WhenChangedSetup()
         {
-            var hostPropertyTypeInfo = new EmptyClassBuilder()
+            EmptyClassBuilder hostPropertyTypeInfo = new EmptyClassBuilder()
                 .WithClassAccess(Accessibility);
             string userSource = new WhenChangedHostBuilder()
                 .WithClassAccess(Accessibility)
@@ -90,12 +88,12 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Benchmarks
         [BenchmarkCategory("Change Depth 10")]
         public void Depth10WhenChanged()
         {
-            var newCompilation = CompilationUtil.RunGenerators(Compilation, out _, new Generator());
+            Compilation newCompilation = CompilationUtil.RunGenerators(Compilation, out _, new Generator());
         }
         [GlobalSetup(Targets = new[] { nameof(Depth20WhenChanged) })]
         public void Depth20WhenChangedSetup()
         {
-            var hostPropertyTypeInfo = new EmptyClassBuilder()
+            EmptyClassBuilder hostPropertyTypeInfo = new EmptyClassBuilder()
                 .WithClassAccess(Accessibility);
             string userSource = new WhenChangedHostBuilder()
                 .WithClassAccess(Accessibility)
@@ -110,7 +108,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Benchmarks
         [BenchmarkCategory("Change Depth 20")]
         public void Depth20WhenChanged()
         {
-            var newCompilation = CompilationUtil.RunGenerators(Compilation, out _, new Generator());
+            Compilation newCompilation = CompilationUtil.RunGenerators(Compilation, out _, new Generator());
         }
 
     }

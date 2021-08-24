@@ -11,5 +11,5 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         bool IsPublic,
         bool IsExplicitInvocation,
         ExpressionArgument ExpressionArgument)
-        : InvocationInfo(Type);
+        : TypeDatum(Type);
 }

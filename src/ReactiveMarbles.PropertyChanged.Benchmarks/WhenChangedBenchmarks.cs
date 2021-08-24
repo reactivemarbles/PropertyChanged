@@ -3,11 +3,13 @@
 // See the LICENSE file in the project root for full license information.
 
 using System;
+
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
 
 using ReactiveMarbles.PropertyChanged.Benchmarks.Moqs;
+
 using SourceGen = NotifyPropertyChangedExtensions;
 
 namespace ReactiveMarbles.PropertyChanged.Benchmarks
@@ -52,7 +54,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
         public void PerformMutations(int depth)
         {
             // We loop through the changes, creating mutations at every depth.
-            for (var i = 0; i < Changes; ++i)
+            for (int i = 0; i < Changes; ++i)
             {
                 _from.Mutate(i % depth);
             }

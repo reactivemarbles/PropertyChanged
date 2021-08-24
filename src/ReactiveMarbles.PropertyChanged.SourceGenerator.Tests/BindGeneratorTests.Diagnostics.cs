@@ -2,8 +2,6 @@
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
 
 using FluentAssertions;
@@ -88,7 +86,7 @@ public class ViewModel : INotifyPropertyChanged
 
         private static void AssertDiagnostic(string source, DiagnosticDescriptor expectedDiagnostic)
         {
-            Compilation compilation = CompilationUtil.CreateCompilation(source);
+            var compilation = CompilationUtil.CreateCompilation(source);
             var newCompilation = CompilationUtil.RunGenerators(compilation, out var generatorDiagnostics, new Generator());
             var compilationDiagnostics = newCompilation.GetDiagnostics();
             var compilationErrors = compilationDiagnostics.Where(x => x.Severity == DiagnosticSeverity.Error).Select(x => x.GetMessage()).ToList();

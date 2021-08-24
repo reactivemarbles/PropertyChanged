@@ -34,9 +34,9 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
             }
 
             return CSharpCompilation.Create(
-                assemblyName: "compilation" + Guid.NewGuid(),
-                syntaxTrees: sources.Select(x => CSharpSyntaxTree.ParseText(x, new CSharpParseOptions(LanguageVersion.Latest))),
-                references: new[]
+                "compilation" + Guid.NewGuid(),
+                sources.Select(x => CSharpSyntaxTree.ParseText(x, new(LanguageVersion.Latest))),
+                new[]
                 {
                     MetadataReference.CreateFromFile(typeof(Observable).GetTypeInfo().Assembly.Location),
                     MetadataReference.CreateFromFile(typeof(IServiceProvider).GetTypeInfo().Assembly.Location),
@@ -50,7 +50,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
                     MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "System.ObjectModel.dll")),
                     MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "System.Private.CoreLib.dll")),
                 },
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, deterministic: true));
+                new(OutputKind.DynamicallyLinkedLibrary, deterministic: true));
         }
 
         /// <summary>
@@ -68,9 +68,9 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
 
         private static GeneratorDriver CreateDriver(Compilation compilation, params ISourceGenerator[] generators) =>
             CSharpGeneratorDriver.Create(
-                generators: ImmutableArray.Create(generators),
-                additionalTexts: ImmutableArray<AdditionalText>.Empty,
-                parseOptions: (CSharpParseOptions)compilation.SyntaxTrees.First().Options,
-                optionsProvider: null);
+                ImmutableArray.Create(generators),
+                ImmutableArray<AdditionalText>.Empty,
+                (CSharpParseOptions)compilation.SyntaxTrees.First().Options,
+                null);
     }
 }

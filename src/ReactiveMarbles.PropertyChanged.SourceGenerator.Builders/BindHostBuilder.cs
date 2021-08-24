@@ -200,8 +200,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
             var viewModelPropertyTypeName = _viewModelPropertyType.GetTypeName().Replace('+', '.');
             var propertyAccess = _propertyAccess.ToFriendlyString();
             var propertyTypeName = PropertyTypeName.Replace('+', '.');
-            string oneWayBindString = string.Empty;
-            string twoWayBindString = string.Empty;
+            var oneWayBindString = string.Empty;
+            var twoWayBindString = string.Empty;
 
             if (_oneWayBindInvocation != null)
             {

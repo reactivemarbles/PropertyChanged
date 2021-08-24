@@ -9,51 +9,51 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
     internal static class DiagnosticWarnings
     {
         internal static readonly DiagnosticDescriptor ExpressionMustBeInline = new(
-            id: "RXM001",
-            title: "Expression chain must be inline",
-            messageFormat: "The expression must be inline (e.g. not a variable or method invocation).",
-            category: "Compiler",
-            defaultSeverity: DiagnosticSeverity.Error,
-            isEnabledByDefault: true);
+            "RXM001",
+            "Expression chain must be inline",
+            "The expression must be inline (e.g. not a variable or method invocation).",
+            "Compiler",
+            DiagnosticSeverity.Error,
+            true);
 
         internal static readonly DiagnosticDescriptor OnlyPropertyAndFieldAccessAllowed = new(
-            id: "RXM002",
-            title: "Expression chain may only consist of property and field access",
-            messageFormat: "The expression may only consist of field and property access",
-            category: "Compiler",
-            defaultSeverity: DiagnosticSeverity.Error,
-            isEnabledByDefault: true);
+            "RXM002",
+            "Expression chain may only consist of property and field access",
+            "The expression may only consist of field and property access",
+            "Compiler",
+            DiagnosticSeverity.Error,
+            true);
 
         internal static readonly DiagnosticDescriptor LambdaParameterMustBeUsed = new(
-            id: "RXM003",
-            title: "Lambda parameter must be used in expression chain",
-            messageFormat: "The lambda parameter must be used in the expression chain",
-            category: "Compiler",
-            defaultSeverity: DiagnosticSeverity.Error,
-            isEnabledByDefault: true);
+            "RXM003",
+            "Lambda parameter must be used in expression chain",
+            "The lambda parameter must be used in the expression chain",
+            "Compiler",
+            DiagnosticSeverity.Error,
+            true);
 
         internal static readonly DiagnosticDescriptor BindingIncorrectNumberParameters = new(
-            id: "RXM004",
-            title: "Must be both ViewModel and View expressions for Bind method",
-            messageFormat: "Must be both ViewModel and View expressions for Bind method",
-            category: "Compiler",
-            defaultSeverity: DiagnosticSeverity.Error,
-            isEnabledByDefault: true);
+            "RXM004",
+            "Must be both ViewModel and View expressions for Bind method",
+            "Must be both ViewModel and View expressions for Bind method",
+            "Compiler",
+            DiagnosticSeverity.Error,
+            true);
 
         internal static readonly DiagnosticDescriptor InvalidExpression = new(
-            id: "RXM005",
-            title: "The expression is not valid and does not point towards a valid item",
-            messageFormat: "The expression is not valid and does not point towards a valid item",
-            category: "Compiler",
-            defaultSeverity: DiagnosticSeverity.Error,
-            isEnabledByDefault: true);
+            "RXM005",
+            "The expression is not valid and does not point towards a valid item",
+            "The expression is not valid and does not point towards a valid item",
+            "Compiler",
+            DiagnosticSeverity.Error,
+            true);
 
         internal static readonly DiagnosticDescriptor UnableToGenerateExtension = new(
-            id: "RXM006",
-            title: "Unable to generate extension method",
-            messageFormat: "Unable to generate extension method because the invocation involves one or more private/protected types or properties. Invoke via instance method, instead.",
-            category: "Compiler",
-            defaultSeverity: DiagnosticSeverity.Error,
-            isEnabledByDefault: true);
+            "RXM006",
+            "Unable to generate extension method",
+            "Unable to generate extension method because the invocation involves one or more private/protected types or properties. Invoke via instance method, instead.",
+            "Compiler",
+            DiagnosticSeverity.Error,
+            true);
     }
 }

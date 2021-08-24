@@ -4,22 +4,20 @@
 
 using System.Collections.Generic;
 using System.Linq;
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-using static ReactiveMarbles.PropertyChanged.SourceGenerator.SyntaxFactoryHelpers;
+using static ReactiveMarbles.RoslynHelpers.SyntaxFactoryHelpers;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
     internal abstract class RoslynBindBase : ISourceCreator
     {
-        public abstract string Create(IEnumerable<IDatum> sources);
+        public abstract string? Create(IEnumerable<IDatum> sources);
 
-        protected static IEnumerable<MemberDeclarationSyntax> CreateOneWayBind(ExpressionArgument viewModelArgument, ExpressionArgument viewArgument, Accessibility accessibility, bool hasConverters, bool isExtension)
-        {
-            return Enumerable.Empty<MemberDeclarationSyntax>();
-        }
+        protected static IEnumerable<MemberDeclarationSyntax> CreateOneWayBind(ExpressionArgument viewModelArgument, ExpressionArgument viewArgument, Accessibility accessibility, bool hasConverters, bool isExtension) => Enumerable.Empty<MemberDeclarationSyntax>();
 
         protected static IEnumerable<MemberDeclarationSyntax> CreateBind(ExpressionArgument viewModelArgument, ExpressionArgument viewArgument, Accessibility accessibility, bool hasConverters, bool isExtension)
         {

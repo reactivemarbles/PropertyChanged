@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+
 using Microsoft.CodeAnalysis;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator
@@ -35,7 +36,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             var containingType = inputType.ContainingType;
             while (containingType != null)
             {
-                ancestorClasses.Add(new AncestorClassInfo(containingType.Name, containingType.DeclaredAccessibility));
+                ancestorClasses.Add(new(containingType.Name, containingType.DeclaredAccessibility));
                 containingType = containingType.ContainingType;
             }
 
@@ -45,16 +46,16 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         public static string GetNamespace(this ITypeSymbol inputType)
         {
             var containingNamespace = inputType.ContainingNamespace;
-            return string.IsNullOrEmpty(containingNamespace?.Name) ? string.Empty : containingNamespace.ToDisplayString();
+            return containingNamespace is null ? string.Empty : containingNamespace.ToDisplayString();
         }
 
-        public static void ReportDiagnostic(this GeneratorExecutionContext context, DiagnosticDescriptor descriptor, Location location = null) => context.ReportDiagnostic(Diagnostic.Create(descriptor: descriptor, location: location));
+        public static void ReportDiagnostic(this GeneratorExecutionContext context, DiagnosticDescriptor descriptor, Location? location = null) => context.ReportDiagnostic(Diagnostic.Create(descriptor, location));
 
-        public static void BinaryListInsert<TKey, TItem>(this SortedList<TKey, List<TItem>> dictionary, TKey key, TItem item, IComparer<TItem> comparer = null)
+        public static void BinaryListInsert<TKey, TItem>(this SortedList<TKey, List<TItem>> dictionary, TKey key, TItem item, IComparer<TItem>? comparer = null)
         {
             if (!dictionary.TryGetValue(key, out var list))
             {
-                list = new List<TItem>();
+                list = new();
                 dictionary[key] = list;
             }
 
@@ -70,7 +71,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         {
             if (!dictionary.TryGetValue(key, out var list))
             {
-                list = new HashSet<TItem>();
+                list = new();
                 dictionary[key] = list;
             }
 
@@ -81,7 +82,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         {
             if (!inputList.TryGetValue(type, out var outputGroup))
             {
-                outputGroup = new OutputTypeGroup(type);
+                outputGroup = new(type);
                 inputList[type] = outputGroup;
             }
 
@@ -92,7 +93,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         {
             if (!inputList.TryGetValue(type, out var outputGroup))
             {
-                outputGroup = new OutputTypeGroup(type);
+                outputGroup = new(type);
                 inputList[type] = outputGroup;
             }
 
@@ -110,7 +111,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             var accessibility = Accessibility.Public;
             var oneOrMoreOfTheOutputTypesIsInternal = false;
 
-            for (int i = 1; i < typeSymbols.Length; ++i)
+            for (var i = 1; i < typeSymbols.Length; ++i)
             {
                 var typeAccess = typeSymbols[i].GetVisibility();
                 if (typeAccess < accessibility)

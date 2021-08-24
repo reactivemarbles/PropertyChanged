@@ -15,20 +15,16 @@ namespace ReactiveMarbles.PropertyChanged
         private static readonly ConcurrentDictionary<MemberInfo, Func<TFrom, TReturn>> Cache = new(new MemberFuncCacheKeyComparer());
 #endif
 
-        public static Func<TFrom, TReturn> GetCache(MemberInfo memberInfo)
-        {
+        public static Func<TFrom, TReturn> GetCache(MemberInfo memberInfo) =>
 #if UIKIT
-            switch (memberInfo)
+            memberInfo switch
             {
-                case PropertyInfo propertyInfo:
-                    return input => (TReturn)propertyInfo.GetValue(input);
-                case FieldInfo fieldInfo:
-                    return input => (TReturn)fieldInfo.GetValue(input);
-                default:
-                    throw new ArgumentException($"Cannot handle member {memberInfo.Name}", nameof(memberInfo));
-            }
+                PropertyInfo propertyInfo => input => (TReturn)propertyInfo.GetValue(input),
+                FieldInfo fieldInfo => input => (TReturn)fieldInfo.GetValue(input),
+                _ => throw new ArgumentException($"Cannot handle member {memberInfo.Name}", nameof(memberInfo)),
+            };
 #else
-            return Cache.GetOrAdd(memberInfo, static memberInfo =>
+            Cache.GetOrAdd(memberInfo, static memberInfo =>
             {
                 var instance = Expression.Parameter(typeof(TFrom), "instance");
 
@@ -48,6 +44,6 @@ namespace ReactiveMarbles.PropertyChanged
                 return lambdaExpression.Compile();
             });
 #endif
-        }
+
     }
 }

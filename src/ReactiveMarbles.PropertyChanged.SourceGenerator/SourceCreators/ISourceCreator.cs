@@ -16,6 +16,6 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         /// </summary>
         /// <param name="sources">The source data.</param>
         /// <returns>The source.</returns>
-        string Create(IEnumerable<IDatum> sources);
+        string? Create(IEnumerable<IDatum> sources);
     }
 }

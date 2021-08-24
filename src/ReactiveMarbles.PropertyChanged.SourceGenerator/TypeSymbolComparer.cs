@@ -2,6 +2,7 @@
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
+using System;
 using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
@@ -14,19 +15,12 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
         public int Compare(ITypeSymbol x, ITypeSymbol y)
         {
-            if (ReferenceEquals(x, null) && ReferenceEquals(y, null))
+            switch (x)
             {
-                return 0;
-            }
-
-            if (ReferenceEquals(x, null))
-            {
-                return 1;
-            }
-
-            if (ReferenceEquals(y, null))
-            {
-                return -1;
+                case null when ReferenceEquals(y, null):
+                    return 0;
+                case null:
+                    return 1;
             }
 
             if (ReferenceEquals(x, y))
@@ -36,10 +30,10 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
             if (x is INamedTypeSymbol xNamed && y is INamedTypeSymbol yNamed)
             {
-                return xNamed.ToDisplayString().CompareTo(yNamed.ToDisplayString());
+                return string.CompareOrdinal(xNamed.ToDisplayString(), yNamed.ToDisplayString());
             }
 
-            return x.Name.CompareTo(y.Name);
+            return string.CompareOrdinal(x.Name, y.Name);
         }
     }
 }

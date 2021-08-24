@@ -35,7 +35,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample.OtherNamespace
             set
             {
                 _myString = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(MyString)));
+                PropertyChanged?.Invoke(this, new(nameof(MyString)));
             }
         }
 
@@ -49,7 +49,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample.OtherNamespace
             set
             {
                 _myClass = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(MyClass)));
+                PropertyChanged?.Invoke(this, new(nameof(MyClass)));
             }
         }
     }

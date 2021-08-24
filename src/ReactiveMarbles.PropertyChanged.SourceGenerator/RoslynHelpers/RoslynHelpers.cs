@@ -2,6 +2,7 @@
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -9,7 +10,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-using static ReactiveMarbles.PropertyChanged.SourceGenerator.SyntaxFactoryHelpers;
+using static ReactiveMarbles.RoslynHelpers.SyntaxFactoryHelpers;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
@@ -37,7 +38,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                         Argument("callerLineNumber"),
                 });
 
-        public static IReadOnlyCollection<UsingDirectiveSyntax> GetReactiveExtensionUsings() =>
+        public static IReadOnlyCollection<UsingDirectiveSyntax> GetReactiveExtensionUsingDirectives() =>
             new[]
             {
                 UsingDirective("System"),
@@ -62,8 +63,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 accessibility.GetAccessibilityTokens(),
                 new[]
                 {
-                    AccessorDeclaration(SyntaxKind.GetAccessorDeclaration, default, default, ArrowExpressionClause(IdentifierName(fieldName))),
-                    AccessorDeclaration(SyntaxKind.SetAccessorDeclaration, default, default, ArrowExpressionClause(InvocationExpression("RaiseAndSetIfChanged", new[] { Argument(fieldName, Token(SyntaxKind.RefKeyword)), Argument("value") }))),
+                    AccessorDeclaration(SyntaxKind.GetAccessorDeclaration, Array.Empty<AttributeListSyntax>(), Array.Empty<SyntaxKind>(), ArrowExpressionClause(IdentifierName(fieldName))),
+                    AccessorDeclaration(SyntaxKind.SetAccessorDeclaration, Array.Empty<AttributeListSyntax>(), Array.Empty<SyntaxKind>(), ArrowExpressionClause(InvocationExpression("RaiseAndSetIfChanged", new[] { Argument(fieldName, Token(SyntaxKind.RefKeyword)), Argument("value") }))),
                 },
                 1);
 
@@ -86,12 +87,12 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                                     {
                                         Argument("this"),
                                         Argument(
-                                            ObjectCreationExpression("PropertyChangedEventArgs", new[] { Argument("propertyName") }, default)),
+                                            ObjectCreationExpression("PropertyChangedEventArgs", new[] { Argument("propertyName") })),
                                     }))),
                     },
                     1));
 
-            ////MethodDeclaration(
+        ////MethodDeclaration(
         public static MethodDeclarationSyntax RaiseAndSetIfChanged() =>
             MethodDeclaration(
                 new[] { SyntaxKind.ProtectedKeyword },
@@ -247,7 +248,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                             }),
                     }),
                 mapName,
-                EqualsValueClause(ObjectCreationExpression(dictionaryType, default, InitializerExpression(SyntaxKind.ObjectInitializerExpression, initializerMembers))),
+                EqualsValueClause(ObjectCreationExpression(dictionaryType, Array.Empty<ArgumentSyntax>(), InitializerExpression(SyntaxKind.ObjectInitializerExpression, initializerMembers))),
                 new[]
                 {
                     SyntaxKind.PrivateKeyword,
@@ -300,14 +301,14 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                         }),
                     "Switch"));
 
-        public static InvocationExpressionSyntax GetObservableChain(string inputName, IReadOnlyList<ExpressionChain> members, string eventName, string handlerName)
+        public static InvocationExpressionSyntax? GetObservableChain(string inputName, IReadOnlyList<ExpressionChain> members, string eventName, string handlerName)
         {
-            InvocationExpressionSyntax observable = null;
+            InvocationExpressionSyntax? observable = null;
             for (var i = 0; i < members.Count; ++i)
             {
                 var (name, _, outputType) = members[i];
 
-                observable = i == 0 ?
+                observable = i == 0 || observable is null ?
                     ObservableNotifyPropertyChanged(outputType.ToDisplayString(), inputName, name, eventName, handlerName) :
                     SelectObservableNotifyPropertyChangedSwitch(observable, outputType.ToDisplayString(), "source", name, eventName, handlerName);
             }
@@ -447,7 +448,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         private static void GetWhenChangedValues(string inputType, string outputType, bool isExtension, Accessibility accessibility, out List<SyntaxKind> modifiers, out List<ParameterSyntax> parameterList)
         {
             modifiers = accessibility.GetAccessibilityTokens().ToList();
-            parameterList = new List<ParameterSyntax>();
+            parameterList = new();
             if (isExtension)
             {
                 modifiers.Add(SyntaxKind.StaticKeyword);

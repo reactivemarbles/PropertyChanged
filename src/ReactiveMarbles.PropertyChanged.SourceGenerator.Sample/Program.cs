@@ -26,7 +26,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample
 
             Console.ReadLine();
 
-            myClass.Bind(myClass3, x => x.MyString, x => x.MyString);
+            myClass.BindTwoWay(myClass3, x => x.MyString, x => x.MyString);
         }
 
         private static Expression<Func<SampleClass, string>> GetExpression() => x => x.MyString;

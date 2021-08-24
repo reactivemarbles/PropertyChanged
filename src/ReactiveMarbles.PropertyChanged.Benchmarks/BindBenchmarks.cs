@@ -3,14 +3,16 @@
 // See the LICENSE file in the project root for full license information.
 
 using System;
+
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
 
 using ReactiveMarbles.PropertyChanged.Benchmarks.Moqs;
-using UI = ReactiveUI.PropertyBindingMixins;
-using Old = ReactiveMarbles.PropertyChanged.Benchmarks.Legacy.BindExtensions;
+
 using New = ReactiveMarbles.PropertyChanged.BindExtensions;
+using Old = ReactiveMarbles.PropertyChanged.Benchmarks.Legacy.BindExtensions;
+using UI = ReactiveUI.PropertyBindingMixins;
 
 namespace ReactiveMarbles.PropertyChanged.Benchmarks
 {
@@ -57,11 +59,11 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
         public void PerformMutations(int depth)
         {
             // We loop through the changes, alternating mutations to the source and destination at every depth.
-            var d2 = depth * 2;
-            for (var i = 0; i < Changes; ++i)
+            int d2 = depth * 2;
+            for (int i = 0; i < Changes; ++i)
             {
-                var a = i % d2;
-                var t = (a % 2) > 0 ? _to : _from;
+                int a = i % d2;
+                TestClass t = (a % 2) > 0 ? _to : _from;
                 t.Mutate(a / 2);
             }
         }
@@ -70,7 +72,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
         [Benchmark(Baseline = true)]
         public void BindAndChange_Depth1_UI()
         {
-            using var binding = UI.Bind(_from, _to, x => x.Value, x => x.Value);
+            using ReactiveUI.IReactiveBinding<TestClass, (object view, bool isViewModel)> binding = UI.Bind(_from, _to, x => x.Value, x => x.Value);
             PerformMutations(1);
         }
 
@@ -78,7 +80,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
         [Benchmark]
         public void BindAndChange_Depth1_Old()
         {
-            using var binding = Old.Bind(_from, _to, x => x.Value, x => x.Value);
+            using IDisposable binding = Old.Bind(_from, _to, x => x.Value, x => x.Value);
             PerformMutations(1);
         }
 
@@ -86,7 +88,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
         [Benchmark]
         public void BindAndChange_Depth1_New()
         {
-            using var binding = New.Bind(_from, _to, x => x.Value, x => x.Value);
+            using IDisposable binding = New.Bind(_from, _to, x => x.Value, x => x.Value);
             PerformMutations(1);
         }
 
@@ -94,7 +96,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
         [Benchmark(Baseline = true)]
         public void BindAndChange_Depth2_UI()
         {
-            using var binding = UI.Bind(_from, _to, x => x.Child.Value, x => x.Child.Value);
+            using ReactiveUI.IReactiveBinding<TestClass, (object view, bool isViewModel)> binding = UI.Bind(_from, _to, x => x.Child.Value, x => x.Child.Value);
             PerformMutations(2);
         }
 
@@ -102,7 +104,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
         [Benchmark]
         public void BindAndChange_Depth2_Old()
         {
-            using var binding = Old.Bind(_from, _to, x => x.Child.Value, x => x.Child.Value);
+            using IDisposable binding = Old.Bind(_from, _to, x => x.Child.Value, x => x.Child.Value);
             PerformMutations(2);
         }
 
@@ -110,7 +112,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
         [Benchmark]
         public void BindAndChange_Depth2_New()
         {
-            using var binding = New.Bind(_from, _to, x => x.Child.Value, x => x.Child.Value);
+            using IDisposable binding = New.Bind(_from, _to, x => x.Child.Value, x => x.Child.Value);
             PerformMutations(2);
         }
 
@@ -118,7 +120,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
         [Benchmark(Baseline = true)]
         public void BindAndChange_Depth3_UI()
         {
-            using var binding = UI.Bind(_from, _to, x => x.Child.Child.Value, x => x.Child.Child.Value);
+            using ReactiveUI.IReactiveBinding<TestClass, (object view, bool isViewModel)> binding = UI.Bind(_from, _to, x => x.Child.Child.Value, x => x.Child.Child.Value);
             PerformMutations(3);
         }
 
@@ -126,7 +128,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
         [Benchmark]
         public void BindAndChange_Depth3_Old()
         {
-            using var binding = Old.Bind(_from, _to, x => x.Child.Child.Value, x => x.Child.Child.Value);
+            using IDisposable binding = Old.Bind(_from, _to, x => x.Child.Child.Value, x => x.Child.Child.Value);
             PerformMutations(3);
         }
 
@@ -134,7 +136,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
         [Benchmark]
         public void BindAndChange_Depth3_New()
         {
-            using var binding = New.Bind(_from, _to, x => x.Child.Child.Value, x => x.Child.Child.Value);
+            using IDisposable binding = New.Bind(_from, _to, x => x.Child.Child.Value, x => x.Child.Child.Value);
             PerformMutations(3);
         }
 

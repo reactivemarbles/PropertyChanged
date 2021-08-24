@@ -9,16 +9,15 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-using static ReactiveMarbles.PropertyChanged.SourceGenerator.SyntaxFactoryHelpers;
+using static ReactiveMarbles.RoslynHelpers.SyntaxFactoryHelpers;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
-    internal class RoslynWhenChangedExtensionCreator : ISourceCreator
+    internal sealed class RoslynWhenChangedExtensionCreator : ISourceCreator
     {
-        private string _className;
-        private string _methodName;
-        private string _eventName;
-        private string _handlerName;
+        private readonly string _className;
+        private readonly string _eventName;
+        private readonly string _handlerName;
 
         private RoslynWhenChangedExtensionCreator(
             string className,
@@ -27,30 +26,24 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             string handlerName)
         {
             _className = className;
-            _methodName = methodName;
+            MethodName = methodName;
             _eventName = eventName;
             _handlerName = handlerName;
         }
 
-        public string MethodName => _methodName;
+        public string MethodName { get; }
 
-        public static RoslynWhenChangedExtensionCreator WhenChanging()
-        {
-            return new("NotifyPropertyChangingExtensions", Constants.WhenChangingMethodName, "PropertyChanging", "PropertyChangingEventHandler");
-        }
+        public static RoslynWhenChangedExtensionCreator WhenChanging() => new("NotifyPropertyChangingExtensions", Constants.WhenChangingMethodName, "PropertyChanging", "PropertyChangingEventHandler");
 
-        public static RoslynWhenChangedExtensionCreator WhenChanged()
-        {
-            return new("NotifyPropertyChangedExtensions", Constants.WhenChangedMethodName, "PropertyChanged", "PropertyChangedEventHandler");
-        }
+        public static RoslynWhenChangedExtensionCreator WhenChanged() => new("NotifyPropertyChangedExtensions", Constants.WhenChangedMethodName, "PropertyChanged", "PropertyChangedEventHandler");
 
-        public string Create(IEnumerable<IDatum> sources)
+        public string? Create(IEnumerable<IDatum> sources)
         {
             var members = sources.Cast<ExtensionClassDatum>().Select(Create).ToList();
 
             if (members.Count > 0)
             {
-                var compilation = CompilationUnit(default, members, RoslynHelpers.GetReactiveExtensionUsings());
+                var compilation = CompilationUnit(default, members, RoslynHelpers.GetReactiveExtensionUsingDirectives());
 
                 return compilation.ToFullString();
             }
@@ -80,16 +73,29 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             foreach (var (key, entries) in methodDatum.Map.Entries)
             {
                 var observable = RoslynHelpers.GetObservableChain("source", entries, _eventName, _handlerName);
+
+                if (observable is null)
+                {
+                    continue;
+                }
+
                 mapEntries.Add(RoslynHelpers.MapEntry(key, observable));
             }
 
             yield return RoslynHelpers.MapDictionary(methodDatum.InputTypeName, methodDatum.OutputTypeName, methodDatum.Map.MapName, mapEntries);
-            yield return RoslynHelpers.WhenChanged(_methodName, methodDatum.InputTypeName, methodDatum.OutputTypeName, true, methodDatum.AccessModifier, ArrowExpressionClause(RoslynHelpers.MapInvokeExpression("source", methodDatum.Map.MapName, "propertyExpression")));
+            yield return RoslynHelpers.WhenChanged(MethodName, methodDatum.InputTypeName, methodDatum.OutputTypeName, true, methodDatum.AccessModifier, ArrowExpressionClause(RoslynHelpers.MapInvokeExpression("source", methodDatum.Map.MapName, "propertyExpression")));
         }
 
         private IEnumerable<MemberDeclarationSyntax> Create(SingleExpressionOptimizedImplMethodDatum methodDatum)
         {
-            yield return RoslynHelpers.WhenChanged(_methodName, methodDatum.InputTypeName, methodDatum.OutputTypeName, true, methodDatum.AccessModifier, ArrowExpressionClause(RoslynHelpers.GetObservableChain("source", methodDatum.Members, _eventName, _handlerName)));
+            var observableChain = RoslynHelpers.GetObservableChain("source", methodDatum.Members, _eventName, _handlerName);
+
+            if (observableChain is null)
+            {
+                yield break;
+            }
+
+            yield return RoslynHelpers.WhenChanged(MethodName, methodDatum.InputTypeName, methodDatum.OutputTypeName, true, methodDatum.AccessModifier, ArrowExpressionClause(observableChain));
         }
 
         private IEnumerable<MemberDeclarationSyntax> Create(MultiExpressionMethodDatum methodDatum)
@@ -101,7 +107,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             {
                 var type = methodDatum.TempReturnTypes[i];
                 var obsName = "obs" + (i + 1);
-                var whenChangedVariable = RoslynHelpers.InvokeWhenChangedVariable(_methodName, type, obsName, "propertyExpression" + (i + 1), "source");
+                var whenChangedVariable = RoslynHelpers.InvokeWhenChangedVariable(MethodName, type, obsName, "propertyExpression" + (i + 1), "source");
                 statements.Add(whenChangedVariable);
                 combineArguments.Add(Argument(obsName));
             }
@@ -116,7 +122,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                         "CombineLatest"),
                     combineArguments)));
 
-            yield return RoslynHelpers.WhenChangedConversion(_methodName, methodDatum.InputType.ToDisplayString(), methodDatum.OutputType.ToDisplayString(), methodDatum.TempReturnTypes, true, methodDatum.AccessModifier, Block(statements, 1));
+            yield return RoslynHelpers.WhenChangedConversion(MethodName, methodDatum.InputType.ToDisplayString(), methodDatum.OutputType.ToDisplayString(), methodDatum.TempReturnTypes, true, methodDatum.AccessModifier, Block(statements, 1));
         }
     }
 }

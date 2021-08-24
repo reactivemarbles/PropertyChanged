@@ -19,6 +19,6 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         /// <param name="type">The types.</param>
         /// <param name="invocations">The invocations.</param>
         /// <returns>The source details.</returns>
-        IEnumerable<(string FileName, string SourceCode)> GenerateSourceFromInvocations(ITypeSymbol type, HashSet<InvocationInfo> invocations);
+        IEnumerable<(string FileName, string SourceCode)> GenerateSourceFromInvocations(ITypeSymbol type, HashSet<TypeDatum> invocations);
     }
 }

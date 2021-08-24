@@ -4,16 +4,17 @@
 
 using System.Collections.Generic;
 using System.Linq;
+
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-using static ReactiveMarbles.PropertyChanged.SourceGenerator.SyntaxFactoryHelpers;
+using static ReactiveMarbles.RoslynHelpers.SyntaxFactoryHelpers;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
     internal class RoslynOneWayBindExtensionCreator : RoslynBindBase
     {
-        public override string Create(IEnumerable<IDatum> sources)
+        public override string? Create(IEnumerable<IDatum> sources)
         {
             var members = sources.Cast<BindInvocationInfo>().Select(Create).ToList();
 
@@ -22,7 +23,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 return null;
             }
 
-            var compilation = CompilationUnit(default, members, RoslynHelpers.GetReactiveExtensionUsings());
+            var compilation = CompilationUnit(default, members, RoslynHelpers.GetReactiveExtensionUsingDirectives());
 
             return compilation.ToFullString();
         }

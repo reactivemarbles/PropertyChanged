@@ -20,6 +20,6 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         /// <param name="compilation">The compilation of the source code.</param>
         /// <param name="syntaxReceiver">The receiver which will contain syntax nodes we are interested in.</param>
         /// <returns>The invocations.</returns>
-        IEnumerable<InvocationInfo> GetInvocations(GeneratorExecutionContext context, Compilation compilation, SyntaxReceiver syntaxReceiver);
+        IEnumerable<TypeDatum> GetInvocations(GeneratorExecutionContext context, Compilation compilation, SyntaxReceiver syntaxReceiver);
     }
 }

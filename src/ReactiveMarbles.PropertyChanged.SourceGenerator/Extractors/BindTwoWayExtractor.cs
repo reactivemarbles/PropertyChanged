@@ -4,18 +4,17 @@
 
 using System.Collections.Generic;
 using System.Linq;
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
-    internal class BindExtractor : IExtractor
+    internal class BindTwoWayExtractor : IExtractor
     {
         private const string ExtensionClassFullName = "BindExtensions";
-        private const string BindName = "Bind";
-        private const string OneWayBindName = "OneWayBind";
 
-        public IEnumerable<InvocationInfo> GetInvocations(GeneratorExecutionContext context, Compilation compilation, SyntaxReceiver syntaxReceiver)
+        public IEnumerable<TypeDatum> GetInvocations(GeneratorExecutionContext context, Compilation compilation, SyntaxReceiver syntaxReceiver)
         {
             foreach (var invocationInfo in syntaxReceiver.BindMethods.SelectMany(invocationExpression => GenerateInvocation(context, compilation, invocationExpression, true)))
             {
@@ -28,7 +27,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             }
         }
 
-        private static IEnumerable<InvocationInfo> GenerateInvocation(GeneratorExecutionContext context, Compilation compilation, InvocationExpressionSyntax invocationExpression, bool isTwoWayBind)
+        private static IEnumerable<TypeDatum> GenerateInvocation(GeneratorExecutionContext context, Compilation compilation, InvocationExpressionSyntax invocationExpression, bool isTwoWayBind)
         {
             var model = compilation.GetSemanticModel(invocationExpression.SyntaxTree);
             var symbol = model.GetSymbolInfo(invocationExpression).Symbol;
@@ -43,7 +42,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 yield break;
             }
 
-            if (!methodSymbol.Name.Equals(OneWayBindName) && !methodSymbol.Name.Equals(BindName))
+            if (!methodSymbol.Name.Equals(Constants.BindMethodName) && !methodSymbol.Name.Equals(Constants.OneWayBindMethodName))
             {
                 yield break;
             }
@@ -67,14 +66,16 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                     continue;
                 }
 
-                switch (argumentType.Name)
+                if (argumentType.Name == "Func")
                 {
-                    case "Func":
-                        hasConverters = true;
-                        break;
-                    case "Expression":
-                        expressions.Add((argument.Expression as LambdaExpressionSyntax, argument));
-                        break;
+                    hasConverters = true;
+                    break;
+                }
+
+                if (argumentType.Name == "Expression" && argument.Expression is LambdaExpressionSyntax lambdaExpressionSyntax)
+                {
+                    expressions.Add((lambdaExpressionSyntax, argument));
+                    break;
                 }
             }
 
@@ -117,6 +118,12 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             }
 
             var accessModifier = methodSymbol.TypeArguments.GetMinVisibility();
+
+            if (viewModelExpressionArgument is null || viewExpressionArgument is null)
+            {
+                context.ReportDiagnostic(DiagnosticWarnings.InvalidExpression, viewExpression.GetLocation());
+                yield break;
+            }
 
             if (!viewModelExpressionArgument.ContainsPrivateOrProtectedMember && !viewExpressionArgument.ContainsPrivateOrProtectedMember)
             {

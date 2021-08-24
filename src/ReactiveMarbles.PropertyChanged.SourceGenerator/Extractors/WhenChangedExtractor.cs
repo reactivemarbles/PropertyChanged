@@ -13,8 +13,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
     internal class WhenChangedExtractor : IExtractor
     {
-        private string _extensionClassFullName;
-        private Func<SyntaxReceiver, List<InvocationExpressionSyntax>> _invocationListSelector;
+        private readonly string _extensionClassFullName;
+        private readonly Func<SyntaxReceiver, List<InvocationExpressionSyntax>> _invocationListSelector;
 
         public WhenChangedExtractor(string extensionClassFullName, Func<SyntaxReceiver, List<InvocationExpressionSyntax>> invocationListSelector)
         {
@@ -22,7 +22,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             _invocationListSelector = invocationListSelector;
         }
 
-        public IEnumerable<InvocationInfo> GetInvocations(GeneratorExecutionContext context, Compilation compilation, SyntaxReceiver syntaxReceiver)
+        public IEnumerable<TypeDatum> GetInvocations(GeneratorExecutionContext context, Compilation compilation, SyntaxReceiver syntaxReceiver)
         {
             foreach (var invocationExpression in _invocationListSelector.Invoke(syntaxReceiver))
             {
@@ -39,13 +39,20 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                     continue;
                 }
 
-                foreach (var argument in invocationExpression.ArgumentList.Arguments.Where(argument => model.GetTypeInfo(argument.Expression).ConvertedType.Name.Equals("Expression")))
+                var invocationArguments = invocationExpression.ArgumentList.Arguments.Where(argument => model.GetTypeInfo(argument.Expression).ConvertedType?.Name.Equals("Expression") == true);
+
+                foreach (var argument in invocationArguments)
                 {
                     if (argument.Expression is LambdaExpressionSyntax lambdaExpression)
                     {
                         var isValid = GeneratorHelpers.GetExpression(context, lambdaExpression, compilation, model, out var expressionArgument);
 
                         if (!isValid)
+                        {
+                            continue;
+                        }
+
+                        if (expressionArgument is null)
                         {
                             continue;
                         }

@@ -7,10 +7,10 @@ using Microsoft.CodeAnalysis;
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
     internal abstract record BindInvocationInfo(
-        ITypeSymbol Type,
-        Accessibility Accessibility,
-        bool HasConverters,
-        ExpressionArgument ViewModelArgument,
-        ExpressionArgument ViewArgument)
-            : InvocationInfo(Type), IDatum;
+            ITypeSymbol Type,
+            Accessibility Accessibility,
+            bool HasConverters,
+            ExpressionArgument ViewModelArgument,
+            ExpressionArgument ViewArgument)
+        : TypeDatum(Type);
 }

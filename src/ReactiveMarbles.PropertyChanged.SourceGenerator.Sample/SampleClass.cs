@@ -26,12 +26,10 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample
         private OtherNamespace.SampleClass _myClass;
         private string _myString;
 
-        internal SampleClass()
-        {
+        internal SampleClass() =>
 #pragma warning disable SX1101 // Do not prefix local calls with 'this.'
-            this.WhenChanged(x => x.MyClass);
+            WhenChanged(x => x.MyClass);
 #pragma warning restore SX1101 // Do not prefix local calls with 'this.'
-        }
 
         /// <summary>
         /// Dummy.
@@ -48,7 +46,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample
             set
             {
                 _myString = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(MyString)));
+                PropertyChanged?.Invoke(this, new(nameof(MyString)));
             }
         }
 
@@ -62,7 +60,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample
             set
             {
                 _myClass = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(MyClass)));
+                PropertyChanged?.Invoke(this, new(nameof(MyClass)));
             }
         }
 

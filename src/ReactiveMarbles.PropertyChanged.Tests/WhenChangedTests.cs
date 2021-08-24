@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for full license information.
 
 using System;
+
 using ReactiveMarbles.PropertyChanged.Tests.Moqs;
+
 using Xunit;
 
 namespace ReactiveMarbles.PropertyChanged.Tests
@@ -33,7 +35,7 @@ namespace ReactiveMarbles.PropertyChanged.Tests
 
             Assert.Equal("Hello World", testValue);
 
-            a.B = new B { C = new C() };
+            a.B = new() { C = new() };
 
             Assert.Null(testValue);
         }

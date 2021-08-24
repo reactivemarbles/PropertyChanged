@@ -15,10 +15,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         /// Initializes a new instance of the <see cref="WhenChangedGeneratorTests"/> class.
         /// </summary>
         /// <param name="testContext">The test context.</param>
-        public WhenChangedGeneratorTests(ITestOutputHelper testContext)
-        {
-            TestContext = testContext;
-        }
+        public WhenChangedGeneratorTests(ITestOutputHelper testContext) => TestContext = testContext;
 
         /// <summary>
         /// Gets the test context.

@@ -25,17 +25,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             _partialClassCreator = partialClassCreator;
         }
 
-        public static WhenChangedGenerator WhenChanging()
-        {
-            return new(RoslynWhenChangedExtensionCreator.WhenChanging(), RoslynWhenChangedPartialClassCreator.WhenChanging());
-        }
+        public static WhenChangedGenerator WhenChanging() => new(RoslynWhenChangedExtensionCreator.WhenChanging(), RoslynWhenChangedPartialClassCreator.WhenChanging());
 
-        public static WhenChangedGenerator WhenChanged()
-        {
-            return new(RoslynWhenChangedExtensionCreator.WhenChanged(), RoslynWhenChangedPartialClassCreator.WhenChanged());
-        }
+        public static WhenChangedGenerator WhenChanged() => new(RoslynWhenChangedExtensionCreator.WhenChanged(), RoslynWhenChangedPartialClassCreator.WhenChanged());
 
-        public IEnumerable<(string FileName, string SourceCode)> GenerateSourceFromInvocations(ITypeSymbol type, HashSet<InvocationInfo> invocations)
+        public IEnumerable<(string FileName, string SourceCode)> GenerateSourceFromInvocations(ITypeSymbol type, HashSet<TypeDatum> invocations)
         {
             var privateExpressions = new HashSet<ExpressionArgument>();
             var publicExpressions = new HashSet<ExpressionArgument>();
@@ -69,24 +63,24 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 type,
                 privateExpressions,
                 privateMultiItems,
-                (inputTypeGroup, allMethodData) => new PartialClassDatum(inputTypeGroup.NamespaceName, inputTypeGroup.Name, inputTypeGroup.AccessModifier, inputTypeGroup.AncestorClasses, allMethodData));
+                (inputTypeGroup, allMethodData) => new PartialClassDatum(type, inputTypeGroup.NamespaceName, inputTypeGroup.Name, inputTypeGroup.AccessModifier, inputTypeGroup.AncestorClasses, allMethodData));
 
             var extensionClassData = CreateDatum(
                 type,
                 publicExpressions,
                 publicMultiItems,
-                (inputTypeGroup, allMethodData) => new ExtensionClassDatum(inputTypeGroup.Name, allMethodData));
+                (inputTypeGroup, allMethodData) => new ExtensionClassDatum(type, inputTypeGroup.Name, allMethodData));
 
             var extensionsSource = _extensionClassCreator.Create(extensionClassData);
 
-            if (!string.IsNullOrWhiteSpace(extensionsSource))
+            if (extensionsSource is not null && !string.IsNullOrWhiteSpace(extensionsSource))
             {
                 yield return ($"{type.ToDisplayString()}_{_methodName}.extensions.g.cs", extensionsSource);
             }
 
             var partialSource = _partialClassCreator.Create(partialClassData);
 
-            if (!string.IsNullOrWhiteSpace(partialSource))
+            if (partialSource is not null && !string.IsNullOrWhiteSpace(partialSource))
             {
                 yield return ($"{type.ToDisplayString()}_{_methodName}.partial.g.cs", partialSource);
             }
@@ -110,7 +104,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
             var inputGroup = arguments.Select(x => x.Value).ToInputTypeGroup(type);
 
-            var allMethodData = inputGroup.OutputTypeGroups.Select(CreateSingleExpressionMethodDatum).Concat(multiMethods).ToList();
+            var allMethodData = inputGroup.OutputTypeGroups.Select(CreateSingleExpressionMethodDatum).Concat(multiMethods).Where(x => x is not null).Select(x => x!).ToList();
 
             var datum = createFunc(inputGroup, allMethodData);
 
@@ -119,9 +113,9 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             return datumData;
         }
 
-        private static MethodDatum CreateSingleExpressionMethodDatum(OutputTypeGroup outputTypeGroup)
+        private static MethodDatum? CreateSingleExpressionMethodDatum(OutputTypeGroup outputTypeGroup)
         {
-            MethodDatum methodDatum = null;
+            MethodDatum? methodDatum = null;
 
             var (_, expressionChain, inputTypeSymbol, outputTypeSymbol, _) = outputTypeGroup.ExpressionArguments[0];
             var (inputTypeName, outputTypeName) = (inputTypeSymbol.ToDisplayString(), outputTypeSymbol.ToDisplayString());

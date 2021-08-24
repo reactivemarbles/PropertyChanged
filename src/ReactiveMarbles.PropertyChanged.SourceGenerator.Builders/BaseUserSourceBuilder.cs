@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+
 using Microsoft.CodeAnalysis;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
@@ -80,10 +81,10 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         private static int _classCounter;
         private readonly TBuilder _instance;
         private readonly List<BaseUserSourceBuilder> _nestedClasses;
+        private readonly HashSet<string> _usings;
 
-        private string _namespaceName;
         private BaseUserSourceBuilder _containerClass;
-        private HashSet<string> _usings;
+        private string _namespaceName;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BaseUserSourceBuilder{TBuilder}"/> class.
@@ -95,8 +96,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
             ClassAccess = Accessibility.Public;
             _namespaceName = null;
             _containerClass = null;
-            _nestedClasses = new List<BaseUserSourceBuilder>();
-            _usings = new HashSet<string>();
+            _nestedClasses = new();
+            _usings = new();
         }
 
         /// <inheritdoc/>

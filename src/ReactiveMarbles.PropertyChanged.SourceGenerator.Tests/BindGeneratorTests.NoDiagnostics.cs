@@ -75,7 +75,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .AddNestedClass(hostTypeInfo);
 
             var fixture = BindFixture.Create(hostTypeInfo, TestContext);
-            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, saveCompilation: false);
+            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, false);
 
             generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning).Should().BeEmpty();
             compilationDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning).Should().BeEmpty();
@@ -136,7 +136,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .AddNestedClass(hostTypeInfo);
 
             var fixture = BindFixture.Create(hostTypeInfo, TestContext);
-            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, saveCompilation: false);
+            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, false);
 
             generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning).Should().BeEmpty();
             compilationDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning).Should().BeEmpty();

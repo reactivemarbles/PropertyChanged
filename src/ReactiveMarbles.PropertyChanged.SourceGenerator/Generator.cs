@@ -19,7 +19,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
     {
         private static readonly WhenChangedExtractor _whenChangedExtractor = new("NotifyPropertyChangedExtensions", syntaxReceiver => syntaxReceiver.WhenChangedMethods);
         private static readonly WhenChangedExtractor _whenChangingExtractor = new("NotifyPropertyChangingExtensions", syntaxReceiver => syntaxReceiver.WhenChangingMethods);
-        private static readonly BindExtractor _bindExtractor = new();
+        private static readonly BindTwoWayExtractor _bindExtractor = new();
 
         private static readonly WhenChangedGenerator _whenChangedGenerator = WhenChangedGenerator.WhenChanged();
         private static readonly WhenChangedGenerator _whenChangingGenerator = WhenChangedGenerator.WhenChanging();
@@ -45,9 +45,9 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 return;
             }
 
-            var bindInvocations = new SortedList<ITypeSymbol, HashSet<InvocationInfo>>(TypeSymbolComparer.Default);
-            var whenChangedInvocations = new SortedList<ITypeSymbol, HashSet<InvocationInfo>>(TypeSymbolComparer.Default);
-            var whenChangingInvocations = new SortedList<ITypeSymbol, HashSet<InvocationInfo>>(TypeSymbolComparer.Default);
+            var bindInvocations = new SortedList<ITypeSymbol, HashSet<TypeDatum>>(TypeSymbolComparer.Default);
+            var whenChangedInvocations = new SortedList<ITypeSymbol, HashSet<TypeDatum>>(TypeSymbolComparer.Default);
+            var whenChangingInvocations = new SortedList<ITypeSymbol, HashSet<TypeDatum>>(TypeSymbolComparer.Default);
 
             foreach (var item in _whenChangedExtractor.GetInvocations(context, compilation, syntaxReceiver))
             {
