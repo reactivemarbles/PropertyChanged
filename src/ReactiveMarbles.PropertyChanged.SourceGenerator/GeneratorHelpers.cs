@@ -9,6 +9,9 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using ReactiveMarbles.PropertyChanged.SourceGenerator.MethodCreators;
+using ReactiveMarbles.PropertyChanged.SourceGenerator.RoslynHelpers;
+
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
     internal static class GeneratorHelpers
@@ -24,7 +27,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 return false;
             }
 
-            while (expressionChain != null)
+            while (expressionChain is not null)
             {
                 members.Add(expression);
                 expression = expressionChain.Expression;
@@ -37,7 +40,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
             var current = inputTypeSymbol;
 
-            while (current != null)
+            while (current is not null)
             {
                 if (current.DeclaredAccessibility.IsPrivateOrProtected())
                 {
@@ -97,45 +100,45 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             return false;
         }
 
-        public static bool GetExpression(GeneratorExecutionContext context, LambdaExpressionSyntax lambdaExpression, Compilation compilation, SemanticModel model, out ExpressionArgument? expressionArgument)
+        public static bool GetExpression(in GeneratorExecutionContext context, LambdaExpressionSyntax lambdaExpression, Compilation compilation, SemanticModel model, out ExpressionArgument? expressionArgument, out List<ExpressionChain>? expressionChains)
         {
-            var expressionChain = GetExpressionChain(context, lambdaExpression, model);
+            expressionChains = GetExpressionChain(context, lambdaExpression, model);
 
             expressionArgument = null;
-            if (expressionChain == null)
+            if (expressionChains is null)
             {
-                return expressionChain != null;
+                return expressionChains is not null;
             }
 
-            var lambdaInputType = expressionChain[0].InputType;
-            var lambdaOutputType = expressionChain[expressionChain.Count - 1].OutputType;
+            var lambdaInputType = expressionChains[0].InputType;
+            var lambdaOutputType = expressionChains[expressionChains.Count - 1].OutputType;
             var inputTypeAccess = lambdaInputType.GetVisibility();
 
             var containsPrivateOrProtectedMember =
                 inputTypeAccess.IsPrivateOrProtected() ||
                 ContainsPrivateOrProtectedMember(compilation, model, lambdaExpression);
-            expressionArgument = new(lambdaExpression.Body.ToString(), expressionChain, lambdaInputType, lambdaOutputType, containsPrivateOrProtectedMember);
+            expressionArgument = new(lambdaExpression.Body.ToString(), expressionChains, lambdaInputType, lambdaOutputType, containsPrivateOrProtectedMember);
 
-            return expressionChain != null;
+            return expressionChains is not null;
         }
 
-        public static MultiExpressionMethodDatum GetMultiExpression(IMethodSymbol methodSymbol)
-        {
-            var accessModifier = methodSymbol.TypeArguments.GetMinVisibility();
+        ////public static MultiExpressionMethodDatum GetMultiExpression(IMethodSymbol methodSymbol)
+        ////{
+        ////    var accessModifier = methodSymbol.TypeArguments.GetMinVisibility();
 
-            var containsPrivateOrProtectedTypeArgument = accessModifier.IsPrivateOrProtected();
-            var types = methodSymbol.TypeArguments;
+        ////    var containsPrivateOrProtectedTypeArgument = accessModifier.IsPrivateOrProtected();
+        ////    var types = methodSymbol.TypeArguments;
 
-            return new(accessModifier, types, containsPrivateOrProtectedTypeArgument);
-        }
+        ////    return new(accessModifier, types, containsPrivateOrProtectedTypeArgument);
+        ////}
 
-        public static List<ExpressionChain>? GetExpressionChain(GeneratorExecutionContext context, LambdaExpressionSyntax lambdaExpression, SemanticModel model)
+        public static List<ExpressionChain>? GetExpressionChain(in GeneratorExecutionContext context, LambdaExpressionSyntax lambdaExpression, SemanticModel model)
         {
             var members = new List<ExpressionChain>();
             var expression = lambdaExpression.ExpressionBody;
             var expressionChain = expression as MemberAccessExpressionSyntax;
 
-            while (expressionChain != null)
+            while (expressionChain is not null)
             {
                 var name = expressionChain.Name.ToString();
                 var inputType = model.GetTypeInfo(expressionChain.ChildNodes().ElementAt(0)).Type as INamedTypeSymbol;

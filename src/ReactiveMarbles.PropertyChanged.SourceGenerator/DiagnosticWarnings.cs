@@ -55,5 +55,13 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             "Compiler",
             DiagnosticSeverity.Error,
             true);
+
+        internal static readonly DiagnosticDescriptor InvalidNumberExpressions = new(
+            "RXM007",
+            "There are not enough expressions for Bind",
+            "There are not enough expressions for Bind. There are {0} elements.",
+            "Compiler",
+            DiagnosticSeverity.Error,
+            true);
     }
 }

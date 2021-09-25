@@ -31,7 +31,7 @@ namespace ReactiveMarbles.PropertyChanged
             Expression<Func<TObj, TReturn>> propertyExpression)
             where TObj : class, INotifyPropertyChanged
         {
-            if (propertyExpression == null)
+            if (propertyExpression is null)
             {
                 throw new ArgumentNullException(nameof(propertyExpression));
             }
@@ -54,14 +54,14 @@ namespace ReactiveMarbles.PropertyChanged
                 {
                     return Observable.Return(memberInfo)
                         .CombineLatest(currentObservable, (memberInfo, parent) => (memberInfo, value: parent))
-                        .Where(x => x.value != null)
+                        .Where(x => x.value is not null)
                         .Select(x => GenerateObservable(x.value, x.memberInfo, GetMemberFuncCache<INotifyPropertyChanged, TReturn>.GetCache(x.memberInfo)))
                         .Switch();
                 }
 
                 currentObservable = Observable.Return(memberInfo)
                     .CombineLatest(currentObservable, (memberInfo, parent) => (memberInfo, value: parent))
-                    .Where(x => x.value != null)
+                    .Where(x => x.value is not null)
                     .Select(x => GenerateObservable(x.value, x.memberInfo, GetMemberFuncCache<INotifyPropertyChanged, INotifyPropertyChanged>.GetCache(x.memberInfo)))
                     .Switch();
 
@@ -86,7 +86,7 @@ namespace ReactiveMarbles.PropertyChanged
             Expression<Func<TObj, TReturn>> propertyExpression)
             where TObj : class, INotifyPropertyChanged
         {
-            if (propertyExpression == null)
+            if (propertyExpression is null)
             {
                 throw new ArgumentNullException(nameof(propertyExpression));
             }
@@ -109,14 +109,14 @@ namespace ReactiveMarbles.PropertyChanged
                 {
                     return Observable.Return(memberInfo)
                         .CombineLatest(currentObservable, (memberInfo, parent) => (memberInfo, sender: parent.Sender, value: parent.Value))
-                        .Where(x => x.value != null)
+                        .Where(x => x.value is not null)
                         .Select(x => GenerateObservableWithSender(x.value, x.memberInfo, GetMemberFuncCache<INotifyPropertyChanged, TReturn>.GetCache(x.memberInfo)))
                         .Switch();
                 }
 
                 currentObservable = Observable.Return(memberInfo)
                     .CombineLatest(currentObservable, (memberInfo, parent) => (memberInfo, sender: parent.Sender, value: parent.Value))
-                    .Where(x => x.value != null)
+                    .Where(x => x.value is not null)
                     .Select(x => GenerateObservableWithSender(x.value, x.memberInfo, GetMemberFuncCache<INotifyPropertyChanged, INotifyPropertyChanged>.GetCache(x.memberInfo)))
                     .Switch();
 

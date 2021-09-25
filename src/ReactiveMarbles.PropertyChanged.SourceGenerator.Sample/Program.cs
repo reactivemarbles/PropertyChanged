@@ -17,7 +17,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample
             var myClass3 = new SampleClass2();
 
             myClass.WhenChanged(x => x.MyString).Where(x => x == "Hello World").Select(x => x[10..]).Subscribe(Console.WriteLine);
-            myClass2.WhenChanged(x => x.MyString).Subscribe(Console.WriteLine);
+            myClass2.WhenChanging(x => x.MyString).Subscribe(Console.WriteLine);
 
             Observable
                 .Interval(TimeSpan.FromSeconds(1))
@@ -27,6 +27,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample
             Console.ReadLine();
 
             myClass.BindTwoWay(myClass3, x => x.MyString, x => x.MyString);
+
+            myClass2.BindOneWay(myClass2, x => x.MyString, x => x.MyString);
         }
 
         private static Expression<Func<SampleClass, string>> GetExpression() => x => x.MyString;

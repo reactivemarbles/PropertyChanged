@@ -4,7 +4,7 @@
 
 using Microsoft.CodeAnalysis;
 
-namespace ReactiveMarbles.PropertyChanged.SourceGenerator
+namespace ReactiveMarbles.PropertyChanged.SourceGenerator.MethodCreators
 {
     internal record ExpressionChain(string Name, ITypeSymbol InputType, ITypeSymbol OutputType);
 }

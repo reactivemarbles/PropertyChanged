@@ -12,13 +12,13 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
     /// </summary>
     public abstract class HostProxyBase
     {
-        private WhenChangedHostProxy _child;
+        private WhenChangedHostProxy? _child;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HostProxyBase"/> class.
         /// </summary>
         /// <param name="source">An instance of the <i>actual</i> host class.</param>
-        protected HostProxyBase(object source) => Source = source;
+        protected HostProxyBase(object source) => Source = source ?? throw new ArgumentNullException(nameof(source));
 
         /// <summary>
         /// Gets the <i>actual</i> host object.
@@ -28,7 +28,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         /// <summary>
         /// Gets or sets the child.
         /// </summary>
-        public WhenChangedHostProxy Child
+        public WhenChangedHostProxy? Child
         {
             get => _child;
 
@@ -39,7 +39,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
             }
         }
 
-        internal static object GetMethod(object target, string methodName) =>
+        internal static object? GetMethod(object target, string methodName) =>
             target.GetType().InvokeMember(
                 methodName,
                 BindingFlags.InvokeMethod | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public,

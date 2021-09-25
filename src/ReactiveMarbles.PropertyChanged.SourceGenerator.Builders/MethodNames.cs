@@ -8,9 +8,9 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
     {
         public const string GetWhenChangingObservable = "GetWhenChangingObservable";
         public const string GetWhenChangedObservable = "GetWhenChangedObservable";
-        public const string GetOneWayBindSubscription = "GetOneWayBindSubscription";
-        public const string GetTwoWayBindSubscription = "GetTwoWayBindSubscription";
-        public const string GetWhenChangedViewModelObservable = "GetWhenChangedViewModelObservable";
-        public const string GetWhenChangedViewObservable = "GetWhenChangedViewObservable";
+        public const string GetBindOneWaySubscription = "GetBindOneWaySubscription";
+        public const string GetBindTwoWaySubscription = "GetBindTwoWaySubscription";
+        public const string GetWhenChangedHostObservable = "GetWhenChangedHostObservable";
+        public const string GetWhenChangedTargetObservable = "GetWhenChangedTargetObservable";
     }
 }

@@ -11,7 +11,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample.OtherNamespace
     /// </summary>
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Readability", "RCS1018:Add accessibility modifiers.", Justification = "Because")]
     [System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1400:Access modifier should be declared", Justification = "Because")]
-    public class SampleClass : INotifyPropertyChanged
+    public class SampleClass : INotifyPropertyChanged, INotifyPropertyChanging
     {
         private Sample.SampleClass _myClass;
         private string _myString;
@@ -26,6 +26,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample.OtherNamespace
         public event PropertyChangedEventHandler PropertyChanged;
 
         /// <summary>
+        /// Dummy.
+        /// </summary>
+        public event PropertyChangingEventHandler PropertyChanging;
+
+        /// <summary>
         /// Gets or sets a string.
         /// </summary>
         internal string MyString
@@ -34,6 +39,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample.OtherNamespace
 
             set
             {
+                PropertyChanging?.Invoke(this, new PropertyChangingEventArgs(nameof(MyString)));
                 _myString = value;
                 PropertyChanged?.Invoke(this, new(nameof(MyString)));
             }
@@ -48,6 +54,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample.OtherNamespace
 
             set
             {
+                PropertyChanging?.Invoke(this, new PropertyChangingEventArgs(nameof(MyClass)));
                 _myClass = value;
                 PropertyChanged?.Invoke(this, new(nameof(MyClass)));
             }

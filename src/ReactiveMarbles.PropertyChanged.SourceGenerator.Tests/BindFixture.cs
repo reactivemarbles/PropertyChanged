@@ -7,8 +7,10 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel.Client;
 
 using ReactiveMarbles.PropertyChanged.SourceGenerator.Builders;
 
@@ -19,59 +21,57 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
     internal class BindFixture
     {
         private readonly BindHostBuilder _hostTypeInfo;
-        private readonly Compilation _compilation;
         private readonly ITestOutputHelper _testOutputHelper;
+        private readonly CompilationUtil _compilationUtil;
+        private readonly string[] _extraSources;
         private Type _hostType;
-        private Type _viewModelPropertyType;
-        private Type _valuePropertyType;
+        private Type _hostPropertyType;
+        private Type _targetPropertyType;
 
-        private BindFixture(BindHostBuilder hostTypeInfo, Compilation compilation, ITestOutputHelper testOutputHelper)
+        private BindFixture(BindHostBuilder hostTypeInfo, ITestOutputHelper testOutputHelper, string[] extraSources)
         {
             _hostTypeInfo = hostTypeInfo;
-            _compilation = compilation;
             _testOutputHelper = testOutputHelper;
+            _compilationUtil = new CompilationUtil(x => _testOutputHelper.WriteLine(x));
+            _extraSources = extraSources;
         }
 
         public string Sources { get; private set; }
 
-        public static BindFixture Create(BindHostBuilder hostTypeInfo, ITestOutputHelper testOutputHelper, params string[] extraSources)
+        public static async Task<BindFixture> Create(BindHostBuilder hostTypeInfo, ITestOutputHelper testOutputHelper, params string[] extraSources)
         {
-            var sources = extraSources.Prepend(hostTypeInfo.BuildRoot()).ToArray();
-            var compilation = CompilationUtil.CreateCompilation(sources);
-            return new(hostTypeInfo, compilation, testOutputHelper);
+            var bindFixture = new BindFixture(hostTypeInfo, testOutputHelper, extraSources);
+            await bindFixture.Initialize().ConfigureAwait(false);
+            return bindFixture;
         }
 
-        public void RunGenerator(out ImmutableArray<Diagnostic> compilationDiagnostics, out ImmutableArray<Diagnostic> generatorDiagnostics, bool saveCompilation = true, string directory = @"C:\Users\Glenn\source\repos\ConsoleApp8\ConsoleApp8")
+        public Task Initialize() => _compilationUtil.Initialize();
+
+        public void RunGenerator(BindHostBuilder hostTypeInfo, out ImmutableArray<Diagnostic> compilationDiagnostics, out ImmutableArray<Diagnostic> generatorDiagnostics)
         {
-            var newCompilation = CompilationUtil.RunGenerators(_compilation, out generatorDiagnostics, new Generator());
+            var sources = _extraSources.Prepend(hostTypeInfo.BuildRoot()).ToArray();
 
-            if (saveCompilation)
-            {
-                SaveCompilation(newCompilation, directory);
-            }
-
-            compilationDiagnostics = newCompilation.GetDiagnostics();
+            _compilationUtil.RunGenerators(out compilationDiagnostics, out generatorDiagnostics, out var beforeCompilation, out var afterCompilation, sources.ToArray());
 
             var compilationErrors = compilationDiagnostics.Where(x => x.Severity == DiagnosticSeverity.Error).Select(x => x.GetMessage()).ToList();
-            Sources = string.Join(Environment.NewLine, newCompilation.SyntaxTrees.Select(x => x.ToString()).Where(x => !x.Contains("The impementation should have been generated.")));
-
+            Sources = string.Join(Environment.NewLine, afterCompilation.SyntaxTrees.Select(x => x.ToString()).Where(x => !x.Contains("The implementation should have been generated.")));
             if (compilationErrors.Count > 0)
             {
                 _testOutputHelper.WriteLine(Sources);
                 throw new InvalidOperationException(string.Join('\n', compilationErrors));
             }
 
-            var assembly = GetAssembly(newCompilation);
+            var assembly = GetAssembly(afterCompilation);
             _hostType = assembly.GetType(_hostTypeInfo.GetTypeName());
-            _viewModelPropertyType = assembly.GetType(_hostTypeInfo.ViewModelPropertyTypeName);
-            _valuePropertyType = assembly.GetType(_hostTypeInfo.PropertyTypeName);
+            _hostPropertyType = assembly.GetType(_hostTypeInfo.HostPropertyTypeName);
+            _targetPropertyType = assembly.GetType(_hostTypeInfo.TargetPropertyTypeName);
         }
 
         public BindHostProxy NewHostInstance() => new(CreateInstance(_hostType));
 
-        public WhenChangedHostProxy NewViewModelPropertyInstance() => new(CreateInstance(_viewModelPropertyType));
+        public WhenChangedHostProxy NewViewModelPropertyInstance() => new(CreateInstance(_hostPropertyType));
 
-        public object NewValuePropertyInstance() => CreateInstance(_valuePropertyType);
+        public object NewValuePropertyInstance() => CreateInstance(_targetPropertyType);
 
         private static object CreateInstance(Type type) => Activator.CreateInstance(type, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, null, null);
 
@@ -81,36 +81,6 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             var result = compilation.Emit(ms);
             ms.Seek(0, SeekOrigin.Begin);
             return Assembly.Load(ms.ToArray());
-        }
-
-        private static void SaveCompilation(Compilation compilation, string directory)
-        {
-            foreach (var file in Directory.GetFiles(directory))
-            {
-                if (!Path.GetExtension(file).Equals(".cs", StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                if (Path.GetFileName(file).Equals("program.cs", StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                File.Delete(file);
-            }
-
-            var i = 0;
-            foreach (var compile in compilation.SyntaxTrees)
-            {
-                var text = compile.GetText().ToString();
-
-                var fileName = string.IsNullOrWhiteSpace(compile.FilePath) ? $"File{i}.cs" : Path.GetFileName(compile.FilePath);
-                var filePath = Path.Combine(directory, fileName);
-
-                File.WriteAllText(filePath, text);
-                i++;
-            }
         }
     }
 }

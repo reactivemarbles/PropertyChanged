@@ -6,71 +6,73 @@ using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Reactive.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
+
+using ICSharpCode.Decompiler.Metadata;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+
+using NuGet.LibraryModel;
+using NuGet.Versioning;
+
+using ReactiveMarbles.NuGet.Helpers;
+using ReactiveMarbles.SourceGenerator.TestNuGetHelper.Compilation;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
 {
     /// <summary>
     /// Utility methods to assist with compilations.
     /// </summary>
-    public static class CompilationUtil
+    public class CompilationUtil
     {
+#pragma warning disable CS0618 // Type or member is obsolete
+        private readonly LibraryRange _reactiveLibrary = new("System.Reactive", VersionRange.AllStableFloating, LibraryDependencyTarget.Package);
+#pragma warning restore CS0618 // Type or member is obsolete
+
+        private readonly SourceGeneratorUtility _sourceGeneratorUtility;
+
         /// <summary>
-        /// Creates a compilation.
+        /// Initializes a new instance of the <see cref="CompilationUtil"/> class.
         /// </summary>
-        /// <param name="sources">The source code to include.</param>
-        /// <returns>The created compilation.</returns>
-        public static Compilation CreateCompilation(params string[] sources)
+        /// <param name="outputHelper">Outputs any warning text.</param>
+        public CompilationUtil(Action<string> outputHelper) => _sourceGeneratorUtility = new SourceGeneratorUtility(outputHelper);
+
+        private EventBuilderCompiler? EventCompiler { get; set; }
+
+        /// <summary>
+        /// Initializes.
+        /// </summary>
+        /// <returns>Task to monitor the progress.</returns>
+        public async Task Initialize()
         {
-            var assemblyPath = Path.GetDirectoryName(typeof(object).Assembly.Location);
+            var targetFrameworks = "netstandard2.0".ToFrameworks();
 
-            if (assemblyPath == null || string.IsNullOrWhiteSpace(assemblyPath))
-            {
-                throw new InvalidOperationException("Could not find a valid assembly path.");
-            }
+            var inputGroup = await NuGetPackageHelper.DownloadPackageFilesAndFolder(_reactiveLibrary, targetFrameworks, packageOutputDirectory: null).ConfigureAwait(false);
 
-            return CSharpCompilation.Create(
-                "compilation" + Guid.NewGuid(),
-                sources.Select(x => CSharpSyntaxTree.ParseText(x, new(LanguageVersion.Latest))),
-                new[]
-                {
-                    MetadataReference.CreateFromFile(typeof(Observable).GetTypeInfo().Assembly.Location),
-                    MetadataReference.CreateFromFile(typeof(IServiceProvider).GetTypeInfo().Assembly.Location),
-                    MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "mscorlib.dll")),
-                    MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "System.dll")),
-                    MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "System.Core.dll")),
-                    MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "System.Console.dll")),
-                    MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "System.Runtime.dll")),
-                    MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "netstandard.dll")),
-                    MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "System.Linq.Expressions.dll")),
-                    MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "System.ObjectModel.dll")),
-                    MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "System.Private.CoreLib.dll")),
-                },
-                new(OutputKind.DynamicallyLinkedLibrary, deterministic: true));
+            var framework = targetFrameworks[0];
+            EventCompiler = new(inputGroup, inputGroup, framework);
         }
 
         /// <summary>
         /// Executes the source generators.
         /// </summary>
-        /// <param name="compilation">The target compilation.</param>
-        /// <param name="diagnostics">The resulting diagnostics.</param>
-        /// <param name="generators">The generators to include in the compilation.</param>
-        /// <returns>The new compilation after the generators have executed.</returns>
-        public static Compilation RunGenerators(Compilation compilation, out ImmutableArray<Diagnostic> diagnostics, params ISourceGenerator[] generators)
+        /// <param name="compilationDiagnostics">The resulting diagnostics from compilation.</param>
+        /// <param name="generatorDiagnostics">The resulting diagnostics from generation.</param>
+        /// <param name="beforeGeneratorCompilation">The compiler before generation.</param>
+        /// <param name="afterGeneratorCompilation">The compiler after generation.</param>
+        /// <param name="sources">The source code.</param>
+        /// <returns>The generator.</returns>
+        public GeneratorDriver RunGenerators(out ImmutableArray<Diagnostic> compilationDiagnostics, out ImmutableArray<Diagnostic> generatorDiagnostics, out Compilation beforeGeneratorCompilation, out Compilation afterGeneratorCompilation, params string[] sources)
         {
-            CreateDriver(compilation, generators).RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out diagnostics);
-            return outputCompilation;
-        }
+            if (EventCompiler is null)
+            {
+                throw new InvalidOperationException("Must have valid compiler instance.");
+            }
 
-        private static GeneratorDriver CreateDriver(Compilation compilation, params ISourceGenerator[] generators) =>
-            CSharpGeneratorDriver.Create(
-                ImmutableArray.Create(generators),
-                ImmutableArray<AdditionalText>.Empty,
-                (CSharpParseOptions)compilation.SyntaxTrees.First().Options,
-                null);
+            _sourceGeneratorUtility.RunGenerator<Generator>(EventCompiler, out compilationDiagnostics, out generatorDiagnostics, out var driver, out beforeGeneratorCompilation, out afterGeneratorCompilation, sources);
+            return driver;
+        }
     }
 }

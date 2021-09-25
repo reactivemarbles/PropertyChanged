@@ -16,8 +16,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         {
             var extractors = new Dictionary<Type, (RoslynBindBase Extractor, List<BindInvocationInfo> List, string Name)>
             {
-                [typeof(ExtensionBindInvocationInfo)] = (new RoslynBindExtensionCreator(), new(), "TwoWayExtensions"),
-                [typeof(PartialBindInvocationInfo)] = (new RoslynBindPartialClassCreator(), new(), "TwoWayPartial"),
+                [typeof(ExtensionBindInvocationInfo)] = (new RoslynBindTwoWayExtensionCreator(), new(), "TwoWayExtensions"),
+                [typeof(PartialBindInvocationInfo)] = (new RoslynBindTwoWayPartialClassCreator(), new(), "TwoWayPartial"),
                 [typeof(ExtensionOneWayBindInvocationInfo)] = (new RoslynOneWayBindExtensionCreator(), new(), "OneWayExtensions"),
                 [typeof(PartialOneWayBindInvocationInfo)] = (new RoslynOneWayBindPartialClassCreator(), new(), "OneWayPartial"),
             };
@@ -35,7 +35,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
                 var value = Generate(type, bindInfoList, name, extractor);
 
-                if (value != null)
+                if (value is not null)
                 {
                     yield return value.Value;
                 }

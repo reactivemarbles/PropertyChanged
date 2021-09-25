@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
 
@@ -20,49 +21,48 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
     {
         private readonly WhenChangedHostBuilder _hostTypeInfo;
         private readonly WhenChangedHostBuilder _receiverTypeInfo;
-        private readonly Compilation _compilation;
         private readonly ITestOutputHelper _testLogger;
+        private readonly CompilationUtil _compilationUtil;
+        private readonly string[] _extraSources;
         private Type _hostType;
         private Type _receiverType;
         private Type _valuePropertyType;
 
-        private WhenChangedFixture(WhenChangedHostBuilder hostTypeInfo, WhenChangedHostBuilder receiverTypeInfo, Compilation compilation, ITestOutputHelper testLogger)
+        private WhenChangedFixture(WhenChangedHostBuilder hostTypeInfo, WhenChangedHostBuilder receiverTypeInfo, ITestOutputHelper testLogger, string[] extraSources)
         {
             _hostTypeInfo = hostTypeInfo;
             _receiverTypeInfo = receiverTypeInfo;
-            _compilation = compilation;
             _testLogger = testLogger;
+            _compilationUtil = new CompilationUtil(x => testLogger.WriteLine(x));
+            _extraSources = extraSources;
         }
 
         public string Sources { get; private set; }
 
-        public static WhenChangedFixture Create(WhenChangedHostBuilder hostTypeInfo, ITestOutputHelper testOutputHelper, params string[] extraSources) => Create(hostTypeInfo, hostTypeInfo, testOutputHelper, extraSources);
+        public static Task<WhenChangedFixture> Create(WhenChangedHostBuilder hostTypeInfo, ITestOutputHelper testOutputHelper, params string[] extraSources) =>
+            Create(hostTypeInfo, hostTypeInfo, testOutputHelper, extraSources);
 
-        public static WhenChangedFixture Create(WhenChangedHostBuilder hostTypeInfo, WhenChangedHostBuilder receiverTypeInfo, ITestOutputHelper testOutputHelper, params string[] extraSources)
+        public static async Task<WhenChangedFixture> Create(WhenChangedHostBuilder hostTypeInfo, WhenChangedHostBuilder receiverTypeInfo, ITestOutputHelper testOutputHelper, params string[] extraSources)
         {
-            var sources = extraSources.Prepend(receiverTypeInfo.BuildRoot());
-            if (receiverTypeInfo != hostTypeInfo)
-            {
-                sources = sources.Prepend(hostTypeInfo.BuildRoot());
-            }
-
-            var compilation = CompilationUtil.CreateCompilation(sources.ToArray());
-            return new(hostTypeInfo, receiverTypeInfo, compilation, testOutputHelper);
+            var fixture = new WhenChangedFixture(hostTypeInfo, receiverTypeInfo, testOutputHelper, extraSources);
+            await fixture.Initialize().ConfigureAwait(false);
+            return fixture;
         }
 
-        public void RunGenerator(out ImmutableArray<Diagnostic> compilationDiagnostics, out ImmutableArray<Diagnostic> generatorDiagnostics, bool saveCompilation = false, string directory = @"C:\Users\Glenn\source\repos\ConsoleApp8\ConsoleApp8")
-        {
-            var newCompilation = CompilationUtil.RunGenerators(_compilation, out generatorDiagnostics, new Generator());
+        public Task Initialize() => _compilationUtil.Initialize();
 
-            if (saveCompilation)
+        public void RunGenerator(out ImmutableArray<Diagnostic> compilationDiagnostics, out ImmutableArray<Diagnostic> generatorDiagnostics)
+        {
+            var sources = _extraSources.Prepend(_receiverTypeInfo.BuildRoot());
+            if (_receiverTypeInfo != _hostTypeInfo)
             {
-                SaveCompilation(newCompilation, directory);
+                sources = sources.Prepend(_hostTypeInfo.BuildRoot());
             }
 
-            compilationDiagnostics = newCompilation.GetDiagnostics();
+            _compilationUtil.RunGenerators(out compilationDiagnostics, out generatorDiagnostics, out var beforeCompilation, out var afterCompilation, sources.ToArray());
 
             var compilationErrors = compilationDiagnostics.Where(x => x.Severity == DiagnosticSeverity.Error).Select(x => x.GetMessage()).ToList();
-            Sources = string.Join(Environment.NewLine, newCompilation.SyntaxTrees.Select(x => x.ToString()).Where(x => !x.Contains("The implementation should have been generated.")));
+            Sources = string.Join(Environment.NewLine, afterCompilation.SyntaxTrees.Select(x => x.ToString()).Where(x => !x.Contains("The implementation should have been generated.")));
 
             if (compilationErrors.Count > 0)
             {
@@ -70,7 +70,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 throw new InvalidOperationException(string.Join('\n', compilationErrors));
             }
 
-            var assembly = GetAssembly(newCompilation);
+            var assembly = GetAssembly(afterCompilation);
             _hostType = assembly.GetType(_hostTypeInfo.GetTypeName());
             _receiverType = assembly.GetType(_receiverTypeInfo.GetTypeName());
             _valuePropertyType = assembly.GetType(_receiverTypeInfo.ValuePropertyTypeName);
@@ -90,36 +90,6 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             compilation.Emit(ms);
             ms.Seek(0, SeekOrigin.Begin);
             return Assembly.Load(ms.ToArray());
-        }
-
-        private static void SaveCompilation(Compilation compilation, string directory)
-        {
-            foreach (var file in Directory.GetFiles(directory))
-            {
-                if (!Path.GetExtension(file).Equals(".cs", StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                if (Path.GetFileName(file).Equals("program.cs", StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                File.Delete(file);
-            }
-
-            var i = 0;
-            foreach (var compile in compilation.SyntaxTrees)
-            {
-                var text = compile.GetText().ToString();
-
-                var fileName = string.IsNullOrWhiteSpace(compile.FilePath) ? $"File{i}.cs" : Path.GetFileName(compile.FilePath);
-                var filePath = Path.Combine(directory, fileName);
-
-                File.WriteAllText(filePath, text);
-                i++;
-            }
         }
     }
 }

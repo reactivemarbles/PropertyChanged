@@ -7,7 +7,7 @@ using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
-namespace ReactiveMarbles.PropertyChanged.SourceGenerator
+namespace ReactiveMarbles.PropertyChanged.SourceGenerator.RoslynHelpers
 {
     internal static class RoslynExtensions
     {

@@ -6,3 +6,4 @@ using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("ReactiveMarbles.PropertyChanged.SourceGenerator.Sample")]
 [assembly: InternalsVisibleTo("ReactiveMarbles.PropertyChanged.SourceGenerator.Benchmarks")]
+[assembly: InternalsVisibleTo("ReactiveMarbles.PropertyChanged.SourceGenerator.Tests")]

@@ -83,8 +83,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         private readonly List<BaseUserSourceBuilder> _nestedClasses;
         private readonly HashSet<string> _usings;
 
-        private BaseUserSourceBuilder _containerClass;
-        private string _namespaceName;
+        private BaseUserSourceBuilder? _containerClass;
+        private string? _namespaceName;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BaseUserSourceBuilder{TBuilder}"/> class.
@@ -92,7 +92,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         protected BaseUserSourceBuilder()
         {
             _instance = (TBuilder)this;
-            ClassName = $"CustomClass{_classCounter++}";
+            ClassName = $"CustomClass{_classCounter++.ToString()}";
             ClassAccess = Accessibility.Public;
             _namespaceName = null;
             _containerClass = null;
@@ -101,10 +101,10 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         }
 
         /// <inheritdoc/>
-        protected override bool IsNested => _containerClass != null;
+        protected override bool IsNested => _containerClass is not null;
 
         /// <inheritdoc/>
-        protected override BaseUserSourceBuilder ContainerClass => _containerClass;
+        protected override BaseUserSourceBuilder ContainerClass => _containerClass ?? throw new InvalidOperationException("Cannot have a valid empty container class");
 
         /// <summary>
         /// Gets a value indicating whether this class has a namespace.
@@ -124,7 +124,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         /// <inheritdoc/>
         public override string GetTypeName() =>
             IsNested
-                ? $"{_containerClass.GetTypeName()}+{ClassName}"
+                ? $"{ContainerClass.GetTypeName()}+{ClassName}"
                 : HasNamespace ? $"{_namespaceName}.{ClassName}" : ClassName;
 
         /// <summary>
@@ -156,7 +156,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         /// <returns>A reference to this builder.</returns>
         public TBuilder WithNamespace(string value)
         {
-            if (_containerClass != null)
+            if (_containerClass is not null)
             {
                 throw new InvalidOperationException("Tried to add a class to a namespace but the class is nested.");
             }
@@ -174,12 +174,17 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         public TBuilder AddNestedClass<T>(BaseUserSourceBuilder<T> nestee)
             where T : BaseUserSourceBuilder<T>
         {
-            if (nestee._containerClass != null)
+            if (nestee is null)
+            {
+                throw new ArgumentNullException(nameof(nestee));
+            }
+
+            if (nestee._containerClass is not null)
             {
                 throw new InvalidOperationException("Tried to nest a class but it's already nested.");
             }
 
-            if (nestee._namespaceName != null)
+            if (nestee._namespaceName is not null)
             {
                 throw new InvalidOperationException("Tried to nest a class but it's inside a namespace.");
             }

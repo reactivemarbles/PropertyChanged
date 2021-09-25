@@ -12,7 +12,7 @@ using static ReactiveMarbles.RoslynHelpers.SyntaxFactoryHelpers;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
-    internal class RoslynBindExtensionCreator : RoslynBindBase
+    internal class RoslynBindTwoWayExtensionCreator : RoslynBindBase
     {
         public override string? Create(IEnumerable<IDatum> sources)
         {

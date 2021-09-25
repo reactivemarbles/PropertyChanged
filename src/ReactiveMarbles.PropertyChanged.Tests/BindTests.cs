@@ -28,7 +28,7 @@ namespace ReactiveMarbles.PropertyChanged.Tests
             var bindToC = new C();
             c.Test = "start value";
 
-            a.OneWayBind(bindToC, x => x.B.C.Test, x => x.Test);
+            a.BindOneWay(bindToC, x => x.B.C.Test, x => x.Test);
 
             Assert.Equal("start value", bindToC.Test);
 
@@ -56,7 +56,7 @@ namespace ReactiveMarbles.PropertyChanged.Tests
             var bindToC = new C();
             c.Test = "start value";
 
-            a.OneWayBind(bindToC, x => x.B.C, x => x.Test, value => value.Test);
+            a.BindOneWay(bindToC, x => x.B.C, x => x.Test, value => value.Test);
 
             Assert.Equal("start value", bindToC.Test);
 
@@ -89,7 +89,7 @@ namespace ReactiveMarbles.PropertyChanged.Tests
                 Test = "Target value"
             };
 
-            a.Bind(bindToC, x => x.B.C.Test, x => x.Test);
+            a.BindTwoWay(bindToC, x => x.B.C.Test, x => x.Test);
 
             Assert.Equal("Host Value", bindToC.Test);
 
@@ -127,7 +127,7 @@ namespace ReactiveMarbles.PropertyChanged.Tests
                 Test = "Target value"
             };
 
-            a.Bind(bindToC, x => x.B.C, x => x.Test, x => x.Test, y => new() { Test = y });
+            a.BindTwoWay(bindToC, x => x.B.C, x => x.Test, x => x.Test, y => new() { Test = y });
 
             Assert.Equal("Host Value", bindToC.Test);
 

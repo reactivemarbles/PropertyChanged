@@ -19,10 +19,10 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
     {
         private readonly string _methodName;
         private readonly string _extensionClassName;
-        private WhenChangedHostBuilder _externalReceiverTypeInfo;
+        private WhenChangedHostBuilder? _externalReceiverTypeInfo;
         private Accessibility _propertyAccess;
         private Func<string> _propertyTypeNameFunc;
-        private string _invocation;
+        private string? _invocation;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="WhenChangedHostBuilder"/> class.
@@ -62,6 +62,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         /// <returns>A reference to this builder.</returns>
         public WhenChangedHostBuilder WithPropertyType(BaseUserSourceBuilder value)
         {
+            if (value is null)
+            {
+                throw new ArgumentNullException(nameof(value));
+            }
+
             _propertyTypeNameFunc = value.GetTypeName;
             return this;
         }
@@ -73,6 +78,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         /// <returns>A reference to this builder.</returns>
         public WhenChangedHostBuilder WithPropertyType(string value)
         {
+            if (value is null)
+            {
+                throw new ArgumentNullException(nameof(value));
+            }
+
             _propertyTypeNameFunc = () => value;
             return this;
         }
@@ -97,9 +107,14 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         /// <returns>A reference to this builder.</returns>
         public WhenChangedHostBuilder WithInvocation(
             InvocationKind invocationKind,
-            Expression<Func<WhenChangedHostProxy, object>> expression,
-            WhenChangedHostBuilder externalReceiverTypeInfo = null)
+            Expression<Func<WhenChangedHostProxy, object?>> expression,
+            WhenChangedHostBuilder? externalReceiverTypeInfo = null)
         {
+            if (expression is null)
+            {
+                throw new ArgumentNullException(nameof(expression));
+            }
+
             _invocation = GetWhenChangedInvocation(invocationKind, externalReceiverTypeInfo, expression.ToString());
             return this;
         }
@@ -129,7 +144,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
             Expression<Func<WhenChangedHostProxy, object>> expression1,
             Expression<Func<WhenChangedHostProxy, object>> expression2,
             Expression<Func<object, object, object>> conversionFunc,
-            WhenChangedHostBuilder externalReceiverTypeInfo = null)
+            WhenChangedHostBuilder? externalReceiverTypeInfo = null)
         {
             _invocation = GetWhenChangedInvocation(invocationKind, externalReceiverTypeInfo, $"{expression1}, {expression2}, {conversionFunc}");
             return this;
@@ -149,7 +164,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
             Expression<Func<WhenChangedHostProxy, object>> expression1,
             Expression<Func<WhenChangedHostProxy, object>> expression2,
             string conversionFunc,
-            WhenChangedHostBuilder externalReceiverTypeInfo = null)
+            WhenChangedHostBuilder? externalReceiverTypeInfo = null)
         {
             _invocation = GetWhenChangedInvocation(invocationKind, externalReceiverTypeInfo, $"{expression1}, {expression2}, {conversionFunc}");
             return this;
@@ -165,7 +180,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         public WhenChangedHostBuilder WithInvocation(
             int depth,
             InvocationKind invocationKind,
-            WhenChangedHostBuilder externalReceiverTypeInfo = null)
+            WhenChangedHostBuilder? externalReceiverTypeInfo = null)
         {
             var expression = string.Join(".", Enumerable.Range(1, depth - 1).Select(_ => "Child").Prepend("x => x").Append("Value"));
             _invocation = GetWhenChangedInvocation(invocationKind, externalReceiverTypeInfo, expression);
@@ -191,7 +206,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
             propertyTypeName = propertyTypeName.Replace('+', '.');
 
             var receiverProperty = string.Empty;
-            if (_externalReceiverTypeInfo != null)
+            if (_externalReceiverTypeInfo is not null)
             {
                 var receiverAccess = _externalReceiverTypeInfo._propertyAccess.ToFriendlyString();
                 receiverProperty = $"{receiverAccess} {_externalReceiverTypeInfo.GetTypeName()} Receiver {{ get; set; }}";
@@ -255,11 +270,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
 
         private string GetWhenChangedInvocation(
             InvocationKind invocationKind,
-            WhenChangedHostBuilder externalReceiverTypeInfo,
+            WhenChangedHostBuilder? externalReceiverTypeInfo,
             string args)
         {
             _externalReceiverTypeInfo = externalReceiverTypeInfo;
-            var receiver = externalReceiverTypeInfo == null ? "this" : "Receiver";
+            var receiver = externalReceiverTypeInfo is null ? "this" : "Receiver";
 
             return invocationKind == InvocationKind.MemberAccess ?
                 $"{receiver}.{_methodName}({args})" :

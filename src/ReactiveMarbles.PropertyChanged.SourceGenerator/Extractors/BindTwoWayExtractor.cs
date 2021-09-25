@@ -16,12 +16,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
         public IEnumerable<TypeDatum> GetInvocations(GeneratorExecutionContext context, Compilation compilation, SyntaxReceiver syntaxReceiver)
         {
-            foreach (var invocationInfo in syntaxReceiver.BindMethods.SelectMany(invocationExpression => GenerateInvocation(context, compilation, invocationExpression, true)))
-            {
-                yield return invocationInfo;
-            }
-
-            foreach (var invocationInfo in syntaxReceiver.OneWayBindMethods.SelectMany(invocationExpression => GenerateInvocation(context, compilation, invocationExpression, false)))
+            foreach (var invocationInfo in syntaxReceiver.BindTwoWay.SelectMany(invocationExpression => GenerateInvocation(context, compilation, invocationExpression, true)))
             {
                 yield return invocationInfo;
             }
@@ -69,13 +64,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 if (argumentType.Name == "Func")
                 {
                     hasConverters = true;
-                    break;
                 }
 
                 if (argumentType.Name == "Expression" && argument.Expression is LambdaExpressionSyntax lambdaExpressionSyntax)
                 {
                     expressions.Add((lambdaExpressionSyntax, argument));
-                    break;
                 }
             }
 

@@ -29,7 +29,7 @@ namespace ReactiveMarbles.PropertyChanged
         /// <typeparam name="TTarget">The target property.</typeparam>
         /// <returns>A disposable which when disposed the binding will stop.</returns>
         /// <exception cref="ArgumentException">If there is a invalid expression.</exception>
-        public static IDisposable OneWayBind<TFrom, TPropertyType, TTarget>(
+        public static IDisposable BindOneWay<TFrom, TPropertyType, TTarget>(
             this TFrom fromObject,
             TTarget targetObject,
             Expression<Func<TFrom, TPropertyType>> fromProperty,
@@ -37,7 +37,7 @@ namespace ReactiveMarbles.PropertyChanged
             IScheduler scheduler = null)
             where TFrom : class, INotifyPropertyChanged
         {
-            if (fromObject == null)
+            if (fromObject is null)
             {
                 throw new ArgumentNullException(nameof(fromObject));
             }
@@ -60,7 +60,7 @@ namespace ReactiveMarbles.PropertyChanged
         /// <typeparam name="TTargetProperty">The property to type.</typeparam>
         /// <returns>A disposable which when disposed the binding will stop.</returns>
         /// <exception cref="ArgumentException">If there is a invalid expression.</exception>
-        public static IDisposable OneWayBind<TFrom, TFromProperty, TTarget, TTargetProperty>(
+        public static IDisposable BindOneWay<TFrom, TFromProperty, TTarget, TTargetProperty>(
             this TFrom fromObject,
             TTarget targetObject,
             Expression<Func<TFrom, TFromProperty>> fromProperty,
@@ -69,7 +69,7 @@ namespace ReactiveMarbles.PropertyChanged
             IScheduler scheduler = null)
             where TFrom : class, INotifyPropertyChanged
         {
-            if (fromObject == null)
+            if (fromObject is null)
             {
                 throw new ArgumentNullException(nameof(fromObject));
             }
@@ -96,7 +96,7 @@ namespace ReactiveMarbles.PropertyChanged
         /// <typeparam name="TTargetProperty">The property to type.</typeparam>
         /// <returns>A disposable which when disposed the binding will stop.</returns>
         /// <exception cref="ArgumentException">If there is a invalid expression.</exception>
-        public static IDisposable Bind<TFrom, TFromProperty, TTarget, TTargetProperty>(
+        public static IDisposable BindTwoWay<TFrom, TFromProperty, TTarget, TTargetProperty>(
             this TFrom fromObject,
             TTarget targetObject,
             Expression<Func<TFrom, TFromProperty>> fromProperty,
@@ -113,7 +113,7 @@ namespace ReactiveMarbles.PropertyChanged
                 .Skip(1) // We have the host to win first off.
                 .Select(targetToHostConv);
 
-            return BindImplementation(fromObject, targetObject, hostObs, targetObs, fromProperty, toProperty, scheduler);
+            return BindTwoWayImplementation(fromObject, targetObject, hostObs, targetObs, fromProperty, toProperty, scheduler);
         }
 
         /// <summary>
@@ -129,7 +129,7 @@ namespace ReactiveMarbles.PropertyChanged
         /// <typeparam name="TTarget">The target property.</typeparam>
         /// <returns>A disposable which when disposed the binding will stop.</returns>
         /// <exception cref="ArgumentException">If there is a invalid expression.</exception>
-        public static IDisposable Bind<TFrom, TProperty, TTarget>(
+        public static IDisposable BindTwoWay<TFrom, TProperty, TTarget>(
             this TFrom fromObject,
             TTarget targetObject,
             Expression<Func<TFrom, TProperty>> fromProperty,
@@ -142,10 +142,10 @@ namespace ReactiveMarbles.PropertyChanged
             var targetObs = targetObject.WhenChanged(toProperty)
                 .Skip(1); // We have the host to win first off.
 
-            return BindImplementation(fromObject, targetObject, hostObs, targetObs, fromProperty, toProperty, scheduler);
+            return BindTwoWayImplementation(fromObject, targetObject, hostObs, targetObs, fromProperty, toProperty, scheduler);
         }
 
-        private static IDisposable BindImplementation<TFrom, TFromProperty, TTarget, TTargetProperty>(
+        private static IDisposable BindTwoWayImplementation<TFrom, TFromProperty, TTarget, TTargetProperty>(
             TFrom fromObject,
             TTarget targetObject,
             IObservable<TTargetProperty> hostObs,
@@ -154,17 +154,17 @@ namespace ReactiveMarbles.PropertyChanged
             Expression<Func<TTarget, TTargetProperty>> toProperty,
             IScheduler scheduler)
         {
-            if (hostObs == null)
+            if (hostObs is null)
             {
                 throw new ArgumentNullException(nameof(hostObs));
             }
 
-            if (toProperty == null)
+            if (toProperty is null)
             {
                 throw new ArgumentNullException(nameof(toProperty));
             }
 
-            if (fromProperty == null)
+            if (fromProperty is null)
             {
                 throw new ArgumentNullException(nameof(fromProperty));
             }
@@ -199,12 +199,12 @@ namespace ReactiveMarbles.PropertyChanged
             Expression<Func<TTarget, TPropertyType>> property,
             IScheduler scheduler)
         {
-            if (hostObs == null)
+            if (hostObs is null)
             {
                 throw new ArgumentNullException(nameof(hostObs));
             }
 
-            if (property == null)
+            if (property is null)
             {
                 throw new ArgumentNullException(nameof(property));
             }

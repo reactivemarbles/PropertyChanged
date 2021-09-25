@@ -4,6 +4,7 @@
 
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 using FluentAssertions;
 
@@ -24,10 +25,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         /// Make sure the ReceiverKind.Instance is handled correctly.
         /// </summary>
         /// <param name="invocationKind">The kind of invocation.</param>
+        /// <returns>A task to monitor the progress.</returns>
         [Theory]
         [InlineData(InvocationKind.MemberAccess)]
         [InlineData(InvocationKind.Explicit)]
-        public void NoDiagnostics_InstanceReceiverKind(InvocationKind invocationKind)
+        public async Task NoDiagnostics_InstanceReceiverKind(InvocationKind invocationKind)
         {
             var receiverPropertyTypeInfo = new EmptyClassBuilder()
                 .WithClassAccess(Accessibility.Public);
@@ -42,8 +44,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .WithClassAccess(Accessibility.Public)
                 .WithInvocation(invocationKind, x => x.Value, externalReceiverTypeInfo);
 
-            var fixture = WhenChangedFixture.Create(hostTypeInfo, externalReceiverTypeInfo, TestContext, receiverPropertyTypeInfo.BuildRoot());
-            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, false);
+            var fixture = await WhenChangedFixture.Create(hostTypeInfo, externalReceiverTypeInfo, TestContext, receiverPropertyTypeInfo.BuildRoot()).ConfigureAwait(false);
+            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics);
 
             generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning).Should().BeEmpty();
             compilationDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning).Should().BeEmpty();
@@ -68,6 +70,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         /// <param name="hostTypeAccess">The access modifier of the host type.</param>
         /// <param name="propertyTypeAccess">The access modifier of the Value property type on the host.</param>
         /// <param name="propertyAccess">The access modifier of the host properties.</param>
+        /// <returns>A task to monitor the progress.</returns>
         [Theory]
         [InlineData(Accessibility.Public, Accessibility.Public, Accessibility.Public)]
         [InlineData(Accessibility.Public, Accessibility.Public, Accessibility.Internal)]
@@ -76,7 +79,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         [InlineData(Accessibility.Internal, Accessibility.Public, Accessibility.Internal)]
         [InlineData(Accessibility.Internal, Accessibility.Internal, Accessibility.Public)]
         [InlineData(Accessibility.Internal, Accessibility.Internal, Accessibility.Internal)]
-        public void NoDiagnostics_ExplicitInvocation_MultiExpression(Accessibility hostTypeAccess, Accessibility propertyTypeAccess, Accessibility propertyAccess)
+        public Task NoDiagnostics_ExplicitInvocation_MultiExpression(Accessibility hostTypeAccess, Accessibility propertyTypeAccess, Accessibility propertyAccess)
         {
             var hostPropertyTypeInfo = new EmptyClassBuilder()
                 .WithClassAccess(propertyTypeAccess);
@@ -86,7 +89,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .WithPropertyType(hostPropertyTypeInfo)
                 .WithPropertyAccess(propertyAccess);
 
-            AssertTestCase_MultiExpression(hostTypeInfo, InvocationKind.Explicit, hostPropertyTypeInfo.BuildRoot());
+            return AssertTestCase_MultiExpression(hostTypeInfo, InvocationKind.Explicit, hostPropertyTypeInfo.BuildRoot());
         }
 
         /// <summary>
@@ -94,12 +97,13 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         /// </summary>
         /// <param name="hostTypeNamespace">The namespace containing the host.</param>
         /// <param name="hostPropertyTypeNamespace">The namespace containing the property type.</param>
+        /// <returns>A task to monitor the progress.</returns>
         [Theory]
         [InlineData(null, null)]
         [InlineData("HostNamespace", "CustomNamespace")]
         [InlineData("HostNamespace", null)]
         [InlineData(null, "CustomNamespace")]
-        public void NoDiagnostics_Namespaces(string hostTypeNamespace, string hostPropertyTypeNamespace)
+        public Task NoDiagnostics_Namespaces(string hostTypeNamespace, string hostPropertyTypeNamespace)
         {
             var hostPropertyTypeInfo = new EmptyClassBuilder()
                 .WithClassAccess(Accessibility.Public)
@@ -111,15 +115,16 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .WithPropertyAccess(Accessibility.Public)
                 .WithNamespace(hostTypeNamespace);
 
-            AssertTestCase_MultiExpression(hostTypeInfo, InvocationKind.MemberAccess, hostPropertyTypeInfo.BuildRoot());
+            return AssertTestCase_MultiExpression(hostTypeInfo, InvocationKind.MemberAccess, hostPropertyTypeInfo.BuildRoot());
         }
 
         /// <summary>
         /// Make sure types are fully qualified by namespace in the case that there are
         /// multiple classes with the same name.
         /// </summary>
+        /// <returns>A task to monitor the progress.</returns>
         [Fact]
-        public void NoDiagnostics_SameClassName()
+        public Task NoDiagnostics_SameClassName()
         {
             var hostPropertyTypeInfo = new EmptyClassBuilder()
                 .WithClassName("ClassName")
@@ -132,14 +137,15 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .WithPropertyType(hostPropertyTypeInfo)
                 .WithPropertyAccess(Accessibility.Public);
 
-            AssertTestCase_MultiExpression(hostTypeInfo, InvocationKind.MemberAccess, hostPropertyTypeInfo.BuildRoot());
+            return AssertTestCase_MultiExpression(hostTypeInfo, InvocationKind.MemberAccess, hostPropertyTypeInfo.BuildRoot());
         }
 
         /// <summary>
         /// Make sure chains of length 2 are handled correctly.
         /// </summary>
+        /// <returns>A task to monitor the progress.</returns>
         [Fact]
-        public void NoDiagnostics_ChainOf2()
+        public async Task NoDiagnostics_ChainOf2()
         {
             var hostPropertyTypeInfo = new EmptyClassBuilder()
                 .WithClassName("ClassName")
@@ -153,8 +159,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .WithPropertyType(hostPropertyTypeInfo)
                 .WithPropertyAccess(Accessibility.Public);
 
-            var fixture = WhenChangedFixture.Create(hostTypeInfo, TestContext, hostPropertyTypeInfo.BuildRoot());
-            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, false);
+            var fixture = await WhenChangedFixture.Create(hostTypeInfo, TestContext, hostPropertyTypeInfo.BuildRoot()).ConfigureAwait(false);
+            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics);
 
             generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning).Should().BeEmpty();
             compilationDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning).Should().BeEmpty();
@@ -191,8 +197,9 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         /// <summary>
         /// Make sure chains of length 3 are handled correctly.
         /// </summary>
+        /// <returns>A task to monitor the progress.</returns>
         [Fact]
-        public void NoDiagnostics_ChainOf3()
+        public async Task NoDiagnostics_ChainOf3()
         {
             var hostPropertyTypeInfo = new EmptyClassBuilder()
                 .WithClassName("ClassName")
@@ -206,8 +213,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .WithPropertyType(hostPropertyTypeInfo)
                 .WithPropertyAccess(Accessibility.Public);
 
-            var fixture = WhenChangedFixture.Create(hostTypeInfo, TestContext, hostPropertyTypeInfo.BuildRoot());
-            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, false);
+            var fixture = await WhenChangedFixture.Create(hostTypeInfo, TestContext, hostPropertyTypeInfo.BuildRoot()).ConfigureAwait(false);
+            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics);
 
             generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning).Should().BeEmpty();
             compilationDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning).Should().BeEmpty();
@@ -250,9 +257,10 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         /// <param name="hostTypeAccess">The access modifier of the host type.</param>
         /// <param name="propertyTypeAccess">The access modifier of the Value property type on the host.</param>
         /// <param name="propertyAccess">The access modifier of the host properties.</param>
+        /// <returns>A task to monitor the progress.</returns>
         [Theory]
         [MemberData(nameof(AccessibilityTestCases.GetValidAccessModifierCombinations), MemberType = typeof(AccessibilityTestCases))]
-        public void NoDiagnostics_AccessModifierCombinations(Accessibility hostContainerTypeAccess, Accessibility hostTypeAccess, Accessibility propertyTypeAccess, Accessibility propertyAccess)
+        public Task NoDiagnostics_AccessModifierCombinations(Accessibility hostContainerTypeAccess, Accessibility hostTypeAccess, Accessibility propertyTypeAccess, Accessibility propertyAccess)
         {
             var hostPropertyTypeInfo = new EmptyClassBuilder()
                 .WithClassAccess(propertyTypeAccess);
@@ -267,14 +275,15 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .WithClassAccess(hostContainerTypeAccess)
                 .AddNestedClass(hostTypeInfo);
 
-            AssertTestCase_MultiExpression(hostTypeInfo, InvocationKind.MemberAccess);
+            return AssertTestCase_MultiExpression(hostTypeInfo, InvocationKind.MemberAccess);
         }
 
         /// <summary>
         /// Make sure two custom types are handled correctly..
         /// </summary>
+        /// <returns>A task to monitor the progress.</returns>
         [Fact]
-        public void NoDiagnostics_PrivateHostPropertyTypeAndInternalOutputType()
+        public async Task NoDiagnostics_PrivateHostPropertyTypeAndInternalOutputType()
         {
             var hostPropertyTypeInfo = new EmptyClassBuilder()
                 .WithClassAccess(Accessibility.Private);
@@ -294,8 +303,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .AddNestedClass(hostTypeInfo)
                 .AddNestedClass(customType);
 
-            var fixture = WhenChangedFixture.Create(hostTypeInfo, TestContext);
-            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, false);
+            var fixture = await WhenChangedFixture.Create(hostTypeInfo, TestContext).ConfigureAwait(false);
+            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics);
 
             generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning).Should().BeEmpty();
             compilationDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning).Should().BeEmpty();
@@ -316,12 +325,12 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             emittedValue.Should().BeNull();
         }
 
-        private void AssertTestCase_SingleExpression(WhenChangedHostBuilder hostTypeInfo, BaseUserSourceBuilder hostPropertyTypeInfo, bool typesHaveSameRoot)
+        private async Task AssertTestCase_SingleExpression(WhenChangedHostBuilder hostTypeInfo, BaseUserSourceBuilder hostPropertyTypeInfo, bool typesHaveSameRoot)
         {
             hostTypeInfo.WithInvocation(InvocationKind.MemberAccess, x => x.Value);
             var propertyTypeSource = typesHaveSameRoot ? string.Empty : hostPropertyTypeInfo.BuildRoot();
-            var fixture = WhenChangedFixture.Create(hostTypeInfo, TestContext, propertyTypeSource);
-            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, false);
+            var fixture = await WhenChangedFixture.Create(hostTypeInfo, TestContext, propertyTypeSource).ConfigureAwait(false);
+            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics);
 
             generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning).Should().BeEmpty();
             compilationDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning).Should().BeEmpty();
@@ -338,11 +347,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
             host.Value.Should().Be(value);
         }
 
-        private void AssertTestCase_MultiExpression(WhenChangedHostBuilder hostTypeInfo, InvocationKind invocationKind, params string[] extraSources)
+        private async Task AssertTestCase_MultiExpression(WhenChangedHostBuilder hostTypeInfo, InvocationKind invocationKind, params string[] extraSources)
         {
             hostTypeInfo.WithInvocation(invocationKind, x => x.Child, x => x.Value, (a, b) => "result" + a + b);
-            var fixture = WhenChangedFixture.Create(hostTypeInfo, TestContext, extraSources);
-            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, true);
+            var fixture = await WhenChangedFixture.Create(hostTypeInfo, TestContext, extraSources).ConfigureAwait(false);
+            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics);
 
             generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning).Should().BeEmpty();
             compilationDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning).Should().BeEmpty();

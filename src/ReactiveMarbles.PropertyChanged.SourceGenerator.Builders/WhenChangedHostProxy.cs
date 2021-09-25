@@ -11,7 +11,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
     /// </summary>
     public class WhenChangedHostProxy : HostProxyBase
     {
-        private WhenChangedHostProxy _receiver;
+        private WhenChangedHostProxy? _receiver;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="WhenChangedHostProxy"/> class.
@@ -25,7 +25,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         /// <summary>
         /// Gets or sets the value.
         /// </summary>
-        public object Value
+        public object? Value
         {
             get => ReflectionUtil.GetProperty(Source, nameof(Value));
             set => ReflectionUtil.SetProperty(Source, nameof(Value), value);
@@ -34,7 +34,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         /// <summary>
         /// Gets or sets the receiver.
         /// </summary>
-        public WhenChangedHostProxy Receiver
+        public WhenChangedHostProxy? Receiver
         {
             get => _receiver;
 
@@ -50,7 +50,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         /// </summary>
         /// <param name="onError">An action to invoke when the WhenChanging implementation doesn't generate correctly.</param>
         /// <returns>An observable.</returns>
-        public IObservable<object> GetWhenChangingObservable(Action<Exception> onError)
+        public IObservable<object>? GetWhenChangingObservable(Action<Exception> onError)
         {
             try
             {
@@ -68,7 +68,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         /// </summary>
         /// <param name="onError">An action to invoke when the WhenChanged implementation doesn't generate correctly.</param>
         /// <returns>An observable.</returns>
-        public IObservable<object> GetWhenChangedObservable(Action<Exception> onError)
+        public IObservable<object>? GetWhenChangedObservable(Action<Exception> onError)
         {
             try
             {

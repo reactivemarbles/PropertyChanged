@@ -15,40 +15,45 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
     /// </summary>
     public class BindHostBuilder : BaseUserSourceBuilder<BindHostBuilder>
     {
-        private BaseUserSourceBuilder _viewModelPropertyType;
-        private Accessibility _propertyAccess;
-        private Accessibility _viewModelPropertyAccess;
-        private string _twoWayBindInvocation;
-        private string _oneWayBindInvocation;
+        private BaseUserSourceBuilder? _hostPropertyType;
+        private Accessibility _targetPropertyAccess;
+        private Accessibility _hostPropertyAccess;
+        private string? _twoWayBindInvocation;
+        private string? _oneWayBindInvocation;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BindHostBuilder"/> class.
         /// </summary>
         public BindHostBuilder()
         {
-            _viewModelPropertyType = null;
-            _viewModelPropertyAccess = Accessibility.Public;
-            _propertyAccess = Accessibility.Public;
+            _hostPropertyType = null;
+            _hostPropertyAccess = Accessibility.Public;
+            _targetPropertyAccess = Accessibility.Public;
         }
 
         /// <summary>
         /// Gets the type name of the <b>Value</b> property.
         /// </summary>
-        public string ViewModelPropertyTypeName => _viewModelPropertyType.GetTypeName();
+        public string? HostPropertyTypeName => _hostPropertyType?.GetTypeName();
 
         /// <summary>
         /// Gets the type name of the <b>Value</b> property.
         /// </summary>
-        public string PropertyTypeName { get; private set; }
+        public string? TargetPropertyTypeName { get; private set; }
 
         /// <summary>
         /// Sets the type of the <b>Value</b> property.
         /// </summary>
         /// <param name="value">A builder that represents a type.</param>
         /// <returns>A reference to this builder.</returns>
-        public BindHostBuilder WithPropertyType(BaseUserSourceBuilder value)
+        public BindHostBuilder WithTargetPropertyType(BaseUserSourceBuilder value)
         {
-            PropertyTypeName = value.GetTypeName();
+            if (value is null)
+            {
+                throw new ArgumentNullException(nameof(value));
+            }
+
+            TargetPropertyTypeName = value.GetTypeName();
             return this;
         }
 
@@ -57,9 +62,14 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         /// </summary>
         /// <param name="value">A builder that represents a type.</param>
         /// <returns>A reference to this builder.</returns>
-        public BindHostBuilder WithPropertyType(string value)
+        public BindHostBuilder WithTargetPropertyType(string value)
         {
-            PropertyTypeName = value;
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                throw new ArgumentException($"'{nameof(value)}' cannot be null or whitespace.", nameof(value));
+            }
+
+            TargetPropertyTypeName = value;
             return this;
         }
 
@@ -68,9 +78,9 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         /// </summary>
         /// <param name="value">An access modifier.</param>
         /// <returns>A reference to this builder.</returns>
-        public BindHostBuilder WithPropertyAccess(Accessibility value)
+        public BindHostBuilder WithTargetPropertyAccess(Accessibility value)
         {
-            _propertyAccess = value;
+            _targetPropertyAccess = value;
             return this;
         }
 
@@ -79,9 +89,9 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         /// </summary>
         /// <param name="value">A builder that represents a type.</param>
         /// <returns>A reference to this builder.</returns>
-        public BindHostBuilder WithViewModelPropertyType(BaseUserSourceBuilder value)
+        public BindHostBuilder WithHostPropertyType(BaseUserSourceBuilder value)
         {
-            _viewModelPropertyType = value;
+            _hostPropertyType = value ?? throw new ArgumentNullException(nameof(value));
             return this;
         }
 
@@ -90,9 +100,9 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         /// </summary>
         /// <param name="value">An access modifier.</param>
         /// <returns>A reference to this builder.</returns>
-        public BindHostBuilder WithViewModelPropertyAccess(Accessibility value)
+        public BindHostBuilder WithHostPropertyAccess(Accessibility value)
         {
-            _viewModelPropertyAccess = value;
+            _hostPropertyAccess = value;
             return this;
         }
 
@@ -101,18 +111,28 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         /// </summary>
         /// <param name="invocationKind">The invocation kind.</param>
         /// <param name="receiverKind">The receiver kind.</param>
-        /// <param name="viewModelExpression">The view model expression.</param>
-        /// <param name="viewExpression">The view expression.</param>
+        /// <param name="hostExpression">The host expression.</param>
+        /// <param name="targetExpression">The target expression.</param>
         /// <param name="target">The target parameter.</param>
         /// <returns>A reference to this builder.</returns>
         public BindHostBuilder WithTwoWayInvocation(
             InvocationKind invocationKind,
             ReceiverKind receiverKind,
-            Expression<Func<BindHostProxy, object>> viewModelExpression,
-            Expression<Func<WhenChangedHostProxy, object>> viewExpression,
-            string target = "ViewModel")
+            Expression<Func<BindHostProxy, object>> hostExpression,
+            Expression<Func<WhenChangedHostProxy, object>> targetExpression,
+            string target = "targetModel")
         {
-            _twoWayBindInvocation = GetTwoWayBindInvocation(invocationKind, receiverKind, viewModelExpression.ToString(), viewExpression.ToString(), target);
+            if (hostExpression is null)
+            {
+                throw new ArgumentNullException(nameof(hostExpression));
+            }
+
+            if (targetExpression is null)
+            {
+                throw new ArgumentNullException(nameof(targetExpression));
+            }
+
+            _twoWayBindInvocation = GetTwoWayBindInvocation(invocationKind, receiverKind, hostExpression.ToString(), targetExpression.ToString(), target);
             return this;
         }
 
@@ -121,22 +141,42 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         /// </summary>
         /// <param name="invocationKind">The invocation kind.</param>
         /// <param name="receiverKind">The receiver kind.</param>
-        /// <param name="viewModelExpression">The view model expression.</param>
-        /// <param name="viewExpression">The view expression.</param>
-        /// <param name="viewModelConvert">The view model conversion function.</param>
-        /// <param name="viewConvert">The view conversion function.</param>
+        /// <param name="hostExpression">The host expression.</param>
+        /// <param name="targetExpression">The target expression.</param>
+        /// <param name="hostConvert">The host conversion function.</param>
+        /// <param name="targetConvert">The target conversion function.</param>
         /// <param name="target">The target parameter.</param>
         /// <returns>A reference to this builder.</returns>
         public BindHostBuilder WithTwoWayInvocation(
             InvocationKind invocationKind,
             ReceiverKind receiverKind,
-            Expression<Func<BindHostProxy, object>> viewModelExpression,
-            Expression<Func<WhenChangedHostProxy, object>> viewExpression,
-            Expression<Func<object, object, object>> viewModelConvert,
-            Expression<Func<object, object, object>> viewConvert,
-            string target = "ViewModel")
+            Expression<Func<BindHostProxy, object>> hostExpression,
+            Expression<Func<WhenChangedHostProxy, object>> targetExpression,
+            Expression<Func<object, object, object>> hostConvert,
+            Expression<Func<object, object, object>> targetConvert,
+            string target = "targetModel")
         {
-            _twoWayBindInvocation = GetTwoWayBindInvocation(invocationKind, receiverKind, viewModelExpression.ToString(), viewExpression.ToString(), target, viewModelConvert.ToString(), viewConvert.ToString());
+            if (hostExpression is null)
+            {
+                throw new ArgumentNullException(nameof(hostExpression));
+            }
+
+            if (targetExpression is null)
+            {
+                throw new ArgumentNullException(nameof(targetExpression));
+            }
+
+            if (hostConvert is null)
+            {
+                throw new ArgumentNullException(nameof(hostConvert));
+            }
+
+            if (targetConvert is null)
+            {
+                throw new ArgumentNullException(nameof(targetConvert));
+            }
+
+            _twoWayBindInvocation = GetTwoWayBindInvocation(invocationKind, receiverKind, hostExpression.ToString(), targetExpression.ToString(), target, hostConvert.ToString(), targetConvert.ToString());
             return this;
         }
 
@@ -145,18 +185,28 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         /// </summary>
         /// <param name="invocationKind">The invocation kind.</param>
         /// <param name="receiverKind">The receiver kind.</param>
-        /// <param name="viewModelExpression">The view model expression.</param>
-        /// <param name="viewExpression">The view expression.</param>
+        /// <param name="hostExpression">The host expression.</param>
+        /// <param name="targetExpression">The target expression.</param>
         /// <param name="target">The target parameter.</param>
         /// <returns>A reference to this builder.</returns>
         public BindHostBuilder WithOneWayInvocation(
             InvocationKind invocationKind,
             ReceiverKind receiverKind,
-            Expression<Func<BindHostProxy, object>> viewModelExpression,
-            Expression<Func<WhenChangedHostProxy, object>> viewExpression,
-            string target = "ViewModel")
+            Expression<Func<BindHostProxy, object>> hostExpression,
+            Expression<Func<WhenChangedHostProxy, object>> targetExpression,
+            string target = "targetModel")
         {
-            _oneWayBindInvocation = GetOneWayBindInvocation(invocationKind, receiverKind, viewModelExpression.ToString(), viewExpression.ToString(), target);
+            if (hostExpression is null)
+            {
+                throw new ArgumentNullException(nameof(hostExpression));
+            }
+
+            if (targetExpression is null)
+            {
+                throw new ArgumentNullException(nameof(targetExpression));
+            }
+
+            _oneWayBindInvocation = GetOneWayBindInvocation(invocationKind, receiverKind, hostExpression.ToString(), targetExpression.ToString(), target);
             return this;
         }
 
@@ -165,20 +215,40 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         /// </summary>
         /// <param name="invocationKind">The invocation kind.</param>
         /// <param name="receiverKind">The receiver kind.</param>
-        /// <param name="viewModelExpression">The view model expression.</param>
-        /// <param name="viewExpression">The view expression.</param>
-        /// <param name="viewModelConvert">The view model conversion function.</param>
+        /// <param name="hostExpression">The host expression.</param>
+        /// <param name="targetExpression">The target expression.</param>
+        /// <param name="hostConvert">The host conversion function.</param>
         /// <param name="target">The target parameter.</param>
         /// <returns>A reference to this builder.</returns>
         public BindHostBuilder WithOneWayInvocation(
             InvocationKind invocationKind,
             ReceiverKind receiverKind,
-            Expression<Func<BindHostProxy, object>> viewModelExpression,
-            Expression<Func<WhenChangedHostProxy, object>> viewExpression,
-            Expression<Func<object, object, object>> viewModelConvert,
-            string target = "ViewModel")
+            Expression<Func<BindHostProxy, object>> hostExpression,
+            Expression<Func<WhenChangedHostProxy, object>> targetExpression,
+            Expression<Func<object, object, object>> hostConvert,
+            string target = "targetModel")
         {
-            _oneWayBindInvocation = GetOneWayBindInvocation(invocationKind, receiverKind, viewModelExpression.ToString(), viewExpression.ToString(), target, viewModelConvert.ToString());
+            if (hostExpression is null)
+            {
+                throw new ArgumentNullException(nameof(hostExpression));
+            }
+
+            if (targetExpression is null)
+            {
+                throw new ArgumentNullException(nameof(targetExpression));
+            }
+
+            if (hostConvert is null)
+            {
+                throw new ArgumentNullException(nameof(hostConvert));
+            }
+
+            if (string.IsNullOrEmpty(target))
+            {
+                throw new ArgumentException($"'{nameof(target)}' cannot be null or empty.", nameof(target));
+            }
+
+            _oneWayBindInvocation = GetOneWayBindInvocation(invocationKind, receiverKind, hostExpression.ToString(), targetExpression.ToString(), target, hostConvert.ToString());
             return this;
         }
 
@@ -196,25 +266,35 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         /// <inheritdoc/>
         protected override string CreateClass(string nestedClasses)
         {
-            var viewModelPropertyAccess = _viewModelPropertyAccess.ToFriendlyString();
-            var viewModelPropertyTypeName = _viewModelPropertyType.GetTypeName().Replace('+', '.');
-            var propertyAccess = _propertyAccess.ToFriendlyString();
-            var propertyTypeName = PropertyTypeName.Replace('+', '.');
+            if (_hostPropertyType is null)
+            {
+                throw new InvalidOperationException("The Hostl property type is null.");
+            }
+
+            if (TargetPropertyTypeName is null || string.IsNullOrWhiteSpace(TargetPropertyTypeName))
+            {
+                throw new InvalidOperationException("The TargetPropertyTypeName is null");
+            }
+
+            var hostPropertyAccess = _hostPropertyAccess.ToFriendlyString();
+            var hostPropertyTypeName = _hostPropertyType.GetTypeName().Replace('+', '.');
+            var targetPropertyAccess = _targetPropertyAccess.ToFriendlyString();
+            var targetPropertyTypeName = TargetPropertyTypeName.Replace('+', '.');
             var oneWayBindString = string.Empty;
             var twoWayBindString = string.Empty;
 
-            if (_oneWayBindInvocation != null)
+            if (_oneWayBindInvocation is not null)
             {
-                oneWayBindString = @$"public IDisposable {MethodNames.GetOneWayBindSubscription}()
+                oneWayBindString = @$"public IDisposable {MethodNames.GetBindOneWaySubscription}()
         {{
             var instance = this;
             return {_oneWayBindInvocation};
         }}";
             }
 
-            if (_twoWayBindInvocation != null)
+            if (_twoWayBindInvocation is not null)
             {
-                twoWayBindString = @$"public IDisposable {MethodNames.GetTwoWayBindSubscription}()
+                twoWayBindString = @$"public IDisposable {MethodNames.GetBindTwoWaySubscription}()
         {{
             var instance = this;
             return {_twoWayBindInvocation};
@@ -224,30 +304,30 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
             return $@"
     {ClassAccess.ToFriendlyString()} partial class {ClassName} : INotifyPropertyChanged
     {{
-        private {viewModelPropertyTypeName} _viewModel;
-        private {propertyTypeName} _value;
+        private {HostPropertyTypeName} _host;
+        private {targetPropertyTypeName} _target;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        {propertyAccess} {propertyTypeName} Value
+        {targetPropertyAccess} {targetPropertyTypeName} Target
         {{
-            get => _value;
-            set => RaiseAndSetIfChanged(ref _value, value);
+            get => _target;
+            set => RaiseAndSetIfChanged(ref _target, value);
         }}
 
-        {viewModelPropertyAccess} {viewModelPropertyTypeName} ViewModel
+        {hostPropertyAccess} {hostPropertyTypeName} Host
         {{
-            get => _viewModel;
-            set => RaiseAndSetIfChanged(ref _viewModel, value);
+            get => _host;
+            set => RaiseAndSetIfChanged(ref _host, value);
         }}
               
         {oneWayBindString}
 
         {twoWayBindString}
 
-        public IObservable<object> {MethodNames.GetWhenChangedViewModelObservable}()
+        public IObservable<object> {MethodNames.GetWhenChangedTargetObservable}()
         {{
-            return this.WhenChanged(x => x.ViewModel);
+            return this.WhenChanged(x => x.targetModel);
         }}
 
         public IObservable<object> {MethodNames.GetWhenChangedObservable}()
@@ -278,43 +358,43 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
 
         private static string GetTwoWayBindInvocation(
             InvocationKind invocationKind,
-            ReceiverKind viewModelKind,
-            string viewModelArgs,
-            string viewArgs,
-            string targetName,
-            string viewModelConvertFunc = null,
-            string viewConvertFunc = null)
+            ReceiverKind targetModelKind,
+            string hostArgs,
+            string targetArgs,
+            string hostName,
+            string? hostConvertFunc = null,
+            string? targetConvertFunc = null)
         {
-            var receiver = viewModelKind == ReceiverKind.This ? "this" : "instance";
+            var receiver = targetModelKind == ReceiverKind.This ? "this" : "instance";
 
-            if (viewModelConvertFunc != null)
+            if (hostConvertFunc is not null)
             {
-                viewArgs = viewArgs + ", " + viewModelConvertFunc + ", " + viewConvertFunc;
+                targetArgs = targetArgs + ", " + hostConvertFunc + ", " + targetConvertFunc;
             }
 
             return invocationKind == InvocationKind.MemberAccess ?
-                $"{receiver}.Bind({targetName}, {viewModelArgs}, {viewArgs})" :
-                $"BindExtensions.Bind({receiver}, {targetName}, {viewModelArgs}, {viewArgs})";
+                $"{receiver}.Bind({hostName}, {hostArgs}, {targetArgs})" :
+                $"BindExtensions.Bind({receiver}, {hostName}, {hostArgs}, {targetArgs})";
         }
 
         private static string GetOneWayBindInvocation(
             InvocationKind invocationKind,
-            ReceiverKind viewModelKind,
-            string viewModelArgs,
-            string viewArgs,
-            string targetName,
-            string viewModelConvertFunc = null)
+            ReceiverKind targetModelKind,
+            string hostArgs,
+            string targetArgs,
+            string hostName,
+            string? hostConvertFunc = null)
         {
-            var receiver = viewModelKind == ReceiverKind.This ? "this" : "instance";
+            var receiver = targetModelKind == ReceiverKind.This ? "this" : "instance";
 
-            if (viewModelConvertFunc != null)
+            if (hostConvertFunc is not null)
             {
-                viewArgs = viewArgs + ", " + viewModelConvertFunc;
+                targetArgs = targetArgs + ", " + hostConvertFunc;
             }
 
             return invocationKind == InvocationKind.MemberAccess ?
-                $"{receiver}.OneWayBind({targetName}, {viewModelArgs}, {viewArgs})" :
-                $"BindExtensions.OneWayBind({receiver}, {targetName}, {viewModelArgs}, {viewArgs})";
+                $"{receiver}.OneWayBind({hostName}, {hostArgs}, {targetArgs})" :
+                $"BindExtensions.OneWayBind({receiver}, {hostName}, {hostArgs}, {targetArgs})";
         }
     }
 }

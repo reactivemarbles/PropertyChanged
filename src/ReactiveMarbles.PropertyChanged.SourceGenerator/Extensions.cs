@@ -13,11 +13,11 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
     internal static class Extensions
     {
-        public static InputTypeGroup ToInputTypeGroup(this IEnumerable<OutputTypeGroup> source, ITypeSymbol inputType) =>
-            new(inputType, source.ToList());
+        ////public static InputTypeGroup ToInputTypeGroup(this IEnumerable<OutputTypeGroup> source, ITypeSymbol inputType) =>
+        ////    new(inputType, source.ToList());
 
-        public static OutputTypeGroup ToOutputTypeGroup(this List<ExpressionArgument> source, ITypeSymbol outputType) =>
-            new(outputType, source);
+        ////public static OutputTypeGroup ToOutputTypeGroup(this List<ExpressionArgument> source, ITypeSymbol outputType) =>
+        ////    new(outputType, source);
 
         public static string GetVariableName(this ITypeSymbol outputTypeSymbol) =>
             $"{outputTypeSymbol.ToDisplayParts().Where(x => x.Kind != SymbolDisplayPartKind.Punctuation).Select(x => x.ToString()).Aggregate((a, b) => a + b)}".FirstCharToUpper();
@@ -30,18 +30,18 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                _ => input[0].ToString().ToUpper() + input.Substring(1),
            };
 
-        public static List<AncestorClassInfo> GetAncestors(this ITypeSymbol inputType)
-        {
-            var ancestorClasses = new List<AncestorClassInfo>();
-            var containingType = inputType.ContainingType;
-            while (containingType != null)
-            {
-                ancestorClasses.Add(new(containingType.Name, containingType.DeclaredAccessibility));
-                containingType = containingType.ContainingType;
-            }
+        ////public static List<AncestorClassInfo> GetAncestors(this ITypeSymbol inputType)
+        ////{
+        ////    var ancestorClasses = new List<AncestorClassInfo>();
+        ////    var containingType = inputType.ContainingType;
+        ////    while (containingType is not null)
+        ////    {
+        ////        ancestorClasses.Add(new(containingType.Name, containingType.DeclaredAccessibility));
+        ////        containingType = containingType.ContainingType;
+        ////    }
 
-            return ancestorClasses;
-        }
+        ////    return ancestorClasses;
+        ////}
 
         public static string GetNamespace(this ITypeSymbol inputType)
         {
@@ -49,7 +49,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             return containingNamespace is null ? string.Empty : containingNamespace.ToDisplayString();
         }
 
-        public static void ReportDiagnostic(this GeneratorExecutionContext context, DiagnosticDescriptor descriptor, Location? location = null) => context.ReportDiagnostic(Diagnostic.Create(descriptor, location));
+        public static void ReportDiagnostic(this in GeneratorExecutionContext context, DiagnosticDescriptor descriptor, Location? location = null, params string[] items) => context.ReportDiagnostic(Diagnostic.Create(descriptor, location, items));
 
         public static void BinaryListInsert<TKey, TItem>(this SortedList<TKey, List<TItem>> dictionary, TKey key, TItem item, IComparer<TItem>? comparer = null)
         {
@@ -59,7 +59,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                 dictionary[key] = list;
             }
 
-            var index = comparer != null ? list.BinarySearch(item, comparer) : list.BinarySearch(item);
+            var index = comparer is not null ? list.BinarySearch(item, comparer) : list.BinarySearch(item);
 
             if (index < 0)
             {
@@ -78,32 +78,32 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             list.Add(item);
         }
 
-        public static void InsertOutputGroup(this SortedList<ITypeSymbol, OutputTypeGroup> inputList, ITypeSymbol type, ExpressionArgument expression)
-        {
-            if (!inputList.TryGetValue(type, out var outputGroup))
-            {
-                outputGroup = new(type);
-                inputList[type] = outputGroup;
-            }
+        ////public static void InsertOutputGroup(this SortedList<ITypeSymbol, OutputTypeGroup> inputList, ITypeSymbol type, ExpressionArgument expression)
+        ////{
+        ////    if (!inputList.TryGetValue(type, out var outputGroup))
+        ////    {
+        ////        outputGroup = new(type);
+        ////        inputList[type] = outputGroup;
+        ////    }
 
-            outputGroup.ExpressionArguments.Add(expression);
-        }
+        ////    outputGroup.ExpressionArguments.Add(expression);
+        ////}
 
-        public static void BinaryInsertOutputGroup(this SortedList<ITypeSymbol, OutputTypeGroup> inputList, ITypeSymbol type, ExpressionArgument expression)
-        {
-            if (!inputList.TryGetValue(type, out var outputGroup))
-            {
-                outputGroup = new(type);
-                inputList[type] = outputGroup;
-            }
+        ////public static void BinaryInsertOutputGroup(this SortedList<ITypeSymbol, OutputTypeGroup> inputList, ITypeSymbol type, ExpressionArgument expression)
+        ////{
+        ////    if (!inputList.TryGetValue(type, out var outputGroup))
+        ////    {
+        ////        outputGroup = new(type);
+        ////        inputList[type] = outputGroup;
+        ////    }
 
-            var index = outputGroup.ExpressionArguments.BinarySearch(expression);
+        ////    var index = outputGroup.ExpressionArguments.BinarySearch(expression);
 
-            if (index < 0)
-            {
-                outputGroup.ExpressionArguments.Insert(~index, expression);
-            }
-        }
+        ////    if (index < 0)
+        ////    {
+        ////        outputGroup.ExpressionArguments.Insert(~index, expression);
+        ////    }
+        ////}
 
         public static Accessibility GetMinVisibility(this ImmutableArray<ITypeSymbol> typeSymbols)
         {
@@ -149,7 +149,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             var accessibility = typeSymbol.DeclaredAccessibility;
             typeSymbol = typeSymbol.ContainingType;
 
-            while (typeSymbol != null)
+            while (typeSymbol is not null)
             {
                 if (typeSymbol.DeclaredAccessibility < accessibility)
                 {

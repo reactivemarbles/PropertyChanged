@@ -11,7 +11,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
     /// </summary>
     public class BindHostProxy : HostProxyBase
     {
-        private WhenChangedHostProxy _viewModelProxy;
+        private WhenChangedHostProxy? _viewModelProxy;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BindHostProxy"/> class.
@@ -25,7 +25,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         /// <summary>
         /// Gets or sets the view model value.
         /// </summary>
-        public WhenChangedHostProxy ViewModel
+        public WhenChangedHostProxy? ViewModel
         {
             get => _viewModelProxy;
             set
@@ -38,7 +38,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         /// <summary>
         /// Gets or sets the view value.
         /// </summary>
-        public object Value
+        public object? Value
         {
             get => ReflectionUtil.GetProperty(Source, nameof(Value));
             set => ReflectionUtil.SetProperty(Source, nameof(Value), value);
@@ -53,7 +53,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         {
             try
             {
-                return GetMethod(Source, MethodNames.GetWhenChangedViewModelObservable) as IObservable<object>;
+                var returnValue = GetMethod(Source, MethodNames.GetWhenChangedHostObservable) ?? throw new InvalidOperationException("The observable for the host WhenChanged is null");
+                return (IObservable<object>)returnValue;
             }
             catch (Exception ex)
             {
@@ -71,7 +72,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         {
             try
             {
-                return GetMethod(Source, MethodNames.GetWhenChangedObservable) as IObservable<object>;
+                var returnValue = GetMethod(Source, MethodNames.GetWhenChangedObservable) ?? throw new InvalidOperationException("The observable for the WhenChanged is null");
+                return (IObservable<object>)returnValue;
             }
             catch (Exception ex)
             {
@@ -89,7 +91,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         {
             try
             {
-                return GetMethod(Source, MethodNames.GetOneWayBindSubscription) as IDisposable;
+                var returnValue = GetMethod(Source, MethodNames.GetBindOneWaySubscription) ?? throw new InvalidOperationException("The IDisposable for the BindOneWay is null");
+                return (IDisposable)returnValue;
             }
             catch (Exception ex)
             {
@@ -107,7 +110,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
         {
             try
             {
-                return GetMethod(Source, MethodNames.GetTwoWayBindSubscription) as IDisposable;
+                var returnValue = GetMethod(Source, MethodNames.GetBindTwoWaySubscription) ?? throw new InvalidOperationException("The IDisposable for the BindTwoWay is null");
+                return (IDisposable)returnValue;
             }
             catch (Exception ex)
             {

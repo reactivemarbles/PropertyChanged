@@ -15,14 +15,6 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
         public int Compare(ITypeSymbol x, ITypeSymbol y)
         {
-            switch (x)
-            {
-                case null when ReferenceEquals(y, null):
-                    return 0;
-                case null:
-                    return 1;
-            }
-
             if (ReferenceEquals(x, y))
             {
                 return 0;

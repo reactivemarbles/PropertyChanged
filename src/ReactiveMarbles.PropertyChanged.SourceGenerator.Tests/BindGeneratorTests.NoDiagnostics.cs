@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 using FluentAssertions;
 
@@ -48,9 +49,10 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         /// <param name="hostPropertiesAccess">The access modifier of the properties in the host.</param>
         /// <param name="vmTypeAccess">The access modifier of the view model type.</param>
         /// <param name="vmPropertiesAccess">The access modifier of the properties in the view model.</param>
+        /// <returns>A task to monitor the progress.</returns>
         [Theory]
         [MemberData(nameof(AccessibilityTestCases.GetValidAccessModifierCombinations))]
-        public void NoDiagnostics_TwoWayBind(Accessibility hostContainerTypeAccess, Accessibility hostTypeAccess, Accessibility hostPropertiesAccess, Accessibility vmTypeAccess, Accessibility vmPropertiesAccess)
+        public async Task NoDiagnostics_TwoWayBind(Accessibility hostContainerTypeAccess, Accessibility hostTypeAccess, Accessibility hostPropertiesAccess, Accessibility vmTypeAccess, Accessibility vmPropertiesAccess)
         {
             var viewModelHostDetails = new WhenChangedHostBuilder()
                 .WithClassAccess(vmTypeAccess)
@@ -63,10 +65,10 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .WithClassName("Host")
                 .WithTwoWayInvocation(InvocationKind.MemberAccess, ReceiverKind.This, x => x.Value, x => x.Value)
                 .WithClassAccess(hostTypeAccess)
-                .WithPropertyType("string")
-                .WithPropertyAccess(hostPropertiesAccess)
-                .WithViewModelPropertyAccess(hostPropertiesAccess)
-                .WithViewModelPropertyType(viewModelHostDetails)
+                .WithTargetPropertyType("string")
+                .WithTargetPropertyAccess(hostPropertiesAccess)
+                .WithHostPropertyAccess(hostPropertiesAccess)
+                .WithHostPropertyType(viewModelHostDetails)
                 .AddNestedClass(viewModelHostDetails);
 
             var hostContainerTypeInfo = new EmptyClassBuilder()
@@ -74,8 +76,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .WithClassAccess(hostContainerTypeAccess)
                 .AddNestedClass(hostTypeInfo);
 
-            var fixture = BindFixture.Create(hostTypeInfo, TestContext);
-            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, false);
+            var fixture = await BindFixture.Create(hostTypeInfo, TestContext).ConfigureAwait(false);
+            fixture.RunGenerator(hostTypeInfo, out var compilationDiagnostics, out var generatorDiagnostics);
 
             generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning).Should().BeEmpty();
             compilationDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning).Should().BeEmpty();
@@ -109,9 +111,10 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
         /// <param name="hostPropertiesAccess">The access modifier of the properties in the host.</param>
         /// <param name="vmTypeAccess">The access modifier of the view model type.</param>
         /// <param name="vmPropertiesAccess">The access modifier of the properties in the view model.</param>
+        /// <returns>A task to monitor the progress.</returns>
         [Theory]
         [MemberData(nameof(AccessibilityTestCases.GetValidAccessModifierCombinations))]
-        public void NoDiagnostics_OneWayBind(Accessibility hostContainerTypeAccess, Accessibility hostTypeAccess, Accessibility hostPropertiesAccess, Accessibility vmTypeAccess, Accessibility vmPropertiesAccess)
+        public async Task NoDiagnostics_OneWayBind(Accessibility hostContainerTypeAccess, Accessibility hostTypeAccess, Accessibility hostPropertiesAccess, Accessibility vmTypeAccess, Accessibility vmPropertiesAccess)
         {
             var viewModelHostDetails = new WhenChangedHostBuilder()
                 .WithClassAccess(vmTypeAccess)
@@ -124,10 +127,10 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .WithClassName("Host")
                 .WithOneWayInvocation(InvocationKind.MemberAccess, ReceiverKind.This, x => x.Value, x => x.Value)
                 .WithClassAccess(hostTypeAccess)
-                .WithPropertyType("string")
-                .WithPropertyAccess(hostPropertiesAccess)
-                .WithViewModelPropertyAccess(hostPropertiesAccess)
-                .WithViewModelPropertyType(viewModelHostDetails)
+                .WithTargetPropertyType("string")
+                .WithTargetPropertyAccess(hostPropertiesAccess)
+                .WithHostPropertyAccess(hostPropertiesAccess)
+                .WithHostPropertyType(viewModelHostDetails)
                 .AddNestedClass(viewModelHostDetails);
 
             var hostContainerTypeInfo = new EmptyClassBuilder()
@@ -135,8 +138,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
                 .WithClassAccess(hostContainerTypeAccess)
                 .AddNestedClass(hostTypeInfo);
 
-            var fixture = BindFixture.Create(hostTypeInfo, TestContext);
-            fixture.RunGenerator(out var compilationDiagnostics, out var generatorDiagnostics, false);
+            var fixture = await BindFixture.Create(hostTypeInfo, TestContext).ConfigureAwait(false);
+            fixture.RunGenerator(hostTypeInfo, out var compilationDiagnostics, out var generatorDiagnostics);
 
             generatorDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning).Should().BeEmpty();
             compilationDiagnostics.Where(x => x.Severity >= DiagnosticSeverity.Warning).Should().BeEmpty();

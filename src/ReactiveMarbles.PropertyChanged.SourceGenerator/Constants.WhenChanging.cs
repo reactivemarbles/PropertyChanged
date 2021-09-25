@@ -25,7 +25,12 @@ using System.Runtime.CompilerServices;
 /// <summary>
 /// Provides extension methods for the notify property changing extensions.
 /// </summary>
-public static partial class NotifyPropertyChangingExtensions
+[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+[global::System.Diagnostics.DebuggerNonUserCode]
+[Preserve(AllMembers=true)]
+[global::System.Reflection.Obfuscation(Exclude=true)]
+[global::System.ComponentModel.EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)]
+internal static partial class NotifyPropertyChangingExtensions
 {
     /// <summary>
     /// Notifies when the specified property is about to change.

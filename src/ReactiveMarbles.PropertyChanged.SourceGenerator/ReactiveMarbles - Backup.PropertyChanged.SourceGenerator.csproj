@@ -35,7 +35,7 @@
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.2" PrivateAssets="all" GeneratePathProperty="true" />
     <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="3.11.0" PrivateAssets="all" GeneratePathProperty="true" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.11.0" PrivateAssets="all" GeneratePathProperty="true" />
-    <PackageReference Include="ReactiveMarbles.RoslynHelpers" Version="1.0.27" GeneratePathProperty="true" PrivateAssets="all" />
+    <PackageReference Include="ReactiveMarbles.RoslynHelpers" Version="1.0.12" GeneratePathProperty="true" PrivateAssets="all" />
     <PackageReference Include="ILRepack" Version="2.0.18" GeneratePathProperty="true" PrivateAssets="all" />
   </ItemGroup>
 
@@ -69,7 +69,7 @@
 
 
   <Target Name="ILRepack" AfterTargets="Build">
-    <Exec Command="$(PKGILRepack)\tools\ILRepack &quot;$(TargetPath)&quot; &quot;$(PKGReactiveMarbles_RoslynHelpers)\lib\netstandard2.0\ReactiveMarbles.RoslynHelpers.dll&quot; /out:&quot;$(TargetPath)&quot; /lib:&quot;$(PKGMicrosoft_CodeAnalysis_CSharp_Workspaces)\lib\netstandard2.0&quot; /lib:&quot;$(PKGMicrosoft_CodeAnalysis_Analyzers)\analyzers\dotnet\cs&quot; /lib:&quot;$(PKGMicrosoft_CodeAnalysis_Common)\lib\netstandard2.0&quot; /union /internalize" />
+    <Exec Command="$(PKGILRepack)\tools\ILRepack &quot;$(TargetPath)&quot; &quot;$(PKGReactiveMarbles_RoslynHelpers)\lib\netstandard2.0\ReactiveMarbles.RoslynHelpers.dll&quot; /out:&quot;$(TargetPath)&quot; /lib:&quot;$(PKGMicrosoft_CodeAnalysis_CSharp_Workspaces)\lib\netstandard2.0&quot; /lib:&quot;$(PKGMicrosoft_CodeAnalysis_Analyzers)\analyzers\dotnet\cs&quot; /lib:&quot;$(PKGMicrosoft_CodeAnalysis_Common)\lib\netstandard2.0&quot; /union /internalize /ndebug" />
   </Target>
 
   <Target Name="PackBuildOutputs" AfterTargets="ILRepack">

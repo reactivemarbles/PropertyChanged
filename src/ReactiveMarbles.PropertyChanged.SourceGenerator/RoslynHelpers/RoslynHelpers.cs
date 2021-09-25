@@ -10,9 +10,11 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using ReactiveMarbles.PropertyChanged.SourceGenerator.MethodCreators;
+
 using static ReactiveMarbles.RoslynHelpers.SyntaxFactoryHelpers;
 
-namespace ReactiveMarbles.PropertyChanged.SourceGenerator
+namespace ReactiveMarbles.PropertyChanged.SourceGenerator.RoslynHelpers
 {
     internal static class RoslynHelpers
     {
@@ -85,7 +87,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                                     MemberBindingExpression("Invoke"),
                                     new[]
                                     {
-                                        Argument("this"),
+                                        Argument(Constants.ThisObjectVariable),
                                         Argument(
                                             ObjectCreationExpression("PropertyChangedEventArgs", new[] { Argument("propertyName") })),
                                     }))),
@@ -141,7 +143,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             if (isExtension)
             {
                 modifiers.Add(SyntaxKind.StaticKeyword);
-                parameterList.Add(Parameter(inputType, "source", new[] { SyntaxKind.ThisKeyword }));
+                parameterList.Add(Parameter(inputType, Constants.SourceParameterName, new[] { SyntaxKind.ThisKeyword }));
             }
 
             for (var i = 0; i < returnTypes.Count; ++i)
@@ -164,7 +166,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             return MethodDeclaration(modifiers, $"IObservable<{outputType}>", methodName, parameterList, 0, body);
         }
 
-        public static MethodDeclarationSyntax Bind(string viewModelInputType, string viewModelOutputType, string viewInputType, string viewOutputType, bool isExtension, bool hasConverters, Accessibility accessibility, BlockSyntax body)
+        public static MethodDeclarationSyntax BindTwoWay(string hostInputType, string hostOutputType, string targetInputType, string targetOutputType, bool isExtension, bool hasConverters, Accessibility accessibility, BlockSyntax body)
         {
             var modifiers = accessibility.GetAccessibilityTokens().ToList();
 
@@ -173,34 +175,63 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             if (isExtension)
             {
                 modifiers.Add(SyntaxKind.StaticKeyword);
-                parameterList.Add(Parameter(viewModelInputType, "fromObject", new[] { SyntaxKind.ThisKeyword }));
+                parameterList.Add(Parameter(hostInputType, Constants.FromObjectVariable, new[] { SyntaxKind.ThisKeyword }));
             }
 
-            parameterList.Add(Parameter(viewInputType, "targetObject"));
+            parameterList.Add(Parameter(targetInputType, Constants.TargetParameter));
 
-            parameterList.Add(Parameter(GetExpressionFunc(viewModelInputType, viewModelOutputType), "fromProperty"));
-            parameterList.Add(Parameter(GetExpressionFunc(viewInputType, viewOutputType), "toProperty"));
+            parameterList.Add(Parameter(GetExpressionFunc(hostInputType, hostOutputType), Constants.FromPropertyParameter));
+            parameterList.Add(Parameter(GetExpressionFunc(targetInputType, targetOutputType), Constants.ToPropertyParameter));
 
             if (hasConverters)
             {
-                parameterList.Add(Parameter(GenericName("Func", new[] { IdentifierName(viewModelInputType), IdentifierName(viewOutputType) }), "hostToTargetConv"));
-                parameterList.Add(Parameter(GenericName("Func", new[] { IdentifierName(viewInputType), IdentifierName(viewModelOutputType) }), "targetToHostConv"));
+                parameterList.Add(Parameter(GenericName("Func", new[] { IdentifierName(hostInputType), IdentifierName(targetOutputType) }), Constants.HostToTargetConverterFuncParameter));
+                parameterList.Add(Parameter(GenericName("Func", new[] { IdentifierName(targetInputType), IdentifierName(hostOutputType) }), Constants.TargetToHostConverterFuncParameter));
             }
 
             parameterList.Add(Parameter("IScheduler", "scheduler", EqualsValueClause(NullLiteral())));
 
             parameterList.AddRange(CallerMembersParameters());
 
-            return MethodDeclaration(modifiers, "IDisposable", "Bind", parameterList, 0, body);
+            return MethodDeclaration(modifiers, Constants.SystemDisposableTypeName, "Bind", parameterList, 0, body);
+        }
+
+        public static MethodDeclarationSyntax BindOneWay(string hostInputType, string hostOutputType, string targetInputType, string targetOutputType, bool isExtension, bool hasConverters, Accessibility accessibility, BlockSyntax body)
+        {
+            var modifiers = accessibility.GetAccessibilityTokens().ToList();
+
+            var parameterList = new List<ParameterSyntax>();
+
+            if (isExtension)
+            {
+                modifiers.Add(SyntaxKind.StaticKeyword);
+                parameterList.Add(Parameter(hostInputType, Constants.FromObjectVariable, new[] { SyntaxKind.ThisKeyword }));
+            }
+
+            parameterList.Add(Parameter(targetInputType, Constants.TargetParameter));
+
+            parameterList.Add(Parameter(GetExpressionFunc(hostInputType, hostOutputType), Constants.FromPropertyParameter));
+            parameterList.Add(Parameter(GetExpressionFunc(targetInputType, targetOutputType), Constants.ToPropertyParameter));
+
+            if (hasConverters)
+            {
+                parameterList.Add(Parameter(GenericName("Func", new[] { IdentifierName(hostInputType), IdentifierName(targetOutputType) }), Constants.HostToTargetConverterFuncParameter));
+            }
+
+            parameterList.Add(Parameter(Constants.ISchedulerTypeName, "scheduler", EqualsValueClause(NullLiteral())));
+
+            parameterList.AddRange(CallerMembersParameters());
+
+            return MethodDeclaration(modifiers, Constants.SystemDisposableTypeName, "BindOneWay", parameterList, 0, body);
         }
 
         public static GenericNameSyntax GetExpressionFunc(string inputType, string returnType) =>
             GenericName(
-                "Expression",
+                "global::System.Linq.Expressions.Expression",
                 new[]
                 {
                     GenericName(
-                        "Func",
+                        "global::System.Func",
                         new[]
                         {
                             IdentifierName(inputType),
@@ -229,7 +260,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                         {
                             Argument(LiteralExpression(SyntaxKind.StringLiteralExpression, Literal(keyName))),
                         }),
-                    SimpleLambdaExpression(Parameter("source"), observableExpression));
+                    SimpleLambdaExpression(Parameter(Constants.SourceParameterName), observableExpression));
 
         public static FieldDeclarationSyntax MapDictionary(string inputTypeName, string outputTypeName, string mapName, IReadOnlyCollection<ExpressionSyntax> initializerMembers)
         {
@@ -284,7 +315,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             LocalDeclarationStatement(VariableDeclaration($"IObservable<{type}>", new[] { VariableDeclarator(obsName, EqualsValueClause(InvokeWhenChanged(methodName, expressionName, source))) }));
 
         public static LocalDeclarationStatementSyntax InvokeWhenChangedSkipVariable(string methodName, string type, string obsName, string expressionName, string source, int skipNumber) =>
-            LocalDeclarationStatement(VariableDeclaration($"IObservable<{type}>", new[] { VariableDeclarator(obsName, EqualsValueClause(InvocationExpression(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, InvokeWhenChanged(methodName, expressionName, source), "Skip"), new[] { Argument(LiteralExpression(skipNumber)) }))) }));
+            LocalDeclarationStatement(VariableDeclaration($"IObservable<{type}>", new[] { VariableDeclarator(obsName, EqualsValueClause(InvocationExpression(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, InvokeWhenChanged(methodName, expressionName, source), Constants.SkipMethodName), new[] { Argument(LiteralExpression(skipNumber)) }))) }));
 
         public static InvocationExpressionSyntax SelectObservableNotifyPropertyChangedSwitch(InvocationExpressionSyntax sourceInvoke, string returnType, string inputName, string memberName, string eventName, string handlerName) =>
             InvocationExpression(
@@ -294,12 +325,12 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                         MemberAccessExpression(
                             SyntaxKind.SimpleMemberAccessExpression,
                             sourceInvoke,
-                            "Select"),
+                            Constants.SelectMethod),
                         new[]
                         {
                             Argument(SimpleLambdaExpression(Parameter(inputName), ObservableNotifyPropertyChanged(returnType, inputName, memberName, eventName, handlerName))),
                         }),
-                    "Switch"));
+                    Constants.SwitchMethodName));
 
         public static InvocationExpressionSyntax? GetObservableChain(string inputName, IReadOnlyList<ExpressionChain> members, string eventName, string handlerName)
         {
@@ -310,7 +341,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
                 observable = i == 0 || observable is null ?
                     ObservableNotifyPropertyChanged(outputType.ToDisplayString(), inputName, name, eventName, handlerName) :
-                    SelectObservableNotifyPropertyChangedSwitch(observable, outputType.ToDisplayString(), "source", name, eventName, handlerName);
+                    SelectObservableNotifyPropertyChangedSwitch(observable, outputType.ToDisplayString(), Constants.SourceParameterName, name, eventName, handlerName);
             }
 
             return observable;
@@ -318,20 +349,20 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 
         public static InvocationExpressionSyntax ObservableNotifyPropertyChanged(string returnType, string inputName, string memberName, string eventName, string handlerName) =>
             InvocationExpression(
-                MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName("Observable"), GenericName("Create", new TypeSyntax[] { IdentifierName(returnType) })),
+                MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName("Observable"), GenericName(Constants.CreateMethodName, new TypeSyntax[] { IdentifierName(returnType) })),
                 new[]
                 {
                     Argument(
                         SimpleLambdaExpression(
-                            Parameter("observer"),
+                            Parameter(Constants.ObserverParameterName),
                             Block(
                                 new StatementSyntax[]
                                 {
                                     IfStatement(
                                         BinaryExpression(SyntaxKind.EqualsExpression, IdentifierName(inputName), NullLiteral()),
-                                        ReturnStatement(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, "Disposable", "Empty"))),
+                                        ReturnStatement(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, "Disposable", Constants.EmptyPropertyName))),
                                     ExpressionStatement(InvocationExpression(
-                                        MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, "observer", "OnNext"),
+                                        MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, Constants.ObserverParameterName, Constants.OnNextMethodName),
                                         new[] { Argument(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, inputName, memberName)) })),
                                     LocalDeclarationStatement(
                                         VariableDeclaration(
@@ -343,7 +374,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                                                     EqualsValueClause(ParenthesizedLambdaExpression(
                                                         new[]
                                                         {
-                                                            Parameter("sender"),
+                                                            Parameter(Constants.SenderParameterName),
                                                             Parameter("e"),
                                                         },
                                                         Block(
@@ -360,8 +391,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                                                                             ExpressionStatement(InvocationExpression(
                                                                                 MemberAccessExpression(
                                                                                     SyntaxKind.SimpleMemberAccessExpression,
-                                                                                    "observer",
-                                                                                    "OnNext"),
+                                                                                    Constants.ObserverParameterName,
+                                                                                    Constants.OnNextMethodName),
                                                                                 new[]
                                                                                 {
                                                                                     Argument(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, inputName, memberName)),
@@ -373,21 +404,21 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
                                             })),
                                     ExpressionStatement(AssignmentExpression(SyntaxKind.AddAssignmentExpression, MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, inputName, eventName), IdentifierName("handler"))),
                                     ReturnStatement(InvocationExpression(
-                                        MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, "Disposable", "Create"),
+                                        MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, "Disposable", Constants.CreateMethodName),
                                         new[]
                                         {
                                             Argument(TupleExpression(
                                                 new[]
                                                 {
                                                     Argument(inputName, "Parent"),
-                                                    Argument("handler", "Handler"),
+                                                    Argument("handler", Constants.HandlerMethodName),
                                                 })),
                                             Argument(SimpleLambdaExpression(
-                                                Parameter("x"),
+                                                Parameter(Constants.LambdaSingleParameterName),
                                                 AssignmentExpression(
                                                     SyntaxKind.SubtractAssignmentExpression,
                                                     MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, inputName, eventName),
-                                                    MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, "x", "Handler")))),
+                                                    MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, Constants.LambdaSingleParameterName, Constants.HandlerMethodName)))),
                                         })),
                                 },
                                 1))),
@@ -396,19 +427,19 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
         public static IEnumerable<ParameterSyntax> CallerMembersParameters() =>
             new[]
             {
-                Parameter(new[] { AttributeList(Attribute("CallerMemberName")) }, "string", "callerMemberName", EqualsValueClause(NullLiteral())),
-                Parameter(new[] { AttributeList(Attribute("CallerFilePath")) }, "string", "callerFilePath", EqualsValueClause(NullLiteral())),
-                Parameter(new[] { AttributeList(Attribute("CallerLineNumber")) }, "int", "callerLineNumber", EqualsValueClause(LiteralExpression(0))),
+                Parameter(new[] { AttributeList(Attribute("global::System.Runtime.CompilerServices.CallerMemberName")) }, "string", "callerMemberName", EqualsValueClause(NullLiteral())),
+                Parameter(new[] { AttributeList(Attribute("global::System.Runtime.CompilerServices.CallerFilePath")) }, "string", "callerFilePath", EqualsValueClause(NullLiteral())),
+                Parameter(new[] { AttributeList(Attribute("global::System.Runtime.CompilerServices.CallerLineNumber")) }, "int", "callerLineNumber", EqualsValueClause(LiteralExpression(0))),
             };
 
         public static MethodDeclarationSyntax GetMethodToProperty(string propertyType, string propertyName, string methodName, Accessibility accessibility) =>
             MethodDeclaration(accessibility.GetAccessibilityTokens(), propertyType, propertyName, 1, ArrowExpressionClause(IdentifierName(propertyName)));
 
         public static MethodDeclarationSyntax GetMethodExpressionToProperty(string className, string propertyType, string propertyName, string methodName, Accessibility accessibility) =>
-            MethodDeclaration(accessibility.GetAccessibilityTokens(), propertyType, propertyName, new[] { TypeParameter(className), TypeParameter(propertyType) }, 1, ArrowExpressionClause(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, "x", propertyName)));
+            MethodDeclaration(accessibility.GetAccessibilityTokens(), propertyType, propertyName, new[] { TypeParameter(className), TypeParameter(propertyType) }, 1, ArrowExpressionClause(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, Constants.LambdaSingleParameterName, propertyName)));
 
         public static PropertyDeclarationSyntax GetPropertyExpressionToProperty(string inputType, string outputType, string propertyName, string valuePropertyName, Accessibility accessibility) =>
-            PropertyDeclaration(GetExpressionFunc(inputType, outputType), propertyName, accessibility.GetAccessibilityTokens(), new[] { AccessorDeclaration(SyntaxKind.GetAccessorDeclaration) }, EqualsValueClause(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, "x", valuePropertyName)), 0);
+            PropertyDeclaration(GetExpressionFunc(inputType, outputType), propertyName, accessibility.GetAccessibilityTokens(), new[] { AccessorDeclaration(SyntaxKind.GetAccessorDeclaration) }, EqualsValueClause(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, Constants.LambdaSingleParameterName, valuePropertyName)), 0);
 
         public static SimpleLambdaExpressionSyntax LambdaIndexer(string variableName, string arrayName, int index) =>
             SimpleLambdaExpression(
@@ -452,7 +483,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             if (isExtension)
             {
                 modifiers.Add(SyntaxKind.StaticKeyword);
-                parameterList.Add(Parameter(inputType, "source", new[] { SyntaxKind.ThisKeyword }));
+                parameterList.Add(Parameter(inputType, Constants.SourceParameterName, new[] { SyntaxKind.ThisKeyword }));
             }
 
             parameterList.Add(Parameter(

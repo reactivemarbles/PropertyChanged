@@ -84,16 +84,6 @@ public class ViewModel : INotifyPropertyChanged
             AssertDiagnostic(source, DiagnosticWarnings.ExpressionMustBeInline);
         }
 
-        private static void AssertDiagnostic(string source, DiagnosticDescriptor expectedDiagnostic)
-        {
-            var compilation = CompilationUtil.CreateCompilation(source);
-            var newCompilation = CompilationUtil.RunGenerators(compilation, out var generatorDiagnostics, new Generator());
-            var compilationDiagnostics = newCompilation.GetDiagnostics();
-            var compilationErrors = compilationDiagnostics.Where(x => x.Severity == DiagnosticSeverity.Error).Select(x => x.GetMessage()).ToList();
-
-            compilationErrors.Should().BeEmpty();
-            generatorDiagnostics.Should().HaveCount(1);
-            expectedDiagnostic.Should().Be(generatorDiagnostics[0].Descriptor);
-        }
+        private void AssertDiagnostic(string source, DiagnosticDescriptor expectedDiagnostic) => _compilationUtil.CheckDiagnostics(source, expectedDiagnostic);
     }
 }

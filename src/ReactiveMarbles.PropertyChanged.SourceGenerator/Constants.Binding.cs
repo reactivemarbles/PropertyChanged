@@ -22,12 +22,17 @@ using System.Runtime.CompilerServices;
 /// <summary>
 /// Set of extension methods that handle binding.
 /// </summary>
-internal static partial class BindExtensions
+[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+[global::System.Diagnostics.DebuggerNonUserCode]
+[Preserve(AllMembers=true)]
+[global::System.Reflection.Obfuscation(Exclude=true)]
+[global::System.ComponentModel.EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)]
+internal static partial class BindingExtensions
 {
     /// <summary>
     /// Performs one way binding between a property on the host to a target property.
     /// </summary>
-    /// <param name=""fromObject"">The object which contains the host property.</param>
+    /// <param name=""targetObject"">The object which contains the host property.</param>
     /// <param name=""targetObject"">The object which contains the target property.</param>
     /// <param name=""fromProperty"">A expression to the host property.</param>
     /// <param name=""toProperty"">A expression to the target property.</param>
@@ -94,7 +99,7 @@ internal static partial class BindExtensions
     /// <param name=""targetObject"">The object which contains the target property.</param>
     /// <param name=""fromProperty"">A expression to the host property.</param>
     /// <param name=""toProperty"">A expression to the target property.</param>
-    /// <param name=""hostToTargetConv"">A converter which will convert the property from the host to the target property.</param>
+    /// <param name=""fromProperty"">A converter which will convert the property from the host to the target property.</param>
     /// <param name=""targetToHostConv"">A converter which will convert the property from the target to the host property.</param>
     /// <param name=""scheduler"">A scheduler for performing the binding on. Defaults to ImmediateScheduler.</param>
     /// <param name=""callerMemberName"">The caller of the method.</param>

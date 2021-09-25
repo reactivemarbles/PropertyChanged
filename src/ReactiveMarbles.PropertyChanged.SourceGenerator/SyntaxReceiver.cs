@@ -11,13 +11,13 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
 {
     internal class SyntaxReceiver : ISyntaxReceiver
     {
-        public List<InvocationExpressionSyntax> WhenChangedMethods { get; } = new();
+        public List<InvocationExpressionSyntax> WhenChanged { get; } = new();
 
-        public List<InvocationExpressionSyntax> WhenChangingMethods { get; } = new();
+        public List<InvocationExpressionSyntax> WhenChanging { get; } = new();
 
-        public List<InvocationExpressionSyntax> BindMethods { get; } = new();
+        public List<InvocationExpressionSyntax> BindOneWay { get; } = new();
 
-        public List<InvocationExpressionSyntax> OneWayBindMethods { get; } = new();
+        public List<InvocationExpressionSyntax> BindTwoWay { get; } = new();
 
         /// <inheritdoc />
         public void OnVisitSyntaxNode(SyntaxNode syntaxNode)
@@ -30,24 +30,24 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator
             var methodName = (invocationExpression.Expression as MemberAccessExpressionSyntax)?.Name.ToString() ??
                              (invocationExpression.Expression as MemberBindingExpressionSyntax)?.Name.ToString();
 
-            if (string.Equals(methodName, Constants.WhenChangedMethodName))
+            if (string.Equals(methodName, nameof(WhenChanged)))
             {
-                WhenChangedMethods.Add(invocationExpression);
+                WhenChanged.Add(invocationExpression);
             }
 
-            if (string.Equals(methodName, Constants.WhenChangingMethodName))
+            if (string.Equals(methodName, nameof(WhenChanging)))
             {
-                WhenChangingMethods.Add(invocationExpression);
+                WhenChanging.Add(invocationExpression);
             }
 
-            if (string.Equals(methodName, Constants.BindMethodName))
+            if (string.Equals(methodName, nameof(BindOneWay)))
             {
-                BindMethods.Add(invocationExpression);
+                BindOneWay.Add(invocationExpression);
             }
 
-            if (string.Equals(methodName, Constants.OneWayBindMethodName))
+            if (string.Equals(methodName, nameof(BindTwoWay)))
             {
-                OneWayBindMethods.Add(invocationExpression);
+                BindTwoWay.Add(invocationExpression);
             }
         }
     }
