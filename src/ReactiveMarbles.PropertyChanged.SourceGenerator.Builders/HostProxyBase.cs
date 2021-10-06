@@ -5,46 +5,45 @@
 using System;
 using System.Reflection;
 
-namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
+namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders;
+
+/// <summary>
+/// A base class for the host proxy which allows interaction with a roslyn compiled class.
+/// </summary>
+public abstract class HostProxyBase
 {
+    private WhenChangedHostProxy? _child;
+
     /// <summary>
-    /// A base class for the host proxy which allows interaction with a roslyn compiled class.
+    /// Initializes a new instance of the <see cref="HostProxyBase"/> class.
     /// </summary>
-    public abstract class HostProxyBase
+    /// <param name="source">An instance of the <i>actual</i> host class.</param>
+    protected HostProxyBase(object source) => Source = source ?? throw new ArgumentNullException(nameof(source));
+
+    /// <summary>
+    /// Gets the <i>actual</i> host object.
+    /// </summary>
+    public object Source { get; }
+
+    /// <summary>
+    /// Gets or sets the child.
+    /// </summary>
+    public WhenChangedHostProxy? Child
     {
-        private WhenChangedHostProxy? _child;
+        get => _child;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="HostProxyBase"/> class.
-        /// </summary>
-        /// <param name="source">An instance of the <i>actual</i> host class.</param>
-        protected HostProxyBase(object source) => Source = source ?? throw new ArgumentNullException(nameof(source));
-
-        /// <summary>
-        /// Gets the <i>actual</i> host object.
-        /// </summary>
-        public object Source { get; }
-
-        /// <summary>
-        /// Gets or sets the child.
-        /// </summary>
-        public WhenChangedHostProxy? Child
+        set
         {
-            get => _child;
-
-            set
-            {
-                _child = value;
-                ReflectionUtil.SetProperty(Source, nameof(Child), value?.Source);
-            }
+            _child = value;
+            ReflectionUtil.SetProperty(Source, nameof(Child), value?.Source);
         }
-
-        internal static object? GetMethod(object target, string methodName) =>
-            target.GetType().InvokeMember(
-                methodName,
-                BindingFlags.InvokeMethod | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public,
-                null,
-                target,
-                Array.Empty<object>());
     }
+
+    internal static object? GetMethod(object target, string methodName) =>
+        target.GetType().InvokeMember(
+            methodName,
+            BindingFlags.InvokeMethod | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public,
+            null,
+            target,
+            Array.Empty<object>());
 }

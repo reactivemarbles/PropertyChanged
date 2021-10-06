@@ -2,59 +2,64 @@
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
-using System;
 using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using ReactiveMarbles.PropertyChanged.SourceGenerator.MethodCreators.Transient;
+
 using static ReactiveMarbles.RoslynHelpers.SyntaxFactoryHelpers;
 
-namespace ReactiveMarbles.PropertyChanged.SourceGenerator.MethodCreators
+namespace ReactiveMarbles.PropertyChanged.SourceGenerator.MethodCreators;
+
+internal static partial class MethodCreator
 {
-    internal partial class MethodCreator : IMethodCreator
+    public static CompilationDatum Generate(SyntaxReceiver syntaxReceiver, CSharpCompilation compilation, in GeneratorExecutionContext context)
     {
-        public (HashSet<MethodDatum> Extensions, HashSet<MethodDatum> Partials) Generate(SyntaxReceiver syntaxReceiver, CSharpCompilation compilation, GeneratorExecutionContext context)
+        var compilationData = new CompilationDatum();
+        var whenChangedData = new List<MultiWhenStatementsDatum>();
+
+        GenerateBind(syntaxReceiver.BindOneWay, compilation, Constants.BindOneWayMethodName, whenChangedData, compilationData, context);
+        GenerateBind(syntaxReceiver.BindTwoWay, compilation, Constants.BindTwoWayMethodName, whenChangedData, compilationData, context);
+
+        GenerateWhenMetadata(syntaxReceiver.WhenChanged, compilation, Constants.WhenChangedMethodName, whenChangedData, context);
+        GenerateWhenMetadata(syntaxReceiver.WhenChanging, compilation, Constants.WhenChangingMethodName, whenChangedData, context);
+
+        GenerateWhenMethods(whenChangedData, compilationData);
+
+        return compilationData;
+    }
+
+    private static List<AttributeListSyntax> GetMethodAttributes() => new()
+    {
+        AttributeList(Attribute(Constants.ExcludeFromCodeCoverageAttributeTypeName)),
+        AttributeList(Attribute(Constants.DebuggerNonUserCodeAttributeTypeName)),
+        AttributeList(Attribute(Constants.PreserveAttributeTypeName, new[] { AttributeArgument(NameEquals(IdentifierName("AllMembers")), LiteralExpression(SyntaxKind.TrueLiteralExpression)) })),
+        AttributeList(Attribute(Constants.ObfuscationAttributeTypeName, new[] { AttributeArgument(NameEquals(IdentifierName("Exclude")), LiteralExpression(SyntaxKind.TrueLiteralExpression)) })),
+        AttributeList(Attribute(Constants.EditorBrowsableTypeName, new[] { AttributeArgument(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, Constants.EditorBrowsableStateTypeName, Constants.NeverEnumMemberName)) })),
+    };
+
+    private static IEnumerable<ParameterSyntax> CallerMembersParameters() =>
+        new[]
         {
-            var extensions = new HashSet<MethodDatum>();
-            var partials = new HashSet<MethodDatum>();
+            Parameter(new[] { AttributeList(Attribute(Constants.CallerMemberAttributeTypeName)) }, "string", Constants.CallerMemberParameterName, EqualsValueClause(NullLiteral())),
+            Parameter(new[] { AttributeList(Attribute(Constants.CallerFilePathAttributeTypeName)) }, "string", Constants.CallerFilePathParameterName, EqualsValueClause(NullLiteral())),
+            Parameter(new[] { AttributeList(Attribute(Constants.CallerLineNumberAttributeTypeName)) }, "int", Constants.CallerLineNumberParameterName, EqualsValueClause(LiteralExpression(0))),
+        };
 
-            HandleMethod(() => GenerateBind(syntaxReceiver.BindOneWay, compilation, Constants.BindOneWayMethodName, CreateOneWayBindStatements, CreateBindOneWayMethod, context), extensions, partials);
-            HandleMethod(() => GenerateBind(syntaxReceiver.BindTwoWay, compilation, Constants.BindTwoWayMethodName, CreateTwoWayBindStatements, CreateBindTwoWayMethod, context), extensions, partials);
-            ////hashSet.UnionWith(GenerateWhen(syntaxReceiver.WhenChanging, compilation, Constants.WhenChangingMethodName, CreateWhenChanging, context));
-            ////hashSet.UnionWith(GenerateWhen(syntaxReceiver.WhenChanged, compilation, Constants.WhenChangedMethodName, CreateWhenChanged, context));
-
-            return (extensions, partials);
-        }
-
-        private static void HandleMethod(Func<(HashSet<MethodDatum> Extensions, HashSet<MethodDatum> Partials)> generateMethod, HashSet<MethodDatum> extensions, HashSet<MethodDatum> partials)
-        {
-            var (extensionsReturns, partialsReturns) = generateMethod();
-            extensions.UnionWith(extensionsReturns);
-            partials.UnionWith(partialsReturns);
-        }
-
-        private static IEnumerable<ParameterSyntax> CallerMembersParameters() =>
+    private static GenericNameSyntax GetExpressionFunc(string inputType, string returnType) =>
+        GenericName(
+            Constants.ExpressionTypeName,
             new[]
             {
-                    Parameter(new[] { AttributeList(Attribute(Constants.CallerMemberAttributeTypeName)) }, "string", Constants.CallerMemberParameterName, EqualsValueClause(NullLiteral())),
-                    Parameter(new[] { AttributeList(Attribute(Constants.CallerFilePathAttributeTypeName)) }, "string", Constants.CallerFilePathParameterName, EqualsValueClause(NullLiteral())),
-                    Parameter(new[] { AttributeList(Attribute(Constants.CallerLineNumberAttributeTypeName)) }, "int", Constants.CallerLineNumberParameterName, EqualsValueClause(LiteralExpression(0))),
-            };
-
-        private static GenericNameSyntax GetExpressionFunc(string inputType, string returnType) =>
-            GenericName(
-                Constants.ExpressionTypeName,
-                new[]
-                {
-                    GenericName(
-                        Constants.FuncTypeName,
-                        new[]
-                        {
-                            IdentifierName(inputType),
-                            IdentifierName(returnType),
-                        }),
-                });
-    }
+                GenericName(
+                    Constants.FuncTypeName,
+                    new[]
+                    {
+                        IdentifierName(inputType),
+                        IdentifierName(returnType),
+                    }),
+            });
 }

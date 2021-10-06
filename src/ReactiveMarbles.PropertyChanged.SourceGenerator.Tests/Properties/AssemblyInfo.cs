@@ -3,5 +3,7 @@
 // See the LICENSE file in the project root for full license information.
 
 using System.Runtime.CompilerServices;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 [assembly: InternalsVisibleTo("ReactiveMarbles.PropertyChanged.SourceGenerator.Benchmarks")]
+[assembly: Parallelize(Workers = 0, Scope = ExecutionScope.MethodLevel)]

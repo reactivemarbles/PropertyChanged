@@ -10,7 +10,7 @@ using BenchmarkDotNet.Jobs;
 
 using ReactiveMarbles.PropertyChanged.Benchmarks.Moqs;
 
-using SourceGen = NotifyPropertyChangedExtensions;
+using SourceGen = NotifyPropertyExtensions;
 
 namespace ReactiveMarbles.PropertyChanged.Benchmarks
 {

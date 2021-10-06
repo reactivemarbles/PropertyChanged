@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 
 using Microsoft.CodeAnalysis;
@@ -12,194 +11,209 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using ReactiveMarbles.PropertyChanged.SourceGenerator.Comparers;
+using ReactiveMarbles.PropertyChanged.SourceGenerator.Helpers;
+using ReactiveMarbles.PropertyChanged.SourceGenerator.MethodCreators.Transient;
 using ReactiveMarbles.RoslynHelpers;
 
 using static ReactiveMarbles.RoslynHelpers.SyntaxFactoryHelpers;
 
-namespace ReactiveMarbles.PropertyChanged.SourceGenerator.MethodCreators
+namespace ReactiveMarbles.PropertyChanged.SourceGenerator.MethodCreators;
+
+internal static partial class MethodCreator
 {
-    internal partial class MethodCreator
+    private delegate List<StatementSyntax> CreateBindFunc(in ExpressionArgument host, in ExpressionArgument target, bool hasConverters, bool isExtension);
+
+    private delegate MethodDeclarationSyntax CreateBindMethodFunc(string hostInputType, string hostOutputType, string targetInputType, string targetOutputType, bool isExtension, bool hasConverters, Accessibility accessibility, List<StatementSyntax> statements);
+
+    private static void GenerateBind(IReadOnlyList<InvocationExpressionSyntax> invocations, Compilation compilation, string bindMethodName, ICollection<MultiWhenStatementsDatum> whenChanged, CompilationDatum compilationData, in GeneratorExecutionContext context)
     {
-        private static (HashSet<MethodDatum> Extensions, HashSet<MethodDatum> Partials) GenerateBind(IReadOnlyList<InvocationExpressionSyntax> invocations, CSharpCompilation compilation, string bindMethodName, Func<ExpressionArgument, ExpressionArgument, bool, bool, List<ExpressionChain>, List<ExpressionChain>, List<StatementSyntax>> createBindStatements, Func<string, string, string, string, bool, bool, Accessibility, List<StatementSyntax>, MethodDeclarationSyntax> methodGenerator, in GeneratorExecutionContext context)
+        var extensionStatements = new Dictionary<BindStatementsDatum, SortedSet<IfStatementSyntax>>();
+        var partialStatements = new Dictionary<BindStatementsDatum, SortedSet<IfStatementSyntax>>();
+
+        var isOneWayBind = bindMethodName.Equals(Constants.BindOneWayMethodName, StringComparison.Ordinal);
+        CreateBindFunc createBindStatements = isOneWayBind ? CreateOneWayBindStatements : CreateTwoWayBindStatements;
+        CreateBindMethodFunc methodGenerator = isOneWayBind ? CreateBindOneWayMethod : CreateBindTwoWayMethod;
+
+        foreach (var invocationExpression in invocations)
         {
-            var values = new Dictionary<(bool IsExtension, string NamespaceName, string HostClassName, Accessibility Accessibility, SemanticModel SemanticModel), List<IfStatementSyntax>>();
-            var extensions = new Dictionary<(ExpressionArgument HostArgument, ExpressionArgument TargetArgument, bool HasConverters, Accessibility Accessibility, SemanticModel Model), ISet<IfStatementSyntax>>();
-            var partials = new Dictionary<(ExpressionArgument HostArgument, ExpressionArgument TargetArgument, bool HasConverters, Accessibility Accessibility, SemanticModel Model), ISet<IfStatementSyntax>>();
-
-            foreach (var invocationExpressionGrouping in invocations.GroupBy(x => compilation.GetSemanticModel(x.SyntaxTree)))
+            var model = compilation.GetSemanticModel(invocationExpression.SyntaxTree);
+            var symbol = model.GetSymbolInfo(invocationExpression).Symbol;
+            if (symbol is not IMethodSymbol methodSymbol)
             {
-                var model = invocationExpressionGrouping.Key;
-                foreach (var invocationExpression in invocationExpressionGrouping)
-                {
-                    var symbol = model.GetSymbolInfo(invocationExpression).Symbol;
-                    if (symbol is not IMethodSymbol methodSymbol)
-                    {
-                        continue;
-                    }
-
-                    if (!methodSymbol.ContainingType.ToDisplayString().Equals(Constants.BindExtensionClass))
-                    {
-                        continue;
-                    }
-
-                    if (!methodSymbol.Name.Equals(bindMethodName))
-                    {
-                        continue;
-                    }
-
-                    if (!GetExpressions(invocationExpression, model, compilation, context, out var hostExpressionArgument, out var targetExpressionArgument, out var hasConverters, out var hostExpressionChains, out var targetExpressionChains))
-                    {
-                        continue;
-                    }
-
-                    if (hostExpressionArgument is null || targetExpressionArgument is null || hostExpressionChains is null || targetExpressionChains is null)
-                    {
-                        context.ReportDiagnostic(DiagnosticWarnings.InvalidExpression, invocationExpression.GetLocation());
-                        continue;
-                    }
-
-                    var accessModifier = methodSymbol.TypeArguments.GetMinVisibility();
-
-                    var isExtension = !hostExpressionArgument.ContainsPrivateOrProtectedMember && !targetExpressionArgument.ContainsPrivateOrProtectedMember;
-
-                    var statements = createBindStatements(hostExpressionArgument, targetExpressionArgument, hasConverters, isExtension, hostExpressionChains, targetExpressionChains);
-
-                    var namespaceName = hostExpressionArgument.InputType.GetNamespace();
-                    var hostClassName = hostExpressionArgument.InputType.ToDisplayString(RoslynCommonHelpers.TypeFormat);
-                    var accessibility = hostExpressionArgument.InputType.DeclaredAccessibility;
-                    var semanticModel = compilation.GetSemanticModel(hostExpressionArgument.InputType.Locations[0].SourceTree ?? throw new InvalidOperationException("There is no valid source tree")) ?? throw new InvalidOperationException("There is no valid location.");
-
-                    var dictionary = isExtension ? extensions : partials;
-                    if (!dictionary.TryGetValue((hostExpressionArgument, targetExpressionArgument, hasConverters, accessibility, model), out var ifStatements))
-                    {
-                        ifStatements = new SortedSet<IfStatementSyntax>(SyntaxNodeComparer.Default);
-                        dictionary.Add((hostExpressionArgument, targetExpressionArgument, hasConverters, accessibility, model), ifStatements);
-                    }
-
-                    ifStatements.Add(
-                        IfStatement(
-                            InvocationExpression(
-                                MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, Constants.StringTypeName, Constants.EqualsMethod),
-                                new[]
-                                {
-                                    Argument(InvocationExpression(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, Constants.FromObjectVariable, Constants.ToStringMethod))),
-                                    Argument(LiteralExpression(hostExpressionArgument.LambdaBodyString))
-                                }),
-                            Block(statements, 1)));
-                }
+                continue;
             }
 
-            return (GenerateMethods(extensions, true, methodGenerator), GenerateMethods(partials, false, methodGenerator));
+            if (!methodSymbol.ContainingType.ToDisplayString().Equals(Constants.BindExtensionClass))
+            {
+                continue;
+            }
+
+            if (!methodSymbol.Name.Equals(bindMethodName))
+            {
+                continue;
+            }
+
+            if (!GetBindExpressions(invocationExpression, model, compilation, context, out var hostExpressionArgument, out var targetExpressionArgument, out var hasConverters))
+            {
+                continue;
+            }
+
+            if (hostExpressionArgument == default || targetExpressionArgument == default)
+            {
+                context.ReportDiagnostic(DiagnosticWarnings.InvalidExpression, invocationExpression.GetLocation());
+                continue;
+            }
+
+            var accessModifier = methodSymbol.TypeArguments.GetMinVisibility();
+
+            var isExtension = !hostExpressionArgument.ContainsPrivateOrProtectedMember && !targetExpressionArgument.ContainsPrivateOrProtectedMember;
+
+            var statements = createBindStatements(hostExpressionArgument, targetExpressionArgument, hasConverters, isExtension);
+
+            var hostClassAccessibility = hostExpressionArgument.InputType.DeclaredAccessibility;
+            var targetClassAccessibility = targetExpressionArgument.InputType.DeclaredAccessibility;
+
+            var dictionary = isExtension ? extensionStatements : partialStatements;
+            var statementKey = new BindStatementsDatum(hostExpressionArgument, targetExpressionArgument, bindMethodName, hasConverters, hostClassAccessibility, accessModifier, model);
+            if (!dictionary.TryGetValue(statementKey, out var ifStatements))
+            {
+                ifStatements = new(SyntaxNodeComparer.Default);
+                dictionary.Add(statementKey, ifStatements);
+            }
+
+            whenChanged.Add(new(Constants.WhenChangedMethodName, new[] { new WhenStatementsDatum(Constants.WhenChangedMethodName, hostExpressionArgument) }, !hostExpressionArgument.ContainsPrivateOrProtectedMember, hostClassAccessibility, hostExpressionArgument.InputType, hostExpressionArgument.OutputType, new[] { hostExpressionArgument.InputType, hostExpressionArgument.OutputType }, methodSymbol));
+            whenChanged.Add(new(Constants.WhenChangedMethodName, new[] { new WhenStatementsDatum(Constants.WhenChangedMethodName, targetExpressionArgument) }, !targetExpressionArgument.ContainsPrivateOrProtectedMember, targetClassAccessibility, targetExpressionArgument.InputType, targetExpressionArgument.OutputType, new[] { targetExpressionArgument.InputType, targetExpressionArgument.OutputType }, methodSymbol));
+
+            ifStatements.Add(
+                IfStatement(
+                    BinaryExpression(
+                        SyntaxKind.LogicalAndExpression,
+                        InvocationExpression(
+                            MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, Constants.StringTypeName, Constants.EqualsMethod),
+                            new[]
+                            {
+                                Argument(InvocationExpression(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, Constants.FromPropertyParameter, Constants.ToStringMethod))),
+                                Argument(LiteralExpression(hostExpressionArgument.LambdaBodyString))
+                            }),
+                        InvocationExpression(
+                            MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, Constants.StringTypeName, Constants.EqualsMethod),
+                            new[]
+                            {
+                                Argument(InvocationExpression(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, Constants.ToPropertyParameter, Constants.ToStringMethod))),
+                                Argument(LiteralExpression(hostExpressionArgument.LambdaBodyString))
+                            })),
+                    Block(statements, isExtension ? 2 : 3)));
         }
 
-        private static HashSet<MethodDatum> GenerateMethods(Dictionary<(ExpressionArgument HostArgument, ExpressionArgument TargetArgument, bool HasConverters, Accessibility Accessibility, SemanticModel Model), ISet<IfStatementSyntax>> input, bool isExtension, Func<string, string, string, string, bool, bool, Accessibility, List<StatementSyntax>, MethodDeclarationSyntax> methodGenerator)
+        GenerateBindMethods(extensionStatements, true, methodGenerator, compilationData);
+        GenerateBindMethods(partialStatements, false, methodGenerator, compilationData);
+    }
+
+    private static void GenerateBindMethods(Dictionary<BindStatementsDatum, SortedSet<IfStatementSyntax>> input, bool isExtension, CreateBindMethodFunc methodGenerator, CompilationDatum compilationData)
+    {
+        foreach (var kvp in input)
         {
-            var hashSet = new HashSet<MethodDatum>();
-            foreach (var kvp in input)
-            {
-                var hostInputType = kvp.Key.HostArgument.InputType;
-                var hostOutputType = kvp.Key.HostArgument.OutputType;
-                var targetInputType = kvp.Key.TargetArgument.InputType;
-                var targetOutputType = kvp.Key.TargetArgument.OutputType;
-                var hasConverters = kvp.Key.HasConverters;
-                var accessibility = kvp.Key.Accessibility;
-                var model = kvp.Key.Model;
+            var hostInputType = kvp.Key.HostArgument.InputType;
+            var hostOutputType = kvp.Key.HostArgument.OutputType;
+            var targetInputType = kvp.Key.TargetArgument.InputType;
+            var targetOutputType = kvp.Key.TargetArgument.OutputType;
+            var hasConverters = kvp.Key.HasConverters;
+            var methodAccessibility = kvp.Key.MethodAccessibility;
+            var classAccessibility = kvp.Key.ClassAccessibilty;
+            var statements = kvp.Value;
 
-                var statements = kvp.Value;
+            var method = methodGenerator(
+                hostInputType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+                hostOutputType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+                targetInputType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+                targetOutputType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+                isExtension,
+                hasConverters,
+                methodAccessibility,
+                statements.Cast<StatementSyntax>().ToList());
 
-                var method = methodGenerator(
-                    hostInputType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
-                    hostOutputType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
-                    targetInputType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
-                    targetOutputType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
-                    isExtension,
-                    hasConverters,
-                    accessibility,
-                    statements.Cast<StatementSyntax>().ToList());
+            var classDatum = compilationData.GetClass(hostInputType, classAccessibility, isExtension, Constants.BindExtensionClass);
 
-                hashSet.Add(new MethodDatum(isExtension, string.Empty, Constants.BindExtensionClass, accessibility, model, method));
-            }
+            var methodMetadata = new MethodDatum(methodAccessibility, method);
 
-            return hashSet;
+            classDatum.MethodData.Add(methodMetadata);
+        }
+    }
+
+    private static bool GetBindExpressions(InvocationExpressionSyntax invocationExpression, SemanticModel model, Compilation compilation, in GeneratorExecutionContext context, out ExpressionArgument? hostExpressionArgument, out ExpressionArgument? targetExpressionArgument, out bool hasConverters)
+    {
+        hasConverters = false;
+        var expressions = new List<(LambdaExpressionSyntax Expression, ArgumentSyntax Argument)>();
+
+        hostExpressionArgument = default!;
+        targetExpressionArgument = default!;
+
+        if (invocationExpression.ArgumentList.Arguments.Count < 3)
+        {
+            context.ReportDiagnostic(DiagnosticWarnings.BindingIncorrectNumberParameters, invocationExpression.GetLocation());
+            return false;
         }
 
-        private static bool GetExpressions(InvocationExpressionSyntax invocationExpression, SemanticModel model, Compilation compilation, in GeneratorExecutionContext context, out ExpressionArgument? hostExpressionArgument, out ExpressionArgument? targetExpressionArgument, out bool hasConverters, out List<ExpressionChain>? hostExpressionChains, out List<ExpressionChain>? targetExpressionChains)
+        foreach (var argument in invocationExpression.ArgumentList.Arguments.Skip(1))
         {
-            hasConverters = false;
-            var expressions = new List<(LambdaExpressionSyntax Expression, ArgumentSyntax Argument)>();
+            var argumentType = model.GetTypeInfo(argument.Expression).ConvertedType;
 
-            hostExpressionArgument = null!;
-            targetExpressionArgument = null!;
-            hostExpressionChains = null;
-            targetExpressionChains = null;
-
-            if (invocationExpression.ArgumentList.Arguments.Count < 3)
+            if (argumentType is null)
             {
-                context.ReportDiagnostic(DiagnosticWarnings.BindingIncorrectNumberParameters, invocationExpression.GetLocation());
+                context.ReportDiagnostic(DiagnosticWarnings.InvalidExpression, argument.GetLocation());
                 return false;
             }
 
-            foreach (var argument in invocationExpression.ArgumentList.Arguments.Skip(1))
+            if (argumentType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat).StartsWith(Constants.FuncTypeName, StringComparison.InvariantCulture))
             {
-                var argumentType = model.GetTypeInfo(argument.Expression).ConvertedType;
-
-                if (argumentType is null)
-                {
-                    context.ReportDiagnostic(DiagnosticWarnings.InvalidExpression, argument.GetLocation());
-                    return false;
-                }
-
-                if (argumentType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat).StartsWith(Constants.FuncTypeName, StringComparison.InvariantCulture))
-                {
-                    hasConverters = true;
-                    continue;
-                }
-
-                if (argumentType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat).StartsWith(Constants.ExpressionTypeName, StringComparison.InvariantCulture) && argument.Expression is LambdaExpressionSyntax lambdaExpression)
-                {
-                    expressions.Add((lambdaExpression, argument));
-                }
+                hasConverters = true;
+                continue;
             }
 
-            if (expressions.Count != 2)
+            if (argumentType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat).StartsWith(Constants.ExpressionTypeName, StringComparison.InvariantCulture) && argument.Expression is LambdaExpressionSyntax lambdaExpression)
             {
-                context.ReportDiagnostic(DiagnosticWarnings.InvalidNumberExpressions, invocationExpression.GetLocation(), expressions.Count.ToString());
-                return false;
+                expressions.Add((lambdaExpression, argument));
             }
-
-            var sourceExpression = expressions[0].Expression;
-
-            if (sourceExpression is null)
-            {
-                // The argument is evaluates to an expression but it's not inline (could be a variable, method invocation, etc).
-                context.ReportDiagnostic(DiagnosticWarnings.ExpressionMustBeInline, expressions[0].Argument.GetLocation());
-                return false;
-            }
-
-            var targetExpression = expressions[1].Expression;
-
-            if (targetExpression is null)
-            {
-                // The argument is evaluates to an expression but it's not inline (could be a variable, method invocation, etc).
-                context.ReportDiagnostic(DiagnosticWarnings.ExpressionMustBeInline, expressions[1].Argument.GetLocation());
-                return false;
-            }
-
-            if (!GeneratorHelpers.GetExpression(context, targetExpression, compilation, model, out targetExpressionArgument, out targetExpressionChains))
-            {
-                // The argument is evaluates to an expression but it's not inline (could be a variable, method invocation, etc).
-                context.ReportDiagnostic(DiagnosticWarnings.InvalidExpression, targetExpression.GetLocation());
-                return false;
-            }
-
-            if (!GeneratorHelpers.GetExpression(context, sourceExpression, compilation, model, out hostExpressionArgument, out hostExpressionChains))
-            {
-                // The argument is evaluates to an expression but it's not inline (could be a variable, method invocation, etc).
-                context.ReportDiagnostic(DiagnosticWarnings.InvalidExpression, sourceExpression.GetLocation());
-                return false;
-            }
-
-            return true;
         }
+
+        if (expressions.Count != 2)
+        {
+            context.ReportDiagnostic(DiagnosticWarnings.InvalidNumberExpressions, invocationExpression.GetLocation(), expressions.Count.ToString());
+            return false;
+        }
+
+        var sourceExpression = expressions[0].Expression;
+
+        if (sourceExpression is null)
+        {
+            // The argument is evaluates to an expression but it's not inline (could be a variable, method invocation, etc).
+            context.ReportDiagnostic(DiagnosticWarnings.ExpressionMustBeInline, expressions[0].Argument.GetLocation());
+            return false;
+        }
+
+        var targetExpression = expressions[1].Expression;
+
+        if (targetExpression is null)
+        {
+            // The argument is evaluates to an expression but it's not inline (could be a variable, method invocation, etc).
+            context.ReportDiagnostic(DiagnosticWarnings.ExpressionMustBeInline, expressions[1].Argument.GetLocation());
+            return false;
+        }
+
+        if (!GeneratorHelpers.GetExpression(context, targetExpression, compilation, model, out targetExpressionArgument))
+        {
+            // The argument is evaluates to an expression but it's not inline (could be a variable, method invocation, etc).
+            context.ReportDiagnostic(DiagnosticWarnings.InvalidExpression, targetExpression.GetLocation());
+            return false;
+        }
+
+        if (!GeneratorHelpers.GetExpression(context, sourceExpression, compilation, model, out hostExpressionArgument))
+        {
+            // The argument is evaluates to an expression but it's not inline (could be a variable, method invocation, etc).
+            context.ReportDiagnostic(DiagnosticWarnings.InvalidExpression, sourceExpression.GetLocation());
+            return false;
+        }
+
+        return true;
     }
 }

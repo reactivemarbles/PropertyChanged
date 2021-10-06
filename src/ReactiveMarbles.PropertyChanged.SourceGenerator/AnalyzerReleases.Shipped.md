@@ -13,3 +13,4 @@ RXM003  | Compiler |  Error   |
 RXM004  | Compiler |  Error   | 
 RXM005  | Compiler |  Error   | 
 RXM006  | Compiler |  Error   |
+RXM007  | Compiler |  Error   |

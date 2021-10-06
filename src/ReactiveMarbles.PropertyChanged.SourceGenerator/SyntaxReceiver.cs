@@ -7,48 +7,47 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace ReactiveMarbles.PropertyChanged.SourceGenerator
+namespace ReactiveMarbles.PropertyChanged.SourceGenerator;
+
+internal class SyntaxReceiver : ISyntaxReceiver
 {
-    internal class SyntaxReceiver : ISyntaxReceiver
+    public List<InvocationExpressionSyntax> WhenChanged { get; } = new();
+
+    public List<InvocationExpressionSyntax> WhenChanging { get; } = new();
+
+    public List<InvocationExpressionSyntax> BindOneWay { get; } = new();
+
+    public List<InvocationExpressionSyntax> BindTwoWay { get; } = new();
+
+    /// <inheritdoc />
+    public void OnVisitSyntaxNode(SyntaxNode syntaxNode)
     {
-        public List<InvocationExpressionSyntax> WhenChanged { get; } = new();
-
-        public List<InvocationExpressionSyntax> WhenChanging { get; } = new();
-
-        public List<InvocationExpressionSyntax> BindOneWay { get; } = new();
-
-        public List<InvocationExpressionSyntax> BindTwoWay { get; } = new();
-
-        /// <inheritdoc />
-        public void OnVisitSyntaxNode(SyntaxNode syntaxNode)
+        if (syntaxNode is not InvocationExpressionSyntax invocationExpression)
         {
-            if (syntaxNode is not InvocationExpressionSyntax invocationExpression)
-            {
-                return;
-            }
+            return;
+        }
 
-            var methodName = (invocationExpression.Expression as MemberAccessExpressionSyntax)?.Name.ToString() ??
-                             (invocationExpression.Expression as MemberBindingExpressionSyntax)?.Name.ToString();
+        var methodName = (invocationExpression.Expression as MemberAccessExpressionSyntax)?.Name.ToString() ??
+                         (invocationExpression.Expression as MemberBindingExpressionSyntax)?.Name.ToString();
 
-            if (string.Equals(methodName, nameof(WhenChanged)))
-            {
-                WhenChanged.Add(invocationExpression);
-            }
+        if (string.Equals(methodName, nameof(WhenChanged)))
+        {
+            WhenChanged.Add(invocationExpression);
+        }
 
-            if (string.Equals(methodName, nameof(WhenChanging)))
-            {
-                WhenChanging.Add(invocationExpression);
-            }
+        if (string.Equals(methodName, nameof(WhenChanging)))
+        {
+            WhenChanging.Add(invocationExpression);
+        }
 
-            if (string.Equals(methodName, nameof(BindOneWay)))
-            {
-                BindOneWay.Add(invocationExpression);
-            }
+        if (string.Equals(methodName, nameof(BindOneWay)))
+        {
+            BindOneWay.Add(invocationExpression);
+        }
 
-            if (string.Equals(methodName, nameof(BindTwoWay)))
-            {
-                BindTwoWay.Add(invocationExpression);
-            }
+        if (string.Equals(methodName, nameof(BindTwoWay)))
+        {
+            BindTwoWay.Add(invocationExpression);
         }
     }
 }

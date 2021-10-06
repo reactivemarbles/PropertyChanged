@@ -2,21 +2,20 @@
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
-namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
+namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders;
+
+/// <summary>
+/// The type of receiver.
+/// </summary>
+public enum ReceiverKind
 {
     /// <summary>
-    /// The type of receiver.
+    /// The receiver is a 'this' reference.
     /// </summary>
-    public enum ReceiverKind
-    {
-        /// <summary>
-        /// The receiver is a 'this' reference.
-        /// </summary>
-        This,
+    This,
 
-        /// <summary>
-        /// The receiver is a instance reference.
-        /// </summary>
-        Instance,
-    }
+    /// <summary>
+    /// The receiver is a instance reference.
+    /// </summary>
+    Instance,
 }

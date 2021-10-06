@@ -13,18 +13,17 @@ using Microsoft.CodeAnalysis;
 
 using ReactiveMarbles.PropertyChanged.SourceGenerator.Builders;
 
-namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
-{
-    internal static class TestHelper
-    {
-        public static void CheckDiagnostics(this CompilationUtil compilationUtil, string source, DiagnosticDescriptor expectedDiagnostic)
-        {
-            compilationUtil.RunGenerators(out var compilationDiagnostics, out var generatorDiagnostics, out var compilation, out var newCompilation, source);
-            var compilationErrors = compilationDiagnostics.Where(x => x.Severity == DiagnosticSeverity.Error).Select(x => x.GetMessage()).ToList();
+namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests;
 
-            compilationErrors.Should().BeEmpty();
-            generatorDiagnostics.Should().HaveCount(1);
-            expectedDiagnostic.Should().Be(generatorDiagnostics[0].Descriptor);
-        }
+internal static class TestHelper
+{
+    public static void CheckDiagnostics(this CompilationUtil compilationUtil, (string FileName, string Source) source, DiagnosticDescriptor expectedDiagnostic)
+    {
+        compilationUtil.RunGenerators(out var compilationDiagnostics, out var generatorDiagnostics, out var compilation, out var newCompilation, source);
+        var compilationErrors = compilationDiagnostics.Where(x => x.Severity == DiagnosticSeverity.Error).Select(x => x.GetMessage()).ToList();
+
+        compilationErrors.Should().BeEmpty();
+        generatorDiagnostics.Should().HaveCount(1);
+        expectedDiagnostic.Should().Be(generatorDiagnostics[0].Descriptor);
     }
 }

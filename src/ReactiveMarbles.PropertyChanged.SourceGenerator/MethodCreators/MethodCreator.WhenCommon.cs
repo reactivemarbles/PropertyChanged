@@ -5,238 +5,541 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-
-using ReactiveMarbles.PropertyChanged.SourceGenerator.MethodCreators;
-using ReactiveMarbles.PropertyChanged.SourceGenerator.RoslynHelpers;
+using ReactiveMarbles.PropertyChanged.SourceGenerator.Comparers;
+using ReactiveMarbles.PropertyChanged.SourceGenerator.Helpers;
+using ReactiveMarbles.PropertyChanged.SourceGenerator.MethodCreators.Transient;
 using ReactiveMarbles.RoslynHelpers;
-
 using static ReactiveMarbles.RoslynHelpers.SyntaxFactoryHelpers;
 
-namespace ReactiveMarbles.PropertyChanged.SourceGenerator.MethodCreators
+namespace ReactiveMarbles.PropertyChanged.SourceGenerator.MethodCreators;
+
+internal static partial class MethodCreator
 {
-    internal partial class MethodCreator
+    private static void GenerateWhenMetadata(IReadOnlyList<InvocationExpressionSyntax> invocations, Compilation compilation, string methodName, ICollection<MultiWhenStatementsDatum> whenChangedMetadata, in GeneratorExecutionContext context)
     {
-        private static HashSet<MethodDatum> GenerateWhen(IReadOnlyList<InvocationExpressionSyntax> invocations, CSharpCompilation compilation, string methodClass, Func<ExpressionArgument, bool, bool, Accessibility, MethodDeclarationSyntax> createFunc, in GeneratorExecutionContext context)
+        foreach (var invocationExpression in invocations)
         {
-            var returnValue = new HashSet<MethodDatum>();
+            var model = compilation.GetSemanticModel(invocationExpression.SyntaxTree);
+            var symbol = model.GetSymbolInfo(invocationExpression).Symbol;
 
-            foreach (var invocationExpressionGrouping in invocations.GroupBy(x => compilation.GetSemanticModel(x.SyntaxTree)))
+            if (symbol is not IMethodSymbol methodSymbol)
             {
-                var model = invocationExpressionGrouping.Key;
-                foreach (var invocationExpression in invocationExpressionGrouping)
+                continue;
+            }
+
+            if (!methodSymbol.ContainingType.ToDisplayString().Equals(Constants.WhenExtensionClass))
+            {
+                continue;
+            }
+
+            var invocationArguments = invocationExpression.ArgumentList.Arguments
+                .Where(
+                    argument =>
+                        model.GetTypeInfo(argument.Expression)
+                            .ConvertedType?
+                            .ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
+                            .StartsWith(Constants.ExpressionTypeName, StringComparison.InvariantCulture) == true);
+
+            var isExtension = true;
+
+            var classVisibility =
+                isExtension ? Accessibility.Internal : methodSymbol.ContainingType.DeclaredAccessibility;
+
+            var expressions = new List<WhenStatementsDatum>();
+
+            var inputType = methodSymbol.TypeArguments[0];
+            var outputType = methodSymbol.TypeArguments[methodSymbol.TypeArguments.Length - 1];
+
+            foreach (var argument in invocationArguments)
+            {
+                if (argument.Expression is LambdaExpressionSyntax lambdaExpression)
                 {
-                    var symbol = model.GetSymbolInfo(invocationExpression).Symbol;
+                    var isValid = GeneratorHelpers.GetExpression(
+                        context,
+                        lambdaExpression,
+                        compilation,
+                        model,
+                        out var expressionArgument);
 
-                    if (symbol is not IMethodSymbol methodSymbol)
+                    if (!isValid)
                     {
                         continue;
                     }
 
-                    if (!methodSymbol.ContainingType.ToDisplayString().Equals(methodClass))
+                    if (isExtension)
                     {
-                        continue;
+                        isExtension = !expressionArgument.ContainsPrivateOrProtectedMember;
                     }
 
-                    var invocationArguments = invocationExpression.ArgumentList.Arguments.Where(argument => model.GetTypeInfo(argument.Expression).ConvertedType?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat).Equals(Constants.ExpressionTypeName) == true);
+                    // this.WhenChanged(...) and instance.WhenChanged(...) MethodKind = MethodKind.ReducedExtension
+                    // NotifyPropertyChangedExtensions.WhenChanged(...) MethodKind = MethodKind.Ordinary
+                    // An alternative way is checking if methodSymbol.ReceiverType.Name == NotifyPropertyChangedExtensions.
+                    var isExplicitInvocation = methodSymbol.MethodKind == MethodKind.Ordinary;
 
-                    foreach (var argument in invocationArguments)
+                    if (isExplicitInvocation && expressionArgument.ContainsPrivateOrProtectedMember)
                     {
-                        if (argument.Expression is LambdaExpressionSyntax lambdaExpression)
-                        {
-                            var isValid = GeneratorHelpers.GetExpression(context, lambdaExpression, compilation, model, out var expressionArgument, out var expressionChains);
-
-                            if (!isValid)
-                            {
-                                continue;
-                            }
-
-                            if (expressionArgument is null)
-                            {
-                                continue;
-                            }
-
-                            // this.WhenChanged(...) and instance.WhenChanged(...) MethodKind = MethodKind.ReducedExtension
-                            // NotifyPropertyChangedExtensions.WhenChanged(...) MethodKind = MethodKind.Ordinary
-                            // An alternative way is checking if methodSymbol.ReceiverType.Name == NotifyPropertyChangedExtensions.
-                            var isExplicitInvocation = methodSymbol.MethodKind == MethodKind.Ordinary;
-
-                            if (isExplicitInvocation && expressionArgument.ContainsPrivateOrProtectedMember)
-                            {
-                                context.ReportDiagnostic(DiagnosticWarnings.UnableToGenerateExtension, invocationExpression.GetLocation());
-                                break;
-                            }
-
-                            var accessModifier = methodSymbol.TypeArguments.GetMinVisibility();
-
-                            var isExtension = !expressionArgument.ContainsPrivateOrProtectedMember;
-
-                            var method = createFunc(expressionArgument, isExplicitInvocation, isExtension, accessModifier);
-
-                            var namespaceName = expressionArgument.InputType.GetNamespace();
-                            var hostClassName = expressionArgument.InputType.ToDisplayString(RoslynCommonHelpers.TypeFormat);
-
-                            ////returnValue.Add(new MethodDatum(isExtension, namespaceName, hostClassName, accessModifier, method));
-                        }
-                        else
-                        {
-                            // The argument is evaluates to an expression but it's not inline (could be a variable, method invocation, etc).
-                            context.ReportDiagnostic(DiagnosticWarnings.ExpressionMustBeInline, argument.GetLocation());
-                        }
+                        context.ReportDiagnostic(
+                            DiagnosticWarnings.UnableToGenerateExtension,
+                            invocationExpression.GetLocation());
+                        break;
                     }
+
+                    expressions.Add(new(methodName, expressionArgument));
+                }
+                else
+                {
+                    // The argument is evaluates to an expression but it's not inline (could be a variable, method invocation, etc).
+                    context.ReportDiagnostic(DiagnosticWarnings.ExpressionMustBeInline, argument.GetLocation());
                 }
             }
 
-            return returnValue;
+            if (!isExtension)
+            {
+                classVisibility = inputType.DeclaredAccessibility;
+            }
+
+            whenChangedMetadata.Add(new(
+                methodName,
+                expressions,
+                isExtension,
+                classVisibility,
+                inputType,
+                outputType,
+                methodSymbol.TypeArguments.ToArray(),
+                methodSymbol));
+        }
+    }
+
+    private static void GenerateWhenMethods(List<MultiWhenStatementsDatum> methods, CompilationDatum compilationData)
+    {
+        var extensions = new Dictionary<MultiWhenStatementsDatum, SortedSet<IfStatementSyntax>>();
+        var partials = new Dictionary<MultiWhenStatementsDatum, SortedSet<IfStatementSyntax>>();
+
+        var i = 0;
+        foreach (var multiMethodStatement in methods)
+        {
+            var isExtension = multiMethodStatement.IsExtensionMethod;
+
+            BinaryExpressionSyntax? binaryStatement = null;
+            InvocationExpressionSyntax? previousInvocation = null;
+            foreach (var methodMetadata in multiMethodStatement.Arguments)
+            {
+                var expressionArgument = methodMetadata.Argument;
+
+                var propertyExpressionName = multiMethodStatement.Arguments.Count > 1
+                    ? Constants.PropertyExpressionParameterName + (i + 1)
+                    : Constants.PropertyExpressionParameterName;
+                var currentInvocation = InvocationExpression(
+                    MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        Constants.StringTypeName,
+                        Constants.EqualsMethod),
+                    new[]
+                    {
+                        Argument(InvocationExpression(MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            propertyExpressionName,
+                            Constants.ToStringMethod))),
+                        Argument(LiteralExpression(expressionArgument.LambdaBodyString))
+                    });
+
+                if (previousInvocation is not null)
+                {
+                    binaryStatement = BinaryExpression(
+                        SyntaxKind.LogicalAndExpression,
+                        previousInvocation,
+                        currentInvocation);
+                }
+
+                previousInvocation = currentInvocation;
+                i++;
+            }
+
+            var dictionary = isExtension ? extensions : partials;
+            if (!dictionary.TryGetValue(multiMethodStatement, out var ifStatements))
+            {
+                ifStatements = new(SyntaxNodeComparer.Default);
+                dictionary.Add(multiMethodStatement, ifStatements);
+            }
+
+            var statementExpressions = CreateWhenStatements(multiMethodStatement);
+
+            if (previousInvocation is null)
+            {
+                continue;
+            }
+
+            ifStatements.Add(
+                IfStatement(
+                    binaryStatement ?? (ExpressionSyntax)previousInvocation,
+                    Block(statementExpressions, isExtension ? 2 : 3)));
         }
 
-        private static MethodDeclarationSyntax CreateWhenMethod(
-            string methodName,
-            string inputType,
-            string outputType,
-            bool isExplicit,
-            bool isExtension,
-            Accessibility accessibility,
-            List<StatementSyntax> statements)
+        GenerateWhenMethods(extensions, true, compilationData);
+        GenerateWhenMethods(partials, false, compilationData);
+    }
+
+    private static void GenerateWhenMethods(
+        Dictionary<MultiWhenStatementsDatum, SortedSet<IfStatementSyntax>> input,
+        bool isExtension,
+        CompilationDatum compilationData)
+    {
+        foreach (var kvp in input)
         {
-            var modifiers = accessibility.GetAccessibilityTokens().ToList();
+            var multiMethodData = kvp.Key;
+            var hostInputType = multiMethodData.InputType;
+            var classAccessibility = multiMethodData.ClassAccessibility;
 
-            var parameterList = new List<ParameterSyntax>();
+            var methodAccessibility = multiMethodData.TypeArguments.GetMinVisibility();
 
-            if (isExtension && !isExplicit)
-            {
-                modifiers.Add(SyntaxKind.StaticKeyword);
-                parameterList.Add(Parameter(inputType, Constants.SourceParameterName, new[] { SyntaxKind.ThisKeyword }));
-            }
-            else if (isExtension && isExplicit)
-            {
-                parameterList.Add(Parameter(inputType, Constants.SourceParameterName));
-            }
+            var statements = kvp.Value;
+
+            var classDatum = compilationData.GetClass(
+                hostInputType,
+                classAccessibility,
+                isExtension,
+                Constants.WhenExtensionClass);
+
+            var method = CreateWhenMethodDeclaration(
+                kvp.Key,
+                methodAccessibility,
+                statements.Cast<StatementSyntax>().ToList());
+
+            classDatum.MethodData.Add(new(methodAccessibility, method));
+        }
+    }
+
+    private static MethodDeclarationSyntax CreateWhenMethodDeclaration(
+        MultiWhenStatementsDatum methodDatum,
+        Accessibility methodAccessibility,
+        List<StatementSyntax> statements)
+    {
+        var modifiers = methodAccessibility.GetAccessibilityTokens().ToList();
+
+        var methodName = methodDatum.MethodName;
+        var isExtension = methodDatum.IsExtensionMethod;
+
+        var inputType = methodDatum.InputType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+        var outputType = methodDatum.OutputType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+
+        var parameterList = new List<ParameterSyntax>();
+
+        if (isExtension)
+        {
+            modifiers.Add(SyntaxKind.StaticKeyword);
+            parameterList.Add(Parameter(inputType, Constants.FromObjectVariable, new[] { SyntaxKind.ThisKeyword }));
+        }
+
+        var i = 0;
+        foreach (var (_, expressionArgument) in methodDatum.Arguments)
+        {
+            var propertyExpressionName = methodDatum.Arguments.Count > 1
+                ? Constants.PropertyExpressionParameterName + (i + 1)
+                : Constants.PropertyExpressionParameterName;
+            var parameterInputType =
+                expressionArgument.InputType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            var parameterOutputType =
+                expressionArgument.OutputType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            parameterList.Add(Parameter(
+                GetExpressionFunc(parameterInputType, parameterOutputType),
+                propertyExpressionName));
+            i++;
+        }
+
+        if (methodDatum.TypeArguments.Count > 2)
+        {
+            var conversionTypes = new List<TypeSyntax>(methodDatum.TypeArguments.Count);
+            conversionTypes.AddRange(methodDatum.TypeArguments.Skip(1).Select(typeArgument =>
+                    IdentifierName(typeArgument.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)))
+                .Cast<TypeSyntax>());
 
             parameterList.Add(Parameter(
-                    GetExpressionFunc(inputType, outputType),
-                    Constants.PropertyExpressionParameterName));
-
-            parameterList.AddRange(CallerMembersParameters());
-
-            var body = Block(statements, 1);
-
-            var returnType = GenericName(Constants.IObservableTypeName, new[] { IdentifierName(outputType) });
-            return MethodDeclaration(modifiers, returnType, methodName, parameterList, 0, body);
+                GenericName(Constants.FuncTypeName, conversionTypes),
+                Constants.ConverterParameterName));
         }
 
-        private static InvocationExpressionSyntax GetObservableChain(string inputName, IReadOnlyList<ExpressionChain> members, string eventName, string handlerName)
-        {
-            InvocationExpressionSyntax? observable = null;
-            for (var i = 0; i < members.Count; ++i)
-            {
-                var (name, _, outputType) = members[i];
+        parameterList.AddRange(CallerMembersParameters());
 
-                observable = i == 0 || observable is null ?
-                    ObservableNotifyPropertyChanged(outputType.ToDisplayString(), inputName, name, eventName, handlerName) :
-                    SelectObservableNotifyPropertyChangedSwitch(observable, outputType.ToDisplayString(), Constants.SourceParameterName, name, eventName, handlerName);
+        statements.Add(ThrowStatement(
+            ObjectCreationExpression(
+                Constants.InvalidOperationExceptionTypeName,
+                new[] { Argument("\"No valid expression found.\"") }),
+            isExtension ? 2 : 3));
+
+        var body = Block(statements, isExtension ? 1 : 2);
+
+        var returnType = GenericName(Constants.IObservableTypeName, new[] { IdentifierName(outputType) });
+        return MethodDeclaration(
+            GetMethodAttributes(),
+            modifiers,
+            returnType,
+            methodName,
+            parameterList,
+            isExtension ? 1 : 2,
+            body);
+    }
+
+    private static List<StatementSyntax> CreateWhenStatements(MultiWhenStatementsDatum multiMethod)
+    {
+        var methodName = multiMethod.MethodName;
+        var isExtension = multiMethod.IsExtensionMethod;
+
+        var statements = new List<StatementSyntax>();
+
+        var isWhenChanged = methodName.Equals(Constants.WhenChangedMethodName, StringComparison.InvariantCulture);
+
+        var eventName = isWhenChanged ? Constants.WhenChangedEventName : Constants.WhenChangingEventName;
+        var handlerName = isWhenChanged ? Constants.WhenChangedEventHandler : Constants.WhenChangingEventHandler;
+
+        // generates: var hostObs = fromObject.WhenChanged(fromProperty);
+        var i = 0;
+        foreach (var (_, expressionArgument) in multiMethod.Arguments)
+        {
+            var expressionChain = expressionArgument.ExpressionChain;
+            var fromName = isExtension ? Constants.FromObjectVariable : Constants.ThisObjectVariable;
+            var observableChain =
+                GetObservableChain(fromName, expressionChain, eventName, handlerName, isExtension ? 2 : 3);
+            var outputTypeName =
+                expressionArgument.OutputType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            var variableName = multiMethod.Arguments.Count > 1
+                ? Constants.HostObservableVariable + (i + 1)
+                : Constants.HostObservableVariable;
+            var observable = LocalDeclarationStatement(VariableDeclaration(
+                GenericName(Constants.IObservableTypeName, new[] { IdentifierName(outputTypeName) }),
+                new[] { VariableDeclarator(variableName, EqualsValueClause(observableChain)) }));
+            statements.Add(observable);
+            i++;
+        }
+
+        if (multiMethod.Arguments.Count > 1)
+        {
+            var arguments = new List<ArgumentSyntax>(multiMethod.Arguments.Count + 1);
+
+            for (i = 0; i < multiMethod.Arguments.Count; ++i)
+            {
+                var observableName = multiMethod.Arguments.Count > 1
+                    ? Constants.HostObservableVariable + (i + 1)
+                    : Constants.HostObservableVariable;
+
+                arguments.Add(Argument(observableName));
             }
 
-            return observable!;
+            arguments.Add(Argument(Constants.ConverterParameterName));
+
+            statements.Add(ReturnStatement(InvocationExpression(
+                MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    Constants.ObservableLinqTypeName,
+                    Constants.CombineLatestMethodName),
+                arguments)));
+        }
+        else
+        {
+            statements.Add(ReturnStatement(Constants.HostObservableVariable));
         }
 
-        private static InvocationExpressionSyntax ObservableNotifyPropertyChanged(string returnType, string inputName, string memberName, string eventName, string handlerName) =>
-            InvocationExpression(
-                MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    IdentifierName(Constants.ObservableLinqTypeName),
-                    GenericName(Constants.CreateMethodName, new TypeSyntax[] { IdentifierName(returnType) })),
-                new[]
-                {
-                    Argument(
-                        SimpleLambdaExpression(
-                            Parameter(Constants.ObserverParameterName),
-                            Block(
-                                new StatementSyntax[]
-                                {
-                                    IfStatement(
-                                        BinaryExpression(SyntaxKind.EqualsExpression, IdentifierName(inputName), NullLiteral()),
-                                        ReturnStatement(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, Constants.ReactiveDisposableTypeName, Constants.EmptyPropertyName))),
-                                    ExpressionStatement(InvocationExpression(
-                                        MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, Constants.ObserverParameterName, Constants.OnNextMethodName),
-                                        new[] { Argument(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, inputName, memberName)) })),
-                                    LocalDeclarationStatement(
-                                        VariableDeclaration(
-                                            handlerName,
-                                            new[]
-                                            {
-                                                VariableDeclarator(
-                                                    Constants.HandlerParameterName,
-                                                    EqualsValueClause(ParenthesizedLambdaExpression(
-                                                        new[]
-                                                        {
-                                                            Parameter(Constants.SenderParameterName),
-                                                            Parameter(Constants.EventArgumentsParameterName),
-                                                        },
-                                                        Block(
-                                                            new StatementSyntax[]
-                                                            {
-                                                                IfStatement(
-                                                                    BinaryExpression(
-                                                                        SyntaxKind.EqualsExpression,
-                                                                        MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, Constants.EventArgumentsParameterName, Constants.PropertyNamePropertyName),
-                                                                        LiteralExpression(memberName)),
-                                                                    Block(
-                                                                        new StatementSyntax[]
-                                                                        {
-                                                                            ExpressionStatement(InvocationExpression(
-                                                                                MemberAccessExpression(
-                                                                                    SyntaxKind.SimpleMemberAccessExpression,
-                                                                                    Constants.ObserverParameterName,
-                                                                                    Constants.OnNextMethodName),
-                                                                                new[]
-                                                                                {
-                                                                                    Argument(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, inputName, memberName)),
-                                                                                })),
-                                                                        },
-                                                                        3)),
-                                                            },
-                                                            2)))),
-                                            })),
-                                    ExpressionStatement(AssignmentExpression(SyntaxKind.AddAssignmentExpression, MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, inputName, eventName), IdentifierName("handler"))),
-                                    ReturnStatement(InvocationExpression(
-                                        MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, Constants.ReactiveDisposableTypeName, Constants.CreateMethodName),
+        return statements;
+    }
+
+    private static InvocationExpressionSyntax GetObservableChain(
+        string inputName,
+        IReadOnlyList<ExpressionChain> members,
+        string eventName,
+        string handlerName,
+        int level)
+    {
+        InvocationExpressionSyntax? observable = null;
+        for (var i = 0; i < members.Count; ++i)
+        {
+            var (name, _, outputType) = members[i];
+
+            observable = i == 0 || observable is null
+                ? ObservableNotifyPropertyChanged(
+                    outputType.ToDisplayString(),
+                    inputName,
+                    name,
+                    eventName,
+                    handlerName,
+                    level)
+                : SelectObservableNotifyPropertyChangedSwitch(
+                    observable,
+                    outputType.ToDisplayString(),
+                    Constants.SourceParameterName,
+                    name,
+                    eventName,
+                    handlerName,
+                    level);
+        }
+
+        return observable!;
+    }
+
+    private static InvocationExpressionSyntax ObservableNotifyPropertyChanged(
+        string returnType,
+        string inputName,
+        string memberName,
+        string eventName,
+        string handlerName,
+        int level) =>
+        InvocationExpression(
+            MemberAccessExpression(
+                SyntaxKind.SimpleMemberAccessExpression,
+                IdentifierName(Constants.ObservableLinqTypeName),
+                GenericName(Constants.CreateMethodName, new TypeSyntax[] { IdentifierName(returnType) })),
+            new[]
+            {
+                Argument(
+                    SimpleLambdaExpression(
+                        Parameter(Constants.ObserverParameterName),
+                        Block(
+                            new StatementSyntax[]
+                            {
+                                IfStatement(
+                                    BinaryExpression(
+                                        SyntaxKind.EqualsExpression,
+                                        IdentifierName(inputName),
+                                        NullLiteral()),
+                                    Block(
                                         new[]
                                         {
-                                            Argument(TupleExpression(
-                                                new[]
-                                                {
-                                                    Argument(inputName, Constants.ParentPropertyName),
-                                                    Argument(Constants.HandlerParameterName, Constants.HandlerMethodName),
-                                                })),
-                                            Argument(SimpleLambdaExpression(
-                                                Parameter(Constants.LambdaSingleParameterName),
-                                                AssignmentExpression(
-                                                    SyntaxKind.SubtractAssignmentExpression,
-                                                    MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, inputName, eventName),
-                                                    MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, Constants.LambdaSingleParameterName, Constants.HandlerMethodName)))),
+                                            ReturnStatement(MemberAccessExpression(
+                                                SyntaxKind.SimpleMemberAccessExpression,
+                                                Constants.ReactiveDisposableTypeName,
+                                                Constants.EmptyPropertyName))
+                                        },
+                                        level + 2)),
+                                ExpressionStatement(InvocationExpression(
+                                    MemberAccessExpression(
+                                        SyntaxKind.SimpleMemberAccessExpression,
+                                        Constants.ObserverParameterName,
+                                        Constants.OnNextMethodName),
+                                    new[]
+                                    {
+                                        Argument(MemberAccessExpression(
+                                            SyntaxKind.SimpleMemberAccessExpression,
+                                            inputName,
+                                            memberName))
+                                    })),
+                                LocalDeclarationStatement(
+                                    VariableDeclaration(
+                                        handlerName,
+                                        new[]
+                                        {
+                                            VariableDeclarator(
+                                                Constants.HandlerParameterName,
+                                                EqualsValueClause(ParenthesizedLambdaExpression(
+                                                    new[]
+                                                    {
+                                                        Parameter(Constants.SenderParameterName),
+                                                        Parameter(Constants.EventArgumentsParameterName),
+                                                    },
+                                                    Block(
+                                                        new StatementSyntax[]
+                                                        {
+                                                            IfStatement(
+                                                                BinaryExpression(
+                                                                    SyntaxKind.EqualsExpression,
+                                                                    MemberAccessExpression(
+                                                                        SyntaxKind.SimpleMemberAccessExpression,
+                                                                        Constants.EventArgumentsParameterName,
+                                                                        Constants.PropertyNamePropertyName),
+                                                                    LiteralExpression(memberName)),
+                                                                Block(
+                                                                    new StatementSyntax[]
+                                                                    {
+                                                                        ExpressionStatement(InvocationExpression(
+                                                                            MemberAccessExpression(
+                                                                                SyntaxKind.SimpleMemberAccessExpression,
+                                                                                Constants.ObserverParameterName,
+                                                                                Constants.OnNextMethodName),
+                                                                            new[]
+                                                                            {
+                                                                                Argument(MemberAccessExpression(
+                                                                                    SyntaxKind
+                                                                                        .SimpleMemberAccessExpression,
+                                                                                    inputName,
+                                                                                    memberName)),
+                                                                            })),
+                                                                    },
+                                                                    level + 4)),
+                                                        },
+                                                        level + 3)))),
                                         })),
-                                },
-                                1))),
-                });
+                                ExpressionStatement(AssignmentExpression(
+                                    SyntaxKind.AddAssignmentExpression,
+                                    MemberAccessExpression(
+                                        SyntaxKind.SimpleMemberAccessExpression,
+                                        inputName,
+                                        eventName),
+                                    IdentifierName("handler"))),
+                                ReturnStatement(InvocationExpression(
+                                    MemberAccessExpression(
+                                        SyntaxKind.SimpleMemberAccessExpression,
+                                        Constants.ReactiveDisposableTypeName,
+                                        Constants.CreateMethodName),
+                                    new[]
+                                    {
+                                        Argument(TupleExpression(
+                                            new[]
+                                            {
+                                                Argument(inputName, Constants.ParentPropertyName),
+                                                Argument(
+                                                    Constants.HandlerParameterName,
+                                                    Constants.HandlerMethodName),
+                                            })),
+                                        Argument(SimpleLambdaExpression(
+                                            Parameter(Constants.LambdaSingleParameterName),
+                                            AssignmentExpression(
+                                                SyntaxKind.SubtractAssignmentExpression,
+                                                MemberAccessExpression(
+                                                    SyntaxKind.SimpleMemberAccessExpression,
+                                                    inputName,
+                                                    eventName),
+                                                MemberAccessExpression(
+                                                    SyntaxKind.SimpleMemberAccessExpression,
+                                                    Constants.LambdaSingleParameterName,
+                                                    Constants.HandlerMethodName)))),
+                                    })),
+                            },
+                            level + 1))),
+            });
 
-        private static InvocationExpressionSyntax SelectObservableNotifyPropertyChangedSwitch(InvocationExpressionSyntax sourceInvoke, string returnType, string inputName, string memberName, string eventName, string handlerName) =>
-            InvocationExpression(
-                MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
+    private static InvocationExpressionSyntax SelectObservableNotifyPropertyChangedSwitch(
+        ExpressionSyntax sourceInvoke,
+        string returnType,
+        string inputName,
+        string memberName,
+        string eventName,
+        string handlerName,
+        int level) =>
+        InvocationExpression(
+            MemberAccessExpression(
+                SyntaxKind.SimpleMemberAccessExpression,
+                Constants.ObservableLinqTypeName,
+                Constants.SwitchMethodName),
+            new[]
+            {
+                Argument(
                     InvocationExpression(
                         MemberAccessExpression(
                             SyntaxKind.SimpleMemberAccessExpression,
-                            sourceInvoke,
+                            Constants.ObservableLinqTypeName,
                             Constants.SelectMethod),
                         new[]
                         {
-                            Argument(SimpleLambdaExpression(Parameter(inputName), ObservableNotifyPropertyChanged(returnType, inputName, memberName, eventName, handlerName))),
-                        }),
-                    Constants.SwitchMethodName));
-    }
+                            Argument(sourceInvoke),
+                            Argument(SimpleLambdaExpression(
+                                Parameter(inputName),
+                                ObservableNotifyPropertyChanged(
+                                    returnType,
+                                    inputName,
+                                    memberName,
+                                    eventName,
+                                    handlerName,
+                                    level))),
+                        }))
+            });
 }

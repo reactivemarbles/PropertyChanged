@@ -7,15 +7,15 @@ using System.Collections.Concurrent;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace ReactiveMarbles.PropertyChanged
+namespace ReactiveMarbles.PropertyChanged;
+
+internal static class GetMemberFuncCache<TFrom, TReturn>
 {
-    internal static class GetMemberFuncCache<TFrom, TReturn>
-    {
 #if !UIKIT
-        private static readonly ConcurrentDictionary<MemberInfo, Func<TFrom, TReturn>> Cache = new(new MemberFuncCacheKeyComparer());
+    private static readonly ConcurrentDictionary<MemberInfo, Func<TFrom, TReturn>> Cache = new(new MemberFuncCacheKeyComparer());
 #endif
 
-        public static Func<TFrom, TReturn> GetCache(MemberInfo memberInfo) =>
+    public static Func<TFrom, TReturn> GetCache(MemberInfo memberInfo) =>
 #if UIKIT
             memberInfo switch
             {
@@ -24,26 +24,25 @@ namespace ReactiveMarbles.PropertyChanged
                 _ => throw new ArgumentException($"Cannot handle member {memberInfo.Name}", nameof(memberInfo)),
             };
 #else
-            Cache.GetOrAdd(memberInfo, static memberInfo =>
+        Cache.GetOrAdd(memberInfo, static memberInfo =>
+        {
+            var instance = Expression.Parameter(typeof(TFrom), "instance");
+
+            var castInstance = Expression.Convert(instance, memberInfo.DeclaringType);
+
+            Expression body = memberInfo switch
             {
-                var instance = Expression.Parameter(typeof(TFrom), "instance");
+                PropertyInfo propertyInfo => Expression.Call(castInstance, propertyInfo.GetGetMethod()),
+                FieldInfo fieldInfo => Expression.Field(castInstance, fieldInfo),
+                _ => throw new ArgumentException($"Cannot handle member {memberInfo.Name}", nameof(memberInfo)),
+            };
 
-                var castInstance = Expression.Convert(instance, memberInfo.DeclaringType);
+            var parameters = new[] { instance };
 
-                Expression body = memberInfo switch
-                {
-                    PropertyInfo propertyInfo => Expression.Call(castInstance, propertyInfo.GetGetMethod()),
-                    FieldInfo fieldInfo => Expression.Field(castInstance, fieldInfo),
-                    _ => throw new ArgumentException($"Cannot handle member {memberInfo.Name}", nameof(memberInfo)),
-                };
+            var lambdaExpression = Expression.Lambda<Func<TFrom, TReturn>>(body, parameters);
 
-                var parameters = new[] { instance };
-
-                var lambdaExpression = Expression.Lambda<Func<TFrom, TReturn>>(body, parameters);
-
-                return lambdaExpression.Compile();
-            });
+            return lambdaExpression.Compile();
+        });
 #endif
 
-    }
 }

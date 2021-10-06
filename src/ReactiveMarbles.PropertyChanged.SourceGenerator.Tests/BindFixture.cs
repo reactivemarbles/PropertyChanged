@@ -7,80 +7,93 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel.Client;
 
 using ReactiveMarbles.PropertyChanged.SourceGenerator.Builders;
 
-using Xunit.Abstractions;
+namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests;
 
-namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
+internal class BindFixture
 {
-    internal class BindFixture
+    private readonly BindHostBuilder _hostTypeInfo;
+    private readonly CompilationUtil _compilation;
+    private readonly Action<string> _testOutputHelper;
+    private Type _hostType;
+    private Type _viewModelPropertyType;
+    private Type _valuePropertyType;
+
+    private BindFixture(BindHostBuilder hostTypeInfo, Action<string> testOutputHelper)
     {
-        private readonly BindHostBuilder _hostTypeInfo;
-        private readonly ITestOutputHelper _testOutputHelper;
-        private readonly CompilationUtil _compilationUtil;
-        private readonly string[] _extraSources;
-        private Type _hostType;
-        private Type _hostPropertyType;
-        private Type _targetPropertyType;
+        _hostTypeInfo = hostTypeInfo;
+        _testOutputHelper = testOutputHelper;
+        _compilation = new(x => _testOutputHelper(x));
+    }
 
-        private BindFixture(BindHostBuilder hostTypeInfo, ITestOutputHelper testOutputHelper, string[] extraSources)
+    public string Sources { get; private set; } = string.Empty;
+
+    public static async Task<BindFixture> Create(BindHostBuilder hostTypeInfo, Action<string> testOutputHelper)
+    {
+        var bindFixture = new BindFixture(hostTypeInfo, testOutputHelper);
+        await bindFixture.Initialize().ConfigureAwait(false);
+        return bindFixture;
+    }
+
+    public Task Initialize() => _compilation.Initialize();
+
+    public void RunGenerator(BindHostBuilder hostTypeInfo, out ImmutableArray<Diagnostic> compilationDiagnostics, out ImmutableArray<Diagnostic> generatorDiagnostics, bool writeOutput = false, [CallerMemberName] string callerMemberName = null)
+    {
+        var sources = new[] { ("HostBuilder.cs", hostTypeInfo.BuildRoot()) };
+
+        Compilation afterCompilation = null;
+        compilationDiagnostics = default;
+        generatorDiagnostics = default;
+        try
         {
-            _hostTypeInfo = hostTypeInfo;
-            _testOutputHelper = testOutputHelper;
-            _compilationUtil = new CompilationUtil(x => _testOutputHelper.WriteLine(x));
-            _extraSources = extraSources;
+            _compilation.RunGenerators(out compilationDiagnostics, out generatorDiagnostics, out var beforeCompilation, out afterCompilation, sources);
+            var assembly = GetAssembly(afterCompilation);
+            _hostType = assembly.GetType(_hostTypeInfo.GetTypeName());
+            _viewModelPropertyType = assembly.GetType(_hostTypeInfo.ViewModelPropertyTypeName);
+            _valuePropertyType = assembly.GetType(_hostTypeInfo.PropertyTypeName);
         }
-
-        public string Sources { get; private set; }
-
-        public static async Task<BindFixture> Create(BindHostBuilder hostTypeInfo, ITestOutputHelper testOutputHelper, params string[] extraSources)
+        catch (InvalidOperationException)
         {
-            var bindFixture = new BindFixture(hostTypeInfo, testOutputHelper, extraSources);
-            await bindFixture.Initialize().ConfigureAwait(false);
-            return bindFixture;
-        }
-
-        public Task Initialize() => _compilationUtil.Initialize();
-
-        public void RunGenerator(BindHostBuilder hostTypeInfo, out ImmutableArray<Diagnostic> compilationDiagnostics, out ImmutableArray<Diagnostic> generatorDiagnostics)
-        {
-            var sources = _extraSources.Prepend(hostTypeInfo.BuildRoot()).ToArray();
-
-            _compilationUtil.RunGenerators(out compilationDiagnostics, out generatorDiagnostics, out var beforeCompilation, out var afterCompilation, sources.ToArray());
-
             var compilationErrors = compilationDiagnostics.Where(x => x.Severity == DiagnosticSeverity.Error).Select(x => x.GetMessage()).ToList();
             Sources = string.Join(Environment.NewLine, afterCompilation.SyntaxTrees.Select(x => x.ToString()).Where(x => !x.Contains("The implementation should have been generated.")));
             if (compilationErrors.Count > 0)
             {
-                _testOutputHelper.WriteLine(Sources);
-                throw new InvalidOperationException(string.Join('\n', compilationErrors));
+                throw;
             }
-
-            var assembly = GetAssembly(afterCompilation);
-            _hostType = assembly.GetType(_hostTypeInfo.GetTypeName());
-            _hostPropertyType = assembly.GetType(_hostTypeInfo.HostPropertyTypeName);
-            _targetPropertyType = assembly.GetType(_hostTypeInfo.TargetPropertyTypeName);
         }
-
-        public BindHostProxy NewHostInstance() => new(CreateInstance(_hostType));
-
-        public WhenChangedHostProxy NewViewModelPropertyInstance() => new(CreateInstance(_hostPropertyType));
-
-        public object NewValuePropertyInstance() => CreateInstance(_targetPropertyType);
-
-        private static object CreateInstance(Type type) => Activator.CreateInstance(type, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, null, null);
-
-        private static Assembly GetAssembly(Compilation compilation)
+        finally
         {
-            using var ms = new MemoryStream();
-            var result = compilation.Emit(ms);
-            ms.Seek(0, SeekOrigin.Begin);
-            return Assembly.Load(ms.ToArray());
+            if (afterCompilation is not null && writeOutput)
+            {
+                var directory = Directory.CreateDirectory(Path.Combine("./erroroutput/bind", callerMemberName));
+                foreach (var source in afterCompilation.SyntaxTrees)
+                {
+                    var fileName = Path.Combine(directory.FullName, Path.GetFileName(source.FilePath));
+                    File.WriteAllText(fileName, source.ToString());
+                }
+            }
         }
+    }
+
+    public BindHostProxy NewHostInstance() => new(CreateInstance(_hostType));
+
+    public WhenChangedHostProxy NewViewModelPropertyInstance() => new(CreateInstance(_viewModelPropertyType));
+
+    public object NewValuePropertyInstance() => CreateInstance(_valuePropertyType);
+
+    private static object CreateInstance(Type type) => Activator.CreateInstance(type, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, null, null) ?? throw new InvalidOperationException("The value of the type cannot be null");
+
+    private static Assembly GetAssembly(Compilation compilation)
+    {
+        using var ms = new MemoryStream();
+        var result = compilation.Emit(ms);
+        ms.Seek(0, SeekOrigin.Begin);
+        return Assembly.Load(ms.ToArray());
     }
 }

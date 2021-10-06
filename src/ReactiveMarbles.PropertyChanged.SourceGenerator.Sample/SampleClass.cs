@@ -7,72 +7,104 @@ using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Reactive.Linq;
 
-namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample
+namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample;
+
+/// <summary>
+/// Dummy.
+/// </summary>
+public partial class SampleClass
 {
+    private PrivateClass GetClass() => throw new NotImplementedException();
+}
+
+/// <summary>
+/// Dummy.
+/// </summary>
+[System.Diagnostics.CodeAnalysis.SuppressMessage("Readability", "RCS1018:Add accessibility modifiers.", Justification = "Because")]
+[System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1400:Access modifier should be declared", Justification = "Because")]
+public partial class SampleClass : INotifyPropertyChanged, INotifyPropertyChanging
+{
+    private OtherNamespace.SampleClass _myClass;
+    private string _myString;
+    private string _myString2;
+    private string _myString3;
+
+    internal SampleClass() =>
+#pragma warning disable SX1101 // Do not prefix local calls with 'this.'
+        this.WhenChanged(x => x.MyClass);
+#pragma warning restore SX1101 // Do not prefix local calls with 'this.'
+
     /// <summary>
     /// Dummy.
     /// </summary>
-    public partial class SampleClass
+    public event PropertyChangedEventHandler PropertyChanged;
+
+    /// <summary>
+    /// Dummy.
+    /// </summary>
+    public event PropertyChangingEventHandler PropertyChanging;
+
+    /// <summary>
+    /// Gets or sets a string.
+    /// </summary>
+    internal string MyString
     {
-        private PrivateClass GetClass() => throw new NotImplementedException();
+        get => _myString;
+
+        set
+        {
+            PropertyChanging?.Invoke(this, new(nameof(MyString)));
+            _myString = value;
+            PropertyChanged?.Invoke(this, new(nameof(MyString)));
+        }
     }
 
     /// <summary>
-    /// Dummy.
+    /// Gets or sets a string.
     /// </summary>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Readability", "RCS1018:Add accessibility modifiers.", Justification = "Because")]
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1400:Access modifier should be declared", Justification = "Because")]
-    public partial class SampleClass : INotifyPropertyChanged, INotifyPropertyChanging
+    internal string MyString2
     {
-        private OtherNamespace.SampleClass _myClass;
-        private string _myString;
+        get => _myString2;
 
-        internal SampleClass() =>
-#pragma warning disable SX1101 // Do not prefix local calls with 'this.'
-            this.WhenChanged(x => x.MyClass);
-#pragma warning restore SX1101 // Do not prefix local calls with 'this.'
-
-        /// <summary>
-        /// Dummy.
-        /// </summary>
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        /// <summary>
-        /// Dummy.
-        /// </summary>
-        public event PropertyChangingEventHandler PropertyChanging;
-
-        /// <summary>
-        /// Gets or sets a string.
-        /// </summary>
-        internal string MyString
+        set
         {
-            get => _myString;
-
-            set
-            {
-                _myString = value;
-                PropertyChanged?.Invoke(this, new(nameof(MyString)));
-            }
+            PropertyChanging?.Invoke(this, new(nameof(MyString2)));
+            _myString2 = value;
+            PropertyChanged?.Invoke(this, new(nameof(MyString2)));
         }
+    }
 
-        /// <summary>
-        /// Gets or sets a class.
-        /// </summary>
-        internal OtherNamespace.SampleClass MyClass
+    /// <summary>
+    /// Gets or sets a string.
+    /// </summary>
+    internal string MyString3
+    {
+        get => _myString3;
+
+        set
         {
-            get => _myClass;
-
-            set
-            {
-                _myClass = value;
-                PropertyChanged?.Invoke(this, new(nameof(MyClass)));
-            }
+            PropertyChanging?.Invoke(this, new(nameof(MyString3)));
+            _myString3 = value;
+            PropertyChanged?.Invoke(this, new(nameof(MyString3)));
         }
+    }
 
-        [SuppressMessage("Design", "CA1812: Never used class", Justification = "Used by Rx")]
-        private class PrivateClass
+    /// <summary>
+    /// Gets or sets a class.
+    /// </summary>
+    internal OtherNamespace.SampleClass MyClass
+    {
+        get => _myClass;
+
+        set
         {
+            _myClass = value;
+            PropertyChanged?.Invoke(this, new(nameof(MyClass)));
         }
+    }
+
+    [SuppressMessage("Design", "CA1812: Never used class", Justification = "Used by Rx")]
+    private class PrivateClass
+    {
     }
 }

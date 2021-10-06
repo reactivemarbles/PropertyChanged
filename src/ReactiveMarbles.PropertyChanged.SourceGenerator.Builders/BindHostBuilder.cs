@@ -8,393 +8,372 @@ using System.Linq.Expressions;
 
 using Microsoft.CodeAnalysis;
 
-namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders
+namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Builders;
+
+/// <summary>
+/// A builder for generating Bind() source code.
+/// </summary>
+public class BindHostBuilder : BaseUserSourceBuilder<BindHostBuilder>
 {
+    private BaseUserSourceBuilder? _viewModelPropertyType;
+    private Accessibility _propertyAccess;
+    private Accessibility _viewModelPropertyAccess;
+    private string? _twoWayBindInvocation;
+    private string? _oneWayBindInvocation;
+
     /// <summary>
-    /// A builder for generating Bind() source code.
+    /// Initializes a new instance of the <see cref="BindHostBuilder"/> class.
     /// </summary>
-    public class BindHostBuilder : BaseUserSourceBuilder<BindHostBuilder>
+    public BindHostBuilder()
     {
-        private BaseUserSourceBuilder? _hostPropertyType;
-        private Accessibility _targetPropertyAccess;
-        private Accessibility _hostPropertyAccess;
-        private string? _twoWayBindInvocation;
-        private string? _oneWayBindInvocation;
+        _viewModelPropertyType = null;
+        _viewModelPropertyAccess = Accessibility.Public;
+        _propertyAccess = Accessibility.Public;
+    }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="BindHostBuilder"/> class.
-        /// </summary>
-        public BindHostBuilder()
+    /// <summary>
+    /// Gets the type name of the <b>Value</b> property.
+    /// </summary>
+    public string? ViewModelPropertyTypeName => _viewModelPropertyType?.GetTypeName();
+
+    /// <summary>
+    /// Gets the type name of the <b>Value</b> property.
+    /// </summary>
+    public string? PropertyTypeName { get; private set; }
+
+    /// <summary>
+    /// Sets the type of the <b>Value</b> property.
+    /// </summary>
+    /// <param name="value">A builder that represents a type.</param>
+    /// <returns>A reference to this builder.</returns>
+    public BindHostBuilder WithPropertyType(BaseUserSourceBuilder value)
+    {
+        if (value is null)
         {
-            _hostPropertyType = null;
-            _hostPropertyAccess = Accessibility.Public;
-            _targetPropertyAccess = Accessibility.Public;
+            throw new ArgumentNullException(nameof(value));
         }
 
-        /// <summary>
-        /// Gets the type name of the <b>Value</b> property.
-        /// </summary>
-        public string? HostPropertyTypeName => _hostPropertyType?.GetTypeName();
+        PropertyTypeName = value.GetTypeName();
+        return this;
+    }
 
-        /// <summary>
-        /// Gets the type name of the <b>Value</b> property.
-        /// </summary>
-        public string? TargetPropertyTypeName { get; private set; }
+    /// <summary>
+    /// Sets the type of the <b>Value</b> property.
+    /// </summary>
+    /// <param name="value">A builder that represents a type.</param>
+    /// <returns>A reference to this builder.</returns>
+    public BindHostBuilder WithPropertyType(string value)
+    {
+        PropertyTypeName = value;
+        return this;
+    }
 
-        /// <summary>
-        /// Sets the type of the <b>Value</b> property.
-        /// </summary>
-        /// <param name="value">A builder that represents a type.</param>
-        /// <returns>A reference to this builder.</returns>
-        public BindHostBuilder WithTargetPropertyType(BaseUserSourceBuilder value)
+    /// <summary>
+    /// Sets the access modifier of the <b>Value</b> property.
+    /// </summary>
+    /// <param name="value">An access modifier.</param>
+    /// <returns>A reference to this builder.</returns>
+    public BindHostBuilder WithPropertyAccess(Accessibility value)
+    {
+        _propertyAccess = value;
+        return this;
+    }
+
+    /// <summary>
+    /// Sets the type of the <b>Value</b> property.
+    /// </summary>
+    /// <param name="value">A builder that represents a type.</param>
+    /// <returns>A reference to this builder.</returns>
+    public BindHostBuilder WithViewModelPropertyType(BaseUserSourceBuilder value)
+    {
+        _viewModelPropertyType = value;
+        return this;
+    }
+
+    /// <summary>
+    /// Sets the access modifier of the <b>Value</b> property.
+    /// </summary>
+    /// <param name="value">An access modifier.</param>
+    /// <returns>A reference to this builder.</returns>
+    public BindHostBuilder WithViewModelPropertyAccess(Accessibility value)
+    {
+        _viewModelPropertyAccess = value;
+        return this;
+    }
+
+    /// <summary>
+    /// Sets the Bind invocation.
+    /// </summary>
+    /// <param name="invocationKind">The invocation kind.</param>
+    /// <param name="receiverKind">The receiver kind.</param>
+    /// <param name="viewModelExpression">The view model expression.</param>
+    /// <param name="viewExpression">The view expression.</param>
+    /// <param name="target">The target parameter.</param>
+    /// <returns>A reference to this builder.</returns>
+    public BindHostBuilder WithTwoWayInvocation(
+        InvocationKind invocationKind,
+        ReceiverKind receiverKind,
+        Expression<Func<BindHostProxy, object>> viewModelExpression,
+        Expression<Func<WhenChangedHostProxy, object>> viewExpression,
+        string target = "ViewModel")
+    {
+        if (viewModelExpression is null)
         {
-            if (value is null)
-            {
-                throw new ArgumentNullException(nameof(value));
-            }
-
-            TargetPropertyTypeName = value.GetTypeName();
-            return this;
+            throw new ArgumentNullException(nameof(viewModelExpression));
         }
 
-        /// <summary>
-        /// Sets the type of the <b>Value</b> property.
-        /// </summary>
-        /// <param name="value">A builder that represents a type.</param>
-        /// <returns>A reference to this builder.</returns>
-        public BindHostBuilder WithTargetPropertyType(string value)
+        if (viewExpression is null)
         {
-            if (string.IsNullOrWhiteSpace(value))
-            {
-                throw new ArgumentException($"'{nameof(value)}' cannot be null or whitespace.", nameof(value));
-            }
-
-            TargetPropertyTypeName = value;
-            return this;
+            throw new ArgumentNullException(nameof(viewExpression));
         }
 
-        /// <summary>
-        /// Sets the access modifier of the <b>Value</b> property.
-        /// </summary>
-        /// <param name="value">An access modifier.</param>
-        /// <returns>A reference to this builder.</returns>
-        public BindHostBuilder WithTargetPropertyAccess(Accessibility value)
+        _twoWayBindInvocation = GetTwoWayBindInvocation(invocationKind, receiverKind, viewModelExpression.ToString(), viewExpression.ToString(), target);
+        return this;
+    }
+
+    /// <summary>
+    /// Sets the Bind invocation.
+    /// </summary>
+    /// <param name="invocationKind">The invocation kind.</param>
+    /// <param name="receiverKind">The receiver kind.</param>
+    /// <param name="viewModelExpression">The view model expression.</param>
+    /// <param name="viewExpression">The view expression.</param>
+    /// <param name="viewModelConvert">The view model conversion function.</param>
+    /// <param name="viewConvert">The view conversion function.</param>
+    /// <param name="target">The target parameter.</param>
+    /// <returns>A reference to this builder.</returns>
+    public BindHostBuilder WithTwoWayInvocation(
+        InvocationKind invocationKind,
+        ReceiverKind receiverKind,
+        Expression<Func<BindHostProxy, object>> viewModelExpression,
+        Expression<Func<WhenChangedHostProxy, object>> viewExpression,
+        Expression<Func<object, object, object>> viewModelConvert,
+        Expression<Func<object, object, object>> viewConvert,
+        string target = "ViewModel")
+    {
+        if (viewModelExpression is null)
         {
-            _targetPropertyAccess = value;
-            return this;
+            throw new ArgumentNullException(nameof(viewModelExpression));
         }
 
-        /// <summary>
-        /// Sets the type of the <b>Value</b> property.
-        /// </summary>
-        /// <param name="value">A builder that represents a type.</param>
-        /// <returns>A reference to this builder.</returns>
-        public BindHostBuilder WithHostPropertyType(BaseUserSourceBuilder value)
+        if (viewExpression is null)
         {
-            _hostPropertyType = value ?? throw new ArgumentNullException(nameof(value));
-            return this;
+            throw new ArgumentNullException(nameof(viewExpression));
         }
 
-        /// <summary>
-        /// Sets the access modifier of the <b>Value</b> property.
-        /// </summary>
-        /// <param name="value">An access modifier.</param>
-        /// <returns>A reference to this builder.</returns>
-        public BindHostBuilder WithHostPropertyAccess(Accessibility value)
+        if (viewModelConvert is null)
         {
-            _hostPropertyAccess = value;
-            return this;
+            throw new ArgumentNullException(nameof(viewModelConvert));
         }
 
-        /// <summary>
-        /// Sets the Bind invocation.
-        /// </summary>
-        /// <param name="invocationKind">The invocation kind.</param>
-        /// <param name="receiverKind">The receiver kind.</param>
-        /// <param name="hostExpression">The host expression.</param>
-        /// <param name="targetExpression">The target expression.</param>
-        /// <param name="target">The target parameter.</param>
-        /// <returns>A reference to this builder.</returns>
-        public BindHostBuilder WithTwoWayInvocation(
-            InvocationKind invocationKind,
-            ReceiverKind receiverKind,
-            Expression<Func<BindHostProxy, object>> hostExpression,
-            Expression<Func<WhenChangedHostProxy, object>> targetExpression,
-            string target = "targetModel")
+        if (viewConvert is null)
         {
-            if (hostExpression is null)
-            {
-                throw new ArgumentNullException(nameof(hostExpression));
-            }
-
-            if (targetExpression is null)
-            {
-                throw new ArgumentNullException(nameof(targetExpression));
-            }
-
-            _twoWayBindInvocation = GetTwoWayBindInvocation(invocationKind, receiverKind, hostExpression.ToString(), targetExpression.ToString(), target);
-            return this;
+            throw new ArgumentNullException(nameof(viewConvert));
         }
 
-        /// <summary>
-        /// Sets the Bind invocation.
-        /// </summary>
-        /// <param name="invocationKind">The invocation kind.</param>
-        /// <param name="receiverKind">The receiver kind.</param>
-        /// <param name="hostExpression">The host expression.</param>
-        /// <param name="targetExpression">The target expression.</param>
-        /// <param name="hostConvert">The host conversion function.</param>
-        /// <param name="targetConvert">The target conversion function.</param>
-        /// <param name="target">The target parameter.</param>
-        /// <returns>A reference to this builder.</returns>
-        public BindHostBuilder WithTwoWayInvocation(
-            InvocationKind invocationKind,
-            ReceiverKind receiverKind,
-            Expression<Func<BindHostProxy, object>> hostExpression,
-            Expression<Func<WhenChangedHostProxy, object>> targetExpression,
-            Expression<Func<object, object, object>> hostConvert,
-            Expression<Func<object, object, object>> targetConvert,
-            string target = "targetModel")
+        _twoWayBindInvocation = GetTwoWayBindInvocation(invocationKind, receiverKind, viewModelExpression.ToString(), viewExpression.ToString(), target, viewModelConvert.ToString(), viewConvert.ToString());
+        return this;
+    }
+
+    /// <summary>
+    /// Sets the OneWayBind invocation.
+    /// </summary>
+    /// <param name="invocationKind">The invocation kind.</param>
+    /// <param name="receiverKind">The receiver kind.</param>
+    /// <param name="viewModelExpression">The view model expression.</param>
+    /// <param name="viewExpression">The view expression.</param>
+    /// <param name="target">The target parameter.</param>
+    /// <returns>A reference to this builder.</returns>
+    public BindHostBuilder WithOneWayInvocation(
+        InvocationKind invocationKind,
+        ReceiverKind receiverKind,
+        Expression<Func<BindHostProxy, object>> viewModelExpression,
+        Expression<Func<WhenChangedHostProxy, object>> viewExpression,
+        string target = "ViewModel")
+    {
+        if (viewModelExpression is null)
         {
-            if (hostExpression is null)
-            {
-                throw new ArgumentNullException(nameof(hostExpression));
-            }
-
-            if (targetExpression is null)
-            {
-                throw new ArgumentNullException(nameof(targetExpression));
-            }
-
-            if (hostConvert is null)
-            {
-                throw new ArgumentNullException(nameof(hostConvert));
-            }
-
-            if (targetConvert is null)
-            {
-                throw new ArgumentNullException(nameof(targetConvert));
-            }
-
-            _twoWayBindInvocation = GetTwoWayBindInvocation(invocationKind, receiverKind, hostExpression.ToString(), targetExpression.ToString(), target, hostConvert.ToString(), targetConvert.ToString());
-            return this;
+            throw new ArgumentNullException(nameof(viewModelExpression));
         }
 
-        /// <summary>
-        /// Sets the OneWayBind invocation.
-        /// </summary>
-        /// <param name="invocationKind">The invocation kind.</param>
-        /// <param name="receiverKind">The receiver kind.</param>
-        /// <param name="hostExpression">The host expression.</param>
-        /// <param name="targetExpression">The target expression.</param>
-        /// <param name="target">The target parameter.</param>
-        /// <returns>A reference to this builder.</returns>
-        public BindHostBuilder WithOneWayInvocation(
-            InvocationKind invocationKind,
-            ReceiverKind receiverKind,
-            Expression<Func<BindHostProxy, object>> hostExpression,
-            Expression<Func<WhenChangedHostProxy, object>> targetExpression,
-            string target = "targetModel")
+        if (viewExpression is null)
         {
-            if (hostExpression is null)
-            {
-                throw new ArgumentNullException(nameof(hostExpression));
-            }
-
-            if (targetExpression is null)
-            {
-                throw new ArgumentNullException(nameof(targetExpression));
-            }
-
-            _oneWayBindInvocation = GetOneWayBindInvocation(invocationKind, receiverKind, hostExpression.ToString(), targetExpression.ToString(), target);
-            return this;
+            throw new ArgumentNullException(nameof(viewExpression));
         }
 
-        /// <summary>
-        /// Sets the OneWayBind invocation.
-        /// </summary>
-        /// <param name="invocationKind">The invocation kind.</param>
-        /// <param name="receiverKind">The receiver kind.</param>
-        /// <param name="hostExpression">The host expression.</param>
-        /// <param name="targetExpression">The target expression.</param>
-        /// <param name="hostConvert">The host conversion function.</param>
-        /// <param name="target">The target parameter.</param>
-        /// <returns>A reference to this builder.</returns>
-        public BindHostBuilder WithOneWayInvocation(
-            InvocationKind invocationKind,
-            ReceiverKind receiverKind,
-            Expression<Func<BindHostProxy, object>> hostExpression,
-            Expression<Func<WhenChangedHostProxy, object>> targetExpression,
-            Expression<Func<object, object, object>> hostConvert,
-            string target = "targetModel")
+        _oneWayBindInvocation = GetOneWayBindInvocation(invocationKind, receiverKind, viewModelExpression.ToString(), viewExpression.ToString(), target);
+        return this;
+    }
+
+    /// <summary>
+    /// Sets the OneWayBind invocation.
+    /// </summary>
+    /// <param name="invocationKind">The invocation kind.</param>
+    /// <param name="receiverKind">The receiver kind.</param>
+    /// <param name="viewModelExpression">The view model expression.</param>
+    /// <param name="viewExpression">The view expression.</param>
+    /// <param name="viewModelConvert">The view model conversion function.</param>
+    /// <param name="target">The target parameter.</param>
+    /// <returns>A reference to this builder.</returns>
+    public BindHostBuilder WithOneWayInvocation(
+        InvocationKind invocationKind,
+        ReceiverKind receiverKind,
+        Expression<Func<BindHostProxy, object>> viewModelExpression,
+        Expression<Func<WhenChangedHostProxy, object>> viewExpression,
+        Expression<Func<object, object, object>> viewModelConvert,
+        string target = "ViewModel")
+    {
+        if (viewModelExpression is null)
         {
-            if (hostExpression is null)
-            {
-                throw new ArgumentNullException(nameof(hostExpression));
-            }
-
-            if (targetExpression is null)
-            {
-                throw new ArgumentNullException(nameof(targetExpression));
-            }
-
-            if (hostConvert is null)
-            {
-                throw new ArgumentNullException(nameof(hostConvert));
-            }
-
-            if (string.IsNullOrEmpty(target))
-            {
-                throw new ArgumentException($"'{nameof(target)}' cannot be null or empty.", nameof(target));
-            }
-
-            _oneWayBindInvocation = GetOneWayBindInvocation(invocationKind, receiverKind, hostExpression.ToString(), targetExpression.ToString(), target, hostConvert.ToString());
-            return this;
+            throw new ArgumentNullException(nameof(viewModelExpression));
         }
 
-        /// <inheritdoc/>
-        public override IEnumerable<string> GetNamespaces() =>
-            new[]
-            {
-                "System",
-                "System.Collections.Generic",
-                "System.ComponentModel",
-                "System.Linq.Expressions",
-                "System.Runtime.CompilerServices",
-            };
-
-        /// <inheritdoc/>
-        protected override string CreateClass(string nestedClasses)
+        if (viewExpression is null)
         {
-            if (_hostPropertyType is null)
-            {
-                throw new InvalidOperationException("The Hostl property type is null.");
-            }
+            throw new ArgumentNullException(nameof(viewExpression));
+        }
 
-            if (TargetPropertyTypeName is null || string.IsNullOrWhiteSpace(TargetPropertyTypeName))
-            {
-                throw new InvalidOperationException("The TargetPropertyTypeName is null");
-            }
+        if (viewModelConvert is null)
+        {
+            throw new ArgumentNullException(nameof(viewModelConvert));
+        }
 
-            var hostPropertyAccess = _hostPropertyAccess.ToFriendlyString();
-            var hostPropertyTypeName = _hostPropertyType.GetTypeName().Replace('+', '.');
-            var targetPropertyAccess = _targetPropertyAccess.ToFriendlyString();
-            var targetPropertyTypeName = TargetPropertyTypeName.Replace('+', '.');
-            var oneWayBindString = string.Empty;
-            var twoWayBindString = string.Empty;
+        _oneWayBindInvocation = GetOneWayBindInvocation(invocationKind, receiverKind, viewModelExpression.ToString(), viewExpression.ToString(), target, viewModelConvert.ToString());
+        return this;
+    }
 
-            if (_oneWayBindInvocation is not null)
-            {
-                oneWayBindString = @$"public IDisposable {MethodNames.GetBindOneWaySubscription}()
+    /// <inheritdoc/>
+    public override IEnumerable<string> GetNamespaces() =>
+        new[]
+        {
+            "System",
+            "System.Collections.Generic",
+            "System.ComponentModel",
+            "System.Linq.Expressions",
+            "System.Runtime.CompilerServices",
+        };
+
+    /// <inheritdoc/>
+    protected override string CreateClass(string nestedClasses)
+    {
+        if (_viewModelPropertyType is null)
+        {
+            throw new InvalidOperationException("Must have a valid view model type.");
+        }
+
+        if (PropertyTypeName is null || string.IsNullOrWhiteSpace(PropertyTypeName))
+        {
+            throw new InvalidOperationException("Must have a valid PropertyTypeName");
+        }
+
+        var viewModelPropertyAccess = _viewModelPropertyAccess.ToFriendlyString();
+        var viewModelPropertyTypeName = _viewModelPropertyType.GetTypeName().Replace('+', '.');
+        var propertyAccess = _propertyAccess.ToFriendlyString();
+        var propertyTypeName = PropertyTypeName.Replace('+', '.');
+        var oneWayBindString = string.Empty;
+        var twoWayBindString = string.Empty;
+
+        if (_oneWayBindInvocation is not null)
+        {
+            oneWayBindString = @$"public IDisposable {MethodNames.GetBindOneWaySubscription}()
         {{
             var instance = this;
             return {_oneWayBindInvocation};
         }}";
-            }
+        }
 
-            if (_twoWayBindInvocation is not null)
-            {
-                twoWayBindString = @$"public IDisposable {MethodNames.GetBindTwoWaySubscription}()
+        if (_twoWayBindInvocation is not null)
+        {
+            twoWayBindString = @$"public IDisposable {MethodNames.GetBindTwoWaySubscription}()
         {{
             var instance = this;
             return {_twoWayBindInvocation};
         }}";
-            }
+        }
 
-            return $@"
+        return $@"
     {ClassAccess.ToFriendlyString()} partial class {ClassName} : INotifyPropertyChanged
     {{
-        private {HostPropertyTypeName} _host;
-        private {targetPropertyTypeName} _target;
-
+        private {viewModelPropertyTypeName} _viewModel;
+        private {propertyTypeName} _value;
         public event PropertyChangedEventHandler PropertyChanged;
-
-        {targetPropertyAccess} {targetPropertyTypeName} Target
+        {propertyAccess} {propertyTypeName} Value
         {{
-            get => _target;
-            set => RaiseAndSetIfChanged(ref _target, value);
+            get => _value;
+            set => RaiseAndSetIfChanged(ref _value, value);
         }}
-
-        {hostPropertyAccess} {hostPropertyTypeName} Host
+        {viewModelPropertyAccess} {viewModelPropertyTypeName} ViewModel
         {{
-            get => _host;
-            set => RaiseAndSetIfChanged(ref _host, value);
+            get => _viewModel;
+            set => RaiseAndSetIfChanged(ref _viewModel, value);
         }}
               
         {oneWayBindString}
-
         {twoWayBindString}
-
         public IObservable<object> {MethodNames.GetWhenChangedTargetObservable}()
         {{
-            return this.WhenChanged(x => x.targetModel);
+            return this.WhenChanged(x => x.ViewModel);
         }}
-
         public IObservable<object> {MethodNames.GetWhenChangedObservable}()
         {{
             return this.WhenChanged(x => x.Value);
         }}
-
         protected void RaiseAndSetIfChanged<T>(ref T fieldValue, T value, [CallerMemberName] string propertyName = null)
         {{
             if (EqualityComparer<T>.Default.Equals(fieldValue, value))
             {{
                 return;
             }}
-
             fieldValue = value;
             OnPropertyChanged(propertyName);
         }}
-
         protected virtual void OnPropertyChanged(string propertyName)
         {{
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }}
-
         {nestedClasses}
     }}
 ";
-        }
+    }
 
-        private static string GetTwoWayBindInvocation(
-            InvocationKind invocationKind,
-            ReceiverKind targetModelKind,
-            string hostArgs,
-            string targetArgs,
-            string hostName,
-            string? hostConvertFunc = null,
-            string? targetConvertFunc = null)
+    private static string GetTwoWayBindInvocation(
+        InvocationKind invocationKind,
+        ReceiverKind viewModelKind,
+        string viewModelArgs,
+        string viewArgs,
+        string targetName,
+        string? viewModelConvertFunc = null,
+        string? viewConvertFunc = null)
+    {
+        var receiver = viewModelKind == ReceiverKind.This ? "this" : "instance";
+
+        if (viewModelConvertFunc is not null)
         {
-            var receiver = targetModelKind == ReceiverKind.This ? "this" : "instance";
-
-            if (hostConvertFunc is not null)
-            {
-                targetArgs = targetArgs + ", " + hostConvertFunc + ", " + targetConvertFunc;
-            }
-
-            return invocationKind == InvocationKind.MemberAccess ?
-                $"{receiver}.Bind({hostName}, {hostArgs}, {targetArgs})" :
-                $"BindExtensions.Bind({receiver}, {hostName}, {hostArgs}, {targetArgs})";
+            viewArgs = viewArgs + ", " + viewModelConvertFunc + ", " + viewConvertFunc;
         }
 
-        private static string GetOneWayBindInvocation(
-            InvocationKind invocationKind,
-            ReceiverKind targetModelKind,
-            string hostArgs,
-            string targetArgs,
-            string hostName,
-            string? hostConvertFunc = null)
+        return invocationKind == InvocationKind.MemberAccess ?
+            $"{receiver}.BindTwoWay({targetName}, {viewModelArgs}, {viewArgs})" :
+            $"BindExtensions.BindTwoWay({receiver}, {targetName}, {viewModelArgs}, {viewArgs})";
+    }
+
+    private static string GetOneWayBindInvocation(
+        InvocationKind invocationKind,
+        ReceiverKind viewModelKind,
+        string viewModelArgs,
+        string viewArgs,
+        string targetName,
+        string? viewModelConvertFunc = null)
+    {
+        var receiver = viewModelKind == ReceiverKind.This ? "this" : "instance";
+
+        if (viewModelConvertFunc is not null)
         {
-            var receiver = targetModelKind == ReceiverKind.This ? "this" : "instance";
-
-            if (hostConvertFunc is not null)
-            {
-                targetArgs = targetArgs + ", " + hostConvertFunc;
-            }
-
-            return invocationKind == InvocationKind.MemberAccess ?
-                $"{receiver}.OneWayBind({hostName}, {hostArgs}, {targetArgs})" :
-                $"BindExtensions.OneWayBind({receiver}, {hostName}, {hostArgs}, {targetArgs})";
+            viewArgs = viewArgs + ", " + viewModelConvertFunc;
         }
+
+        return invocationKind == InvocationKind.MemberAccess ?
+            $"{receiver}.BindOneWay({targetName}, {viewModelArgs}, {viewArgs})" :
+            $"BindExtensions.BindOneWay({receiver}, {targetName}, {viewModelArgs}, {viewArgs})";
     }
 }

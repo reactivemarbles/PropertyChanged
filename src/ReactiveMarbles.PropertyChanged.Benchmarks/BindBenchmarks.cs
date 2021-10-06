@@ -88,7 +88,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
         [Benchmark]
         public void BindAndChange_Depth1_New()
         {
-            using IDisposable binding = New.Bind(_from, _to, x => x.Value, x => x.Value);
+            using IDisposable binding = New.BindTwoWay(_from, _to, x => x.Value, x => x.Value);
             PerformMutations(1);
         }
 
@@ -112,7 +112,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
         [Benchmark]
         public void BindAndChange_Depth2_New()
         {
-            using IDisposable binding = New.Bind(_from, _to, x => x.Child.Value, x => x.Child.Value);
+            using IDisposable binding = New.BindTwoWay(_from, _to, x => x.Child.Value, x => x.Child.Value);
             PerformMutations(2);
         }
 
@@ -136,7 +136,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
         [Benchmark]
         public void BindAndChange_Depth3_New()
         {
-            using IDisposable binding = New.Bind(_from, _to, x => x.Child.Child.Value, x => x.Child.Child.Value);
+            using IDisposable binding = New.BindTwoWay(_from, _to, x => x.Child.Child.Value, x => x.Child.Child.Value);
             PerformMutations(3);
         }
 
@@ -172,7 +172,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
         public void Change_Depth1_NewSetup()
         {
             Depth1Setup();
-            _binding = New.Bind(_from, _to, x => x.Value, x => x.Value);
+            _binding = New.BindTwoWay(_from, _to, x => x.Value, x => x.Value);
         }
 
         [BenchmarkCategory("Change Depth 1")]
@@ -214,7 +214,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
         public void Change_Depth2_NewSetup()
         {
             Depth2Setup();
-            _binding = New.Bind(_from, _to, x => x.Child.Value, x => x.Child.Value);
+            _binding = New.BindTwoWay(_from, _to, x => x.Child.Value, x => x.Child.Value);
         }
 
         [BenchmarkCategory("Change Depth 2")]
@@ -256,7 +256,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
         public void Change_Depth3_NewSetup()
         {
             Depth3Setup();
-            _binding = New.Bind(_from, _to, x => x.Child.Child.Value, x => x.Child.Child.Value);
+            _binding = New.BindTwoWay(_from, _to, x => x.Child.Child.Value, x => x.Child.Child.Value);
         }
 
         [BenchmarkCategory("Change Depth 3")]

@@ -6,23 +6,22 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace ReactiveMarbles.PropertyChanged.Tests.Moqs
+namespace ReactiveMarbles.PropertyChanged.Tests.Moqs;
+
+internal abstract class BaseTestClass : INotifyPropertyChanged
 {
-    internal abstract class BaseTestClass : INotifyPropertyChanged
+    public event PropertyChangedEventHandler PropertyChanged;
+
+    protected void RaiseAndSetIfChanged<T>(ref T fieldValue, T value, [CallerMemberName] string propertyName = null)
     {
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected void RaiseAndSetIfChanged<T>(ref T fieldValue, T value, [CallerMemberName] string propertyName = null)
+        if (EqualityComparer<T>.Default.Equals(fieldValue, value))
         {
-            if (EqualityComparer<T>.Default.Equals(fieldValue, value))
-            {
-                return;
-            }
-
-            fieldValue = value;
-            OnPropertyChanged(propertyName);
+            return;
         }
 
-        protected virtual void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new(propertyName));
+        fieldValue = value;
+        OnPropertyChanged(propertyName);
     }
+
+    protected virtual void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new(propertyName));
 }

@@ -9,7 +9,7 @@
     <PackageDescription>Produces DI registration for both property and constructor injection using the Splat locators.</PackageDescription>
     <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);PackBuildOutputs</TargetsForTfmSpecificContentInPackage>
     <NoWarn>$(NoWarn);AD0001</NoWarn>
-    <LangVersion>latest</LangVersion>
+    <LangVersion>preview</LangVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Nullable>enable</Nullable>
     <DebugType>full</DebugType>
@@ -17,36 +17,17 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Extractors\**" />
-    <Compile Remove="Generators\**" />
-    <Compile Remove="SourceCreators\**" />
-    <Compile Remove="TransientHelpers\**" />
-    <EmbeddedResource Remove="Extractors\**" />
-    <EmbeddedResource Remove="Generators\**" />
-    <EmbeddedResource Remove="SourceCreators\**" />
-    <EmbeddedResource Remove="TransientHelpers\**" />
-    <None Remove="Extractors\**" />
-    <None Remove="Generators\**" />
-    <None Remove="SourceCreators\**" />
-    <None Remove="TransientHelpers\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.2" PrivateAssets="all" GeneratePathProperty="true" />
     <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="3.11.0" PrivateAssets="all" GeneratePathProperty="true" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.11.0" PrivateAssets="all" GeneratePathProperty="true" />
-    <PackageReference Include="ReactiveMarbles.RoslynHelpers" Version="1.0.27" GeneratePathProperty="true" PrivateAssets="all" />
+    <PackageReference Include="ReactiveMarbles.RoslynHelpers" Version="1.1.1" GeneratePathProperty="true" PrivateAssets="all" />
     <PackageReference Include="ILRepack" Version="2.0.18" GeneratePathProperty="true" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Constants.WhenChanged.tt">
+    <None Update="Constants.When.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>Constants.WhenChanged.cs</LastGenOutput>
-    </None>
-    <None Update="Constants.WhenChanging.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>Constants.WhenChanging.cs</LastGenOutput>
+      <LastGenOutput>Constants.When.cs</LastGenOutput>
     </None>
   </ItemGroup>
 
@@ -55,15 +36,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Constants.WhenChanged.cs">
+    <Compile Update="Constants.When.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>Constants.WhenChanged.tt</DependentUpon>
-    </Compile>
-    <Compile Update="Constants.WhenChanging.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Constants.WhenChanging.tt</DependentUpon>
+      <DependentUpon>Constants.When.tt</DependentUpon>
     </Compile>
   </ItemGroup>
 
