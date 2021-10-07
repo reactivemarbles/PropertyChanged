@@ -19,29 +19,24 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests;
 /// <summary>
 /// Tests the sample project.
 /// </summary>
+[TestClass]
 public class SampleTests
 {
-    private readonly CompilationUtil _compilationUtil;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="SampleTests"/> class.
-    /// </summary>
-    public SampleTests() => _compilationUtil = new(x => TestContext?.WriteLine(x));
-
     /// <summary>
     /// Gets or sets the test context.
     /// </summary>
     public TestContext TestContext { get; set; }
 
     /// <summary>
-    /// Initializes the test.
+    /// The initialize.
     /// </summary>
-    /// <returns>A task.</returns>
-    [TestInitialize]
-    public Task InitializeAsync() => _compilationUtil.Initialize();
+    /// <param name="context">The context.</param>
+    /// <returns>A task to monitor the progress.</returns>
+    [ClassInitialize]
+    public static Task InitializeClass(TestContext context) => CommonTest.Initialize(context);
 
     /// <summary>
-    /// Runs the samples porject.
+    /// Runs the samples project.
     /// </summary>
     [TestMethod]
     public void TestSample()
@@ -51,13 +46,13 @@ public class SampleTests
 
         var sources = files.Select(x => (x, File.ReadAllText(x))).ToArray();
 
-        _compilationUtil.RunGenerators(out var compilationDiagnostics, out var generatorDiagnostics, out var beforeCompilation, out var afterCompilation, sources);
+        CommonTest.CompilationUtil.RunGenerators(out var compilationDiagnostics, out var generatorDiagnostics, out var beforeCompilation, out var afterCompilation, sources);
 
         var compilationErrors = compilationDiagnostics.Where(x => x.Severity == DiagnosticSeverity.Error).Select(x => x.GetMessage()).ToList();
         if (compilationErrors.Count > 0)
         {
-            var outputSoruces = string.Join(Environment.NewLine, afterCompilation.SyntaxTrees.Select(x => x.ToString()).Where(x => !x.Contains("The implementation should have been generated.")));
-            TestContext.WriteLine(outputSoruces);
+            var outputSources = string.Join(Environment.NewLine, afterCompilation.SyntaxTrees.Select(x => x.ToString()).Where(x => !x.Contains("The implementation should have been generated.")));
+            TestContext.WriteLine(outputSources);
             throw new InvalidOperationException(string.Join('\n', compilationErrors));
         }
 

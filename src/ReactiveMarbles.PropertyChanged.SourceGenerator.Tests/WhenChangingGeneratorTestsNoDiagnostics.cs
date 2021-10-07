@@ -20,24 +20,10 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests;
 [TestClass]
 public class WhenChangingGeneratorTestsNoDiagnostics
 {
-    private readonly CompilationUtil _compilationUtil;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="WhenChangingGeneratorTestsNoDiagnostics"/> class.
-    /// </summary>
-    public WhenChangingGeneratorTestsNoDiagnostics() => _compilationUtil = new(x => TestContext?.WriteLine(x));
-
     /// <summary>
     /// Gets or sets the test context.
     /// </summary>
     public TestContext TestContext { get; set; }
-
-    /// <summary>
-    /// Initializes the class.
-    /// </summary>
-    /// <returns>A task.</returns>
-    [TestInitialize]
-    public Task InitializeAsync() => _compilationUtil.Initialize();
 
     /// <summary>
     /// Make sure the ReceiverKind.Instance is handled correctly.

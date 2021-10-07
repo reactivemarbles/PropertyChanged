@@ -81,8 +81,8 @@ internal static partial class MethodCreator
                 dictionary.Add(statementKey, ifStatements);
             }
 
-            whenChanged.Add(new(Constants.WhenChangedMethodName, new[] { new WhenStatementsDatum(Constants.WhenChangedMethodName, hostExpressionArgument) }, !hostExpressionArgument.ContainsPrivateOrProtectedMember, hostClassAccessibility, hostExpressionArgument.InputType, hostExpressionArgument.OutputType, new[] { hostExpressionArgument.InputType, hostExpressionArgument.OutputType }, methodSymbol));
-            whenChanged.Add(new(Constants.WhenChangedMethodName, new[] { new WhenStatementsDatum(Constants.WhenChangedMethodName, targetExpressionArgument) }, !targetExpressionArgument.ContainsPrivateOrProtectedMember, targetClassAccessibility, targetExpressionArgument.InputType, targetExpressionArgument.OutputType, new[] { targetExpressionArgument.InputType, targetExpressionArgument.OutputType }, methodSymbol));
+            whenChanged.Add(new(Constants.WhenChangedMethodName, new[] { new WhenStatementsDatum(hostExpressionArgument) }, !hostExpressionArgument.ContainsPrivateOrProtectedMember, hostClassAccessibility, hostExpressionArgument.InputType, hostExpressionArgument.OutputType, new[] { hostExpressionArgument.InputType, hostExpressionArgument.OutputType }));
+            whenChanged.Add(new(Constants.WhenChangedMethodName, new[] { new WhenStatementsDatum(targetExpressionArgument) }, !targetExpressionArgument.ContainsPrivateOrProtectedMember, targetClassAccessibility, targetExpressionArgument.InputType, targetExpressionArgument.OutputType, new[] { targetExpressionArgument.InputType, targetExpressionArgument.OutputType }));
 
             ifStatements.Add(
                 IfStatement(

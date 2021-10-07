@@ -8,30 +8,10 @@ using System;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator.MethodCreators.Transient;
 
-internal sealed record WhenStatementsDatum(string MethodName, ExpressionArgument Argument)
+internal sealed record WhenStatementsDatum(ExpressionArgument Argument)
 {
     /// <inheritdoc/>
-    public override int GetHashCode()
-    {
-        // Allow arithmetic overflow, numbers will just "wrap around"
-        unchecked
-        {
-            var hashCode = 1430287;
-            hashCode *= 7302013 ^ Argument.GetHashCode();
+    public override int GetHashCode() => Argument.GetHashCode();
 
-            hashCode *= 7302013 ^ MethodName.GetHashCode();
-
-            return hashCode;
-        }
-    }
-
-    public bool Equals(WhenStatementsDatum? other)
-    {
-        if (other is null)
-        {
-            return false;
-        }
-
-        return !Argument.Equals(other.Argument) && MethodName.Equals(other.MethodName, StringComparison.InvariantCulture);
-    }
+    public bool Equals(WhenStatementsDatum? other) => other?.Argument.Equals(Argument) ?? false;
 }

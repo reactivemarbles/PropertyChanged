@@ -9,14 +9,21 @@ using Microsoft.CodeAnalysis;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator.MethodCreators.Transient;
 
-internal record MultiWhenStatementsDatum(string MethodName, IReadOnlyList<WhenStatementsDatum> Arguments, bool IsExtensionMethod, Accessibility ClassAccessibility, ITypeSymbol InputType, ITypeSymbol OutputType, IReadOnlyList<ITypeSymbol> TypeArguments, ISymbol CallingSymbol)
+internal record MultiWhenStatementsDatum(string MethodName, IReadOnlyList<WhenStatementsDatum> Arguments, bool IsExtensionMethod, Accessibility ClassAccessibility, ITypeSymbol InputType, ITypeSymbol OutputType, IReadOnlyList<ITypeSymbol> TypeArguments)
 {
     public override int GetHashCode()
     {
         // Allow arithmetic overflow, numbers will just "wrap around"
         unchecked
         {
-            var hashCode = Arguments.Aggregate(1430287, (current, argument) => current * (7302013 ^ argument.GetHashCode()));
+            var hashCode = 1430287;
+            var result = hashCode;
+            foreach (var argument in Arguments)
+            {
+                result *= 7302013 ^ argument.GetHashCode();
+            }
+
+            hashCode *= result;
 
             hashCode *= 7302013 ^ MethodName.GetHashCode();
             hashCode *= 7302013 ^ ClassAccessibility.GetHashCode();

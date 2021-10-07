@@ -17,7 +17,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests;
 /// Bind generator tests.
 /// </summary>
 [TestClass]
-public sealed class BindGeneratorTestsDiagnostics : IDisposable
+public sealed class BindGeneratorTestsDiagnostics
 {
     private const string BindPlaceholder = "[bind_invocation]";
     private const string SourceTemplate = @"
@@ -58,27 +58,18 @@ public class ViewModel : INotifyPropertyChanged
 }
 ";
 
-    private readonly CompilationUtil _compilationUtil;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="BindGeneratorTestsDiagnostics"/> class.
-    /// </summary>
-    public BindGeneratorTestsDiagnostics() => _compilationUtil = new CompilationUtil(x => TestContext?.WriteLine(x));
-
     /// <summary>
     /// Gets or sets the test context.
     /// </summary>
     public TestContext TestContext { get; set; }
 
     /// <summary>
-    /// Initializes the class.
+    /// The initialize.
     /// </summary>
-    /// <returns>A task.</returns>
-    [TestInitialize]
-    public Task InitializeAsync() => _compilationUtil.Initialize();
-
-    /// <inheritdoc />
-    public void Dispose() => _compilationUtil?.Dispose();
+    /// <param name="context">The context.</param>
+    /// <returns>A task to monitor the progress.</returns>
+    [ClassInitialize]
+    public static Task InitializeClass(TestContext context) => CommonTest.Initialize(context);
 
     /// <summary>
     /// Expression arguments may not be specified as a property pointing to the actual expression.
@@ -106,9 +97,9 @@ public class ViewModel : INotifyPropertyChanged
         AssertDiagnostic(source, DiagnosticWarnings.ExpressionMustBeInline);
     }
 
-    private void AssertDiagnostic(string source, DiagnosticDescriptor expectedDiagnostic)
+    private static void AssertDiagnostic(string source, DiagnosticDescriptor expectedDiagnostic)
     {
-        Action act = () => _compilationUtil.CheckDiagnostics(("Diagnostics.cs", source), expectedDiagnostic);
+        Action act = () => CommonTest.CompilationUtil.CheckDiagnostics(("Diagnostics.cs", source), expectedDiagnostic);
         act.Should().Throw<InvalidOperationException>();
     }
 }

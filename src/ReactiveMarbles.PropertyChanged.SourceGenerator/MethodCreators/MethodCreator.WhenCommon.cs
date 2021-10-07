@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using ReactiveMarbles.PropertyChanged.SourceGenerator.Comparers;
 using ReactiveMarbles.PropertyChanged.SourceGenerator.Helpers;
 using ReactiveMarbles.PropertyChanged.SourceGenerator.MethodCreators.Transient;
-using ReactiveMarbles.RoslynHelpers;
 using static ReactiveMarbles.RoslynHelpers.SyntaxFactoryHelpers;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator.MethodCreators;
@@ -87,7 +86,7 @@ internal static partial class MethodCreator
                         break;
                     }
 
-                    expressions.Add(new(methodName, expressionArgument));
+                    expressions.Add(new(expressionArgument));
                 }
                 else
                 {
@@ -108,8 +107,7 @@ internal static partial class MethodCreator
                 classVisibility,
                 inputType,
                 outputType,
-                methodSymbol.TypeArguments.ToArray(),
-                methodSymbol));
+                methodSymbol.TypeArguments.ToArray()));
         }
     }
 
@@ -234,8 +232,9 @@ internal static partial class MethodCreator
         }
 
         var i = 0;
-        foreach (var (_, expressionArgument) in methodDatum.Arguments)
+        foreach (var expressionArgumentMetadata in methodDatum.Arguments)
         {
+            var expressionArgument = expressionArgumentMetadata.Argument;
             var propertyExpressionName = methodDatum.Arguments.Count > 1
                 ? Constants.PropertyExpressionParameterName + (i + 1)
                 : Constants.PropertyExpressionParameterName;
@@ -296,8 +295,9 @@ internal static partial class MethodCreator
 
         // generates: var hostObs = fromObject.WhenChanged(fromProperty);
         var i = 0;
-        foreach (var (_, expressionArgument) in multiMethod.Arguments)
+        foreach (var expressionArgumentMetadata in multiMethod.Arguments)
         {
+            var expressionArgument = expressionArgumentMetadata.Argument;
             var expressionChain = expressionArgument.ExpressionChain;
             var fromName = isExtension ? Constants.FromObjectVariable : Constants.ThisObjectVariable;
             var observableChain =

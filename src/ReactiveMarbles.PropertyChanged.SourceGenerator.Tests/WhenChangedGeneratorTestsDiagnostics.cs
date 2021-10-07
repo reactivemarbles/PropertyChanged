@@ -43,24 +43,13 @@ public class HostClass : INotifyPropertyChanged
 }
 ";
 
-    private readonly CompilationUtil _compilationUtil;
-
     /// <summary>
-    /// Initializes a new instance of the <see cref="WhenChangedGeneratorTestsDiagnostics"/> class.
+    /// The initialize.
     /// </summary>
-    public WhenChangedGeneratorTestsDiagnostics() => _compilationUtil = new(x => TestContext?.WriteLine(x));
-
-    /// <summary>
-    /// Gets the test context.
-    /// </summary>
-    public TestContext TestContext { get; }
-
-    /// <summary>
-    /// Initializes the test class.
-    /// </summary>
-    /// <returns>The task.</returns>
-    [TestInitialize]
-    public Task InitializeAsync() => _compilationUtil.Initialize();
+    /// <param name="context">The context.</param>
+    /// <returns>A task to monitor the progress.</returns>
+    [ClassInitialize]
+    public static Task InitializeClass(TestContext context) => CommonTest.Initialize(context);
 
     /// <summary>
     /// Expression arguments may not be specified as a property pointing to the actual expression.
@@ -248,9 +237,9 @@ public class HostClass : INotifyPropertyChanged
         AssertDiagnostic(source, DiagnosticWarnings.UnableToGenerateExtension);
     }
 
-    private void AssertDiagnostic(string source, DiagnosticDescriptor expectedDiagnostic)
+    private static void AssertDiagnostic(string source, DiagnosticDescriptor expectedDiagnostic)
     {
-        Action action = () => _compilationUtil.CheckDiagnostics(("Diagnostics.cs", source), expectedDiagnostic);
+        Action action = () => CommonTest.CompilationUtil.CheckDiagnostics(("Diagnostics.cs", source), expectedDiagnostic);
 
         action.Should().Throw<InvalidOperationException>();
     }
