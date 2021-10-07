@@ -5,7 +5,7 @@
 
     <IsPackable>false</IsPackable>
     <NoWarn>$(NoWarn);SA1600</NoWarn>
-    <LangVersion>latest</LangVersion>
+    <LangVersion>preview</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>

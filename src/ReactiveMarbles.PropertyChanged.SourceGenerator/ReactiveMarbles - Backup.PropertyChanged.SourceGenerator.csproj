@@ -9,7 +9,7 @@
     <PackageDescription>Produces DI registration for both property and constructor injection using the Splat locators.</PackageDescription>
     <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);PackBuildOutputs</TargetsForTfmSpecificContentInPackage>
     <NoWarn>$(NoWarn);AD0001</NoWarn>
-    <LangVersion>latest</LangVersion>
+    <LangVersion>preview</LangVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Nullable>enable</Nullable>
     <DebugType>full</DebugType>
