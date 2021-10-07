@@ -38,9 +38,24 @@ jobs:
         dotnet-version: 6.0.x
         include-prerelease: true
 
-    # - name: Update VS2019
-    #   shell: powershell
-    #   run: Start-Process -Wait -PassThru -FilePath "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" -ArgumentList "update --passive --norestart --installpath ""C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise"""
+    - uses: nuget/setup-nuget@v1
+      name: Setup NuGet
+
+    - name: Install DotNet workloads
+      shell: bash
+      run: |
+        dotnet workload install android
+        dotnet workload install ios
+        dotnet workload install tvos
+        dotnet workload install macos
+        dotnet workload install maui
+        dotnet tool install -g Redth.Net.Maui.Check
+        maui-check --non-interactive --fix
+
+    - name: Add MSBuild to PATH
+      uses: glennawatson/setup-msbuild@v1.0.3
+      with:
+        prerelease: true
 
     - name: NBGV
       id: nbgv
@@ -49,13 +64,14 @@ jobs:
         setAllVars: true
 
     - name: NuGet Restore
-      run: dotnet restore
+      run: nuget restore
       working-directory: src
       
     - name: Build
-      run: dotnet build --configuration=${{ env.configuration }} --verbosity=minimal --no-restore
+      run: msbuild /t:build,pack /nowarn:MSB4011 /maxcpucount /p:NoPackageAnalysis=true /verbosity:minimal /p:Configuration=${{ env.configuration }}
       working-directory: src
 
+      
     - name: Run Unit Tests and Generate Coverage
       uses: glennawatson/coverlet-msbuild@v1
       with:
