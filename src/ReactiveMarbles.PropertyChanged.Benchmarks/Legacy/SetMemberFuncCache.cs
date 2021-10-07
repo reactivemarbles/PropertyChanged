@@ -34,31 +34,31 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks.Legacy
 #else
             return Cache.GetOrAdd((memberInfo.DeclaringType, memberInfo.Name), _ =>
             {
-                var instance = Expression.Parameter(typeof(object), "instance");
-                var valueParam = Expression.Parameter(typeof(TValue), "property");
+                ParameterExpression instance = Expression.Parameter(typeof(object), "instance");
+                ParameterExpression valueParam = Expression.Parameter(typeof(TValue), "property");
 
                 Expression body;
 
                 switch (memberInfo)
                 {
                     case PropertyInfo propertyInfo:
-                        var convertProp = Expression.Convert(valueParam, propertyInfo.PropertyType);
-                        var convertInstanceProp = Expression.Convert(instance, propertyInfo.DeclaringType);
+                        UnaryExpression convertProp = Expression.Convert(valueParam, propertyInfo.PropertyType);
+                        UnaryExpression convertInstanceProp = Expression.Convert(instance, propertyInfo.DeclaringType);
                         body = Expression.Call(convertInstanceProp, propertyInfo.GetSetMethod(), convertProp);
                         break;
                     case FieldInfo fieldInfo:
-                        var convertInstanceField = Expression.Convert(instance, fieldInfo.DeclaringType);
-                        var field = Expression.Field(convertInstanceField, fieldInfo);
-                        var convertField = Expression.Convert(valueParam, fieldInfo.FieldType);
+                        UnaryExpression convertInstanceField = Expression.Convert(instance, fieldInfo.DeclaringType);
+                        MemberExpression field = Expression.Field(convertInstanceField, fieldInfo);
+                        UnaryExpression convertField = Expression.Convert(valueParam, fieldInfo.FieldType);
                         body = Expression.Assign(field, convertField);
                         break;
                     default:
                         throw new ArgumentException($"Cannot handle member {memberInfo.Name}", nameof(memberInfo));
                 }
 
-                var parameters = new[] { instance, valueParam };
+                ParameterExpression[] parameters = new[] { instance, valueParam };
 
-                var lambdaExpression = Expression.Lambda<Action<object, TValue>>(body, parameters);
+                Expression<Action<object, TValue>> lambdaExpression = Expression.Lambda<Action<object, TValue>>(body, parameters);
 
                 return lambdaExpression.Compile();
             });

@@ -1,0 +1,117 @@
+<#@ template debug="false" hostspecific="true" language="C#" #>
+<#@ assembly name="System.Core.dll" #>
+<#@ assembly name="System.Collections.dll" #>
+<#@ assembly name="System.Collections.Immutable.dll" #>
+<#@ assembly name="System.Runtime.dll" #>
+<#@ assembly name="Microsoft.CodeAnalysis.dll" #>
+<#@ assembly name="Microsoft.CodeAnalysis.CSharp.dll" #>
+<#@ assembly name="netstandard.dll" #>
+<#@ import namespace="System.IO" #>
+<#@ import namespace="System.Linq" #>
+<#@ output extension=".cs" #>
+// Copyright (c) 2019-2021 ReactiveUI Association Incorporated. All rights reserved.
+// ReactiveUI Association Incorporated licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for full license information.
+
+<#
+string ToFriendlyString(Accessibility accessibility)
+{
+    if (accessibility == Accessibility.Public) return "public";
+    if (accessibility == Accessibility.Internal) return "internal";
+    if (accessibility == Accessibility.Private) return "private";
+    if (accessibility == Accessibility.Protected) return "protected";
+    if (accessibility == Accessibility.ProtectedAndInternal) return "private protected";
+    if (accessibility == Accessibility.ProtectedOrInternal) return "protected internal";
+
+    return string.Empty;
+}
+
+bool ValidateAccessModifierCombination(
+    Accessibility hostContainerTypeAccess,
+    Accessibility hostTypeAccess,
+    Accessibility propertyTypeAccess,
+    Accessibility propertyAccess)
+{
+    var hostContainerSource = $@"
+{ToFriendlyString(hostContainerTypeAccess)} class Container
+{{
+    {ToFriendlyString(hostTypeAccess)} class Host
+    {{
+        {ToFriendlyString(propertyAccess)} CustomType Value {{ get; set; }}
+
+        {ToFriendlyString(propertyTypeAccess)} class CustomType
+        {{
+        }}
+        }}
+}}
+";
+
+    Compilation compilation = CreateCompilation(hostContainerSource);
+    return compilation.GetDiagnostics().All(x => x.Severity < DiagnosticSeverity.Error);
+}
+
+Compilation CreateCompilation(params string[] sources)
+{
+    var assemblyPath = Path.GetDirectoryName(typeof(object).Assembly.Location);
+
+    return CSharpCompilation.Create(
+        assemblyName: "compilation",
+        syntaxTrees: sources.Select(x => CSharpSyntaxTree.ParseText(x, new CSharpParseOptions(LanguageVersion.Latest))),
+        references: new[]
+        {
+            MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "mscorlib.dll")),
+            MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "System.dll")),
+            MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "System.Core.dll")),
+            MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "System.Runtime.dll")),
+            MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "netstandard.dll")),
+        },
+        options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+}
+
+Compilation RunGenerators(Compilation compilation, out ImmutableArray<Diagnostic> diagnostics, params ISourceGenerator[] generators)
+{
+    CreateDriver(compilation, generators).RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out diagnostics);
+    return outputCompilation;
+}
+
+GeneratorDriver CreateDriver(Compilation compilation, params ISourceGenerator[] generators) =>
+    CSharpGeneratorDriver.Create(
+        generators: ImmutableArray.Create(generators),
+        additionalTexts: ImmutableArray<AdditionalText>.Empty,
+        parseOptions: (CSharpParseOptions)compilation.SyntaxTrees.First().Options,
+        optionsProvider: null);
+#>
+using System.Collections.Generic;
+using Microsoft.CodeAnalysis;
+
+namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests
+{
+    internal static class AccessibilityTestCases
+    {
+        public static IEnumerable<object[]> GetValidAccessModifierCombinations()
+        {
+            <#
+            var hostContainerTypeAccessList = new[] { Accessibility.Public, Accessibility.Internal };
+            var hostTypeAccessList = new[] { Accessibility.Private, Accessibility.ProtectedAndInternal, Accessibility.Protected, Accessibility.Internal, Accessibility.ProtectedOrInternal, Accessibility.Public };
+            var propertyTypeAccessList = new[] { Accessibility.Private, Accessibility.ProtectedAndInternal, Accessibility.Protected, Accessibility.Internal, Accessibility.ProtectedOrInternal, Accessibility.Public };
+            var propertyAccessList = new[] { Accessibility.Private, Accessibility.ProtectedAndInternal, Accessibility.Protected, Accessibility.Internal, Accessibility.ProtectedOrInternal, Accessibility.Public };
+
+            var validCombinations =
+                from hostContainerTypeAccess in hostContainerTypeAccessList
+                from hostTypeAccess in hostTypeAccessList
+                from propertyTypeAccess in propertyTypeAccessList
+                from propertyAccess in propertyAccessList
+                where ValidateAccessModifierCombination(hostContainerTypeAccess, hostTypeAccess, propertyTypeAccess, propertyAccess)
+                select (hostContainerTypeAccess, hostTypeAccess, propertyTypeAccess, propertyAccess);
+
+            #>return new[]
+            {
+        <#
+        foreach (var (hostContainerTypeAccess, hostTypeAccess, propertyTypeAccess, propertyAccess) in validCombinations)
+        {#>
+        new object[] { Accessibility.<#= hostContainerTypeAccess #>, Accessibility.<#= hostTypeAccess #>, Accessibility.<#= propertyTypeAccess #>, Accessibility.<#= propertyAccess #> },
+        <# } #>
+    };
+        }
+    }
+}

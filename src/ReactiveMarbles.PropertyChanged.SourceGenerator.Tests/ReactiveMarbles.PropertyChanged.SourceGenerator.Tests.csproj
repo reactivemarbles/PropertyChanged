@@ -1,26 +1,47 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp3.1;net5.0</TargetFrameworks>
+    <TargetFrameworks>net5.0</TargetFrameworks>
 
     <IsPackable>false</IsPackable>
     <NoWarn>$(NoWarn);SA1600</NoWarn>
-    <LangVersion>latest</LangVersion>
+    <LangVersion>preview</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.10.0" />
-    <PackageReference Include="xunit" Version="2.4.1" />
-    <PackageReference Include="xunit.runner.console" Version="2.4.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3" />
-    <PackageReference Include="Xunit.StaFact" Version="1.0.37" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.8.0" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.1" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.11.0" PrivateAssets="all" />
     <PackageReference Include="System.Reactive" Version="5.0.0" />
+    <PackageReference Include="FluentAssertions" Version="6.1.0" />
+    <PackageReference Include="MSTest.TestFramework" Version="2.2.7" />
+    <PackageReference Include="MSTest.TestAdapter" Version="2.2.7" />    
   </ItemGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\ReactiveMarbles.PropertyChanged.SourceGenerator\ReactiveMarbles.PropertyChanged.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="true" />
+    <ProjectReference Include="..\ReactiveMarbles.PropertyChanged.SourceGenerator.Builders\ReactiveMarbles.PropertyChanged.SourceGenerator.Builders.csproj" />
+    <ProjectReference Include="..\ReactiveMarbles.PropertyChanged.SourceGenerator\ReactiveMarbles.PropertyChanged.SourceGenerator.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="AccessibilityTestCases.tt">
+      <LastGenOutput>AccessibilityTestCases.cs</LastGenOutput>
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
+    <Content Update="xunit.runner.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="AccessibilityTestCases.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AccessibilityTestCases.tt</DependentUpon>
+    </Compile>
   </ItemGroup>
 
 </Project>

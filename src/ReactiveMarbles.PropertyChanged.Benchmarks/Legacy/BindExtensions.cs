@@ -73,7 +73,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks.Legacy
                 throw new ArgumentNullException(nameof(fromObject));
             }
 
-            var hostObs = fromObject.WhenChanged(fromProperty)
+            IObservable<TTargetProperty> hostObs = fromObject.WhenChanged(fromProperty)
                 .Select(conversionFunc);
 
             return OneWayBindImplementation(targetObject, hostObs, toProperty, scheduler);
@@ -106,10 +106,10 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks.Legacy
             where TFrom : class, INotifyPropertyChanged
             where TTarget : class, INotifyPropertyChanged
         {
-            var hostObs = fromObject.WhenChanged(fromProperty)
+            IObservable<(object value, bool isHost)> hostObs = fromObject.WhenChanged(fromProperty)
                 .Select(hostToTargetConv)
                 .Select(x => (value: (object)x, isHost: true));
-            var targetObs = targetObject.WhenChanged(toProperty)
+            IObservable<(object value, bool isHost)> targetObs = targetObject.WhenChanged(toProperty)
                 .Skip(1) // We have the host to win first off.
                 .Select(targetToHostConv)
                 .Select(x => (value: (object)x, isHost: false));
@@ -139,9 +139,9 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks.Legacy
             where TFrom : class, INotifyPropertyChanged
             where TTarget : class, INotifyPropertyChanged
         {
-            var hostObs = fromObject.WhenChanged(fromProperty)
+            IObservable<(TProperty value, bool isHost)> hostObs = fromObject.WhenChanged(fromProperty)
                 .Select(x => (value: x, isHost: true));
-            var targetObs = targetObject.WhenChanged(toProperty)
+            IObservable<(TProperty value, bool isHost)> targetObs = targetObject.WhenChanged(toProperty)
                 .Skip(1) // We have the host to win first off.
                 .Select(x => (value: x, isHost: false));
 
@@ -184,22 +184,22 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks.Legacy
 
             scheduler = scheduler ?? ImmediateScheduler.Instance;
 
-            var setTargetFunc =
+            Action<object, TPropertyType> setTargetFunc =
                 SetMemberFuncCache<TPropertyType>.GenerateSetCache(targetMemberExpression.Member);
-            var setHostFunc = SetMemberFuncCache<TPropertyType>.GenerateSetCache(fromMemberExpression.Member);
+            Action<object, TPropertyType> setHostFunc = SetMemberFuncCache<TPropertyType>.GenerateSetCache(fromMemberExpression.Member);
 
-            var getFetcherToPropertyChain = toProperty.Body.GetGetValueMemberChain();
-            var getFetchFromPropertyChain = fromProperty.Body.GetGetValueMemberChain();
+            System.Collections.Generic.List<Func<object, object>> getFetcherToPropertyChain = toProperty.Body.GetGetValueMemberChain();
+            System.Collections.Generic.List<Func<object, object>> getFetchFromPropertyChain = fromProperty.Body.GetGetValueMemberChain();
             return hostObs.Merge(targetObs).ObserveOn(scheduler).Subscribe(x =>
             {
                 if (x.IsHost)
                 {
-                    var parent = getFetcherToPropertyChain.GetParentForExpression(targetObject);
+                    object parent = getFetcherToPropertyChain.GetParentForExpression(targetObject);
                     setTargetFunc(parent, x.Value);
                 }
                 else
                 {
-                    var parent = getFetchFromPropertyChain.GetParentForExpression(fromObject);
+                    object parent = getFetchFromPropertyChain.GetParentForExpression(fromObject);
                     setHostFunc(parent, x.Value);
                 }
             });
@@ -228,12 +228,12 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks.Legacy
 
             scheduler ??= ImmediateScheduler.Instance;
 
-            var setHostFunc = SetMemberFuncCache<TPropertyType>.GenerateSetCache(fromMemberExpression.Member);
-            var getFetcherPropertyChain = property.Body.GetGetValueMemberChain();
+            Action<object, TPropertyType> setHostFunc = SetMemberFuncCache<TPropertyType>.GenerateSetCache(fromMemberExpression.Member);
+            System.Collections.Generic.List<Func<object, object>> getFetcherPropertyChain = property.Body.GetGetValueMemberChain();
 
             return hostObs.ObserveOn(scheduler).Subscribe(x =>
             {
-                var parent = getFetcherPropertyChain.GetParentForExpression(targetObject);
+                object parent = getFetcherPropertyChain.GetParentForExpression(targetObject);
                 setHostFunc(parent, x);
             });
         }

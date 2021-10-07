@@ -11,10 +11,12 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample.OtherNamespace
     /// </summary>
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Readability", "RCS1018:Add accessibility modifiers.", Justification = "Because")]
     [System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1400:Access modifier should be declared", Justification = "Because")]
-    public class SampleClass : INotifyPropertyChanged
+    public class SampleClass : INotifyPropertyChanged, INotifyPropertyChanging
     {
         private Sample.SampleClass _myClass;
         private string _myString;
+        private string _myString2;
+        private string _myString3;
 
         internal SampleClass()
         {
@@ -26,19 +28,50 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample.OtherNamespace
         public event PropertyChangedEventHandler PropertyChanged;
 
         /// <summary>
+        /// Dummy.
+        /// </summary>
+        public event PropertyChangingEventHandler PropertyChanging;
+
+        /// <summary>
         /// Gets or sets a string.
         /// </summary>
         internal string MyString
         {
-            get
-            {
-                return _myString;
-            }
+            get => _myString;
 
             set
             {
+                PropertyChanging?.Invoke(this, new PropertyChangingEventArgs(nameof(MyString)));
                 _myString = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(MyString)));
+                PropertyChanged?.Invoke(this, new(nameof(MyString)));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a string.
+        /// </summary>
+        internal string MyString2
+        {
+            get => _myString2;
+
+            set
+            {
+                _myString2 = value;
+                PropertyChanged?.Invoke(this, new(nameof(MyString2)));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a string.
+        /// </summary>
+        internal string MyString3
+        {
+            get => _myString3;
+
+            set
+            {
+                _myString3 = value;
+                PropertyChanged?.Invoke(this, new(nameof(MyString3)));
             }
         }
 
@@ -47,15 +80,13 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample.OtherNamespace
         /// </summary>
         internal Sample.SampleClass MyClass
         {
-            get
-            {
-                return _myClass;
-            }
+            get => _myClass;
 
             set
             {
+                PropertyChanging?.Invoke(this, new PropertyChangingEventArgs(nameof(MyClass)));
                 _myClass = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(MyClass)));
+                PropertyChanged?.Invoke(this, new(nameof(MyClass)));
             }
         }
     }

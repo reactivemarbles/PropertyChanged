@@ -3,57 +3,58 @@
 // See the LICENSE file in the project root for full license information.
 
 using System;
+
 using ReactiveMarbles.PropertyChanged.Tests.Moqs;
+
 using Xunit;
 
-namespace ReactiveMarbles.PropertyChanged.Tests
+namespace ReactiveMarbles.PropertyChanged.Tests;
+
+/// <summary>
+/// Whens the WhenChanged.
+/// </summary>
+public class WhenChangedTests
 {
     /// <summary>
-    /// Whens the WhenChanged.
+    /// Checks to make sure that nested property value changes work.
     /// </summary>
-    public class WhenChangedTests
+    [Fact]
+    public void NestedPropertyValueChangedWork()
     {
-        /// <summary>
-        /// Checks to make sure that nested property value changes work.
-        /// </summary>
-        [Fact]
-        public void NestedPropertyValueChangedWork()
-        {
-            var a = new A();
-            var b = new B();
-            a.B = b;
-            var c = new C();
-            b.C = c;
+        var a = new A();
+        var b = new B();
+        a.B = b;
+        var c = new C();
+        b.C = c;
 
-            string testValue = "ignore";
-            a.WhenChanged(x => x.B.C.Test).Subscribe(x => testValue = x);
-            Assert.Null(testValue);
+        var testValue = "ignore";
+        a.WhenChanged(x => x.B.C.Test).Subscribe(x => testValue = x);
+        Assert.Null(testValue);
 
-            c.Test = "Hello World";
+        c.Test = "Hello World";
 
-            Assert.Equal("Hello World", testValue);
+        Assert.Equal("Hello World", testValue);
 
-            a.B = new B() { C = new C() };
+        a.B = new() { C = new() };
 
-            Assert.Null(testValue);
-        }
+        Assert.Null(testValue);
+    }
 
-        /// <summary>
-        /// Checks to make sure that property value changes work.
-        /// </summary>
-        [Fact]
-        public void PropertyValueChangedWork()
-        {
-            var c = new C();
-            string testValue = "ignore";
-            c.WhenChanged(x => x.Test).Subscribe(x => testValue = x);
+    /// <summary>
+    /// Checks to make sure that property value changes work.
+    /// </summary>
+    [Fact]
+    public void PropertyValueChangedWork()
+    {
+        var c = new C();
+        var testValue = "ignore";
+        c.WhenChanged(x => x.Test).Subscribe(x => testValue = x);
 
-            Assert.Null(testValue);
-            c.Test = "test";
-            Assert.Equal("test", testValue);
+        Assert.Null(testValue);
+        c.Test = "test";
+        Assert.Equal("test", testValue);
 
-            c.Test = null;
-            Assert.Null(testValue);
-        }
+        c.Test = null;
+        Assert.Null(testValue);
     }
 }

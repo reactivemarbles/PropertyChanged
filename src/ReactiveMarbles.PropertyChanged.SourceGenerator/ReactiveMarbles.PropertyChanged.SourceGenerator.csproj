@@ -1,41 +1,33 @@
 ﻿<Project Sdk="MSBuild.Sdk.Extras">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
-    <TargetFrameworks Condition=" '$(OS)' == 'Windows_NT' ">$(TargetFrameworks);net461</TargetFrameworks>
-    <LangVersion>latest</LangVersion>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <!-- forces SDK to copy dependencies into build output to make packing easier -->
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <PackageDescription>Produces DI registration for both property and constructor injection using the Splat locators.</PackageDescription>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);PackBuildOutputs</TargetsForTfmSpecificContentInPackage>
+    <NoWarn>$(NoWarn);AD0001</NoWarn>
+    <LangVersion>preview</LangVersion>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Nullable>enable</Nullable>
+    <DebugType>full</DebugType>
+    <EnableNETAnalyzers>True</EnableNETAnalyzers>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="BindExtensions.cs" />
-    <Compile Remove="NotifyPropertyChangedExtensions.cs" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.2" PrivateAssets="all" GeneratePathProperty="true" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="3.11.0" PrivateAssets="all" GeneratePathProperty="true" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.11.0" PrivateAssets="all" GeneratePathProperty="true" />
+    <PackageReference Include="ReactiveMarbles.RoslynHelpers" Version="1.1.1" GeneratePathProperty="true" PrivateAssets="all" />
+    <PackageReference Include="ILRepack" Version="2.0.18" GeneratePathProperty="true" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.8.0" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.2" PrivateAssets="all" />
-    <PackageReference Include="System.Reactive" Version="5.0.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
-      <_Parameter1>ReactiveMarbles.PropertyChanged.SourceGenerator.Tests</_Parameter1>
-    </AssemblyAttribute>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="BindExtensions.cs" />
-    <EmbeddedResource Include="NotifyPropertyChangedExtensions.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>NotifyPropertyChangedExtensions.tt</DependentUpon>
-    </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="NotifyPropertyChangedExtensions.tt">
+    <None Update="Constants.When.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>NotifyPropertyChangedExtensions.cs</LastGenOutput>
+      <LastGenOutput>Constants.When.cs</LastGenOutput>
     </None>
   </ItemGroup>
 
@@ -43,4 +35,23 @@
     <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="Constants.When.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Constants.When.tt</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+
+  <Target Name="ILRepack" AfterTargets="Build">
+    <Exec Command="$(PKGILRepack)\tools\ILRepack &quot;$(TargetPath)&quot; &quot;$(PKGReactiveMarbles_RoslynHelpers)\lib\netstandard2.0\ReactiveMarbles.RoslynHelpers.dll&quot; /out:&quot;$(TargetPath)&quot; /lib:&quot;$(PKGMicrosoft_CodeAnalysis_CSharp_Workspaces)\lib\netstandard2.0&quot; /lib:&quot;$(PKGMicrosoft_CodeAnalysis_Analyzers)\analyzers\dotnet\cs&quot; /lib:&quot;$(PKGMicrosoft_CodeAnalysis_Common)\lib\netstandard2.0&quot; /union /internalize" />
+  </Target>
+
+  <Target Name="PackBuildOutputs" AfterTargets="ILRepack">
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="$(TargetPath)" PackagePath="analyzers/dotnet/cs" Visible="false" />
+      <TfmSpecificPackageFile Include="$(TargetPath)" PackagePath="lib/netstandard2.0" Visible="false" />
+    </ItemGroup>
+  </Target>
 </Project>

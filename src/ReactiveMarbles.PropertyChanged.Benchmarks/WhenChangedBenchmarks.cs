@@ -1,14 +1,16 @@
-// Copyright (c) 2019-2020 ReactiveUI Association Incorporated. All rights reserved.
+// Copyright (c) 2019-2021 ReactiveUI Association Incorporated. All rights reserved.
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System;
+
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
 
 using ReactiveMarbles.PropertyChanged.Benchmarks.Moqs;
-using SourceGen = NotifyPropertyChangedExtensions;
+
+using SourceGen = NotifyPropertyExtensions;
 
 namespace ReactiveMarbles.PropertyChanged.Benchmarks
 {
@@ -52,7 +54,7 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks
         public void PerformMutations(int depth)
         {
             // We loop through the changes, creating mutations at every depth.
-            for (var i = 0; i < Changes; ++i)
+            for (int i = 0; i < Changes; ++i)
             {
                 _from.Mutate(i % depth);
             }

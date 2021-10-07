@@ -1,7 +1,6 @@
 <#@ template debug="false" hostspecific="false" language="C#" #>
 <#@ assembly name="System.Core.dll" #>
 <#@ assembly name="System.Collections.dll" #>
-<#@ import namespace="System.Collections.Generic" #>
 <#@ import namespace="System.Linq" #>
 <#@ output extension=".cs" #>
 // Copyright (c) 2019-2021 ReactiveUI Association Incorporated. All rights reserved.
@@ -14,7 +13,7 @@ using System.Linq.Expressions;
 using System.Reactive.Linq;
 
 <#
-int maxFuncLength = 12;
+const int maxFuncLength = 12;
 #>
 namespace ReactiveMarbles.PropertyChanged
 {
@@ -24,7 +23,7 @@ namespace ReactiveMarbles.PropertyChanged
     public static class NotifyPropertiesChangeExtensions
     {
 <#
-        for(int length = 2; length <= maxFuncLength; length++)
+        for(var length = 2; length <= maxFuncLength; length++)
         {
             var templateParams = Enumerable.Range(1, length).Select(x => "TTempReturn" + x).ToList();
             var expressionParameterNames = Enumerable.Range(1, length).Select(x => "propertyExpression" + x).ToList();
@@ -34,7 +33,7 @@ namespace ReactiveMarbles.PropertyChanged
         /// </summary>
         /// <param name="objectToMonitor">The object to monitor.</param>
 <#
-               for (int i = 0; i < expressionParameterNames.Count; ++i)
+               for (var i = 0; i < expressionParameterNames.Count; ++i)
                {
                     var expressionParameterName = expressionParameterNames[i];
                     var expressionParameterNumber = i + 1;#>
@@ -45,7 +44,7 @@ namespace ReactiveMarbles.PropertyChanged
         /// <param name="conversionFunc">Parameter which converts into the end value.</param>
         /// <typeparam name="TObj">The type of initial object.</typeparam>
 <#
-            for (int i = 0; i < templateParams.Count; ++i)
+            for (var i = 0; i < templateParams.Count; ++i)
             {
                 var templateParam = templateParams[i];
                 var templateParamNumber = i + 1;#>
@@ -60,7 +59,7 @@ namespace ReactiveMarbles.PropertyChanged
         public static IObservable<TReturn> WhenChanged<TObj, <#= string.Join(", ", templateParams) #>, TReturn>(
             this TObj objectToMonitor,
 <#
-                for (int i = 0; i < templateParams.Count; ++i)
+                for (var i = 0; i < templateParams.Count; ++i)
                 {
                     var templateParam = templateParams[i];
                     var templateParamNumber = i + 1;#>
@@ -71,9 +70,8 @@ namespace ReactiveMarbles.PropertyChanged
             Func<<#= string.Join(", ", templateParams) #>, TReturn> conversionFunc)
                 where TObj : class, INotifyPropertyChanged
         {<#
-                for (int i = 0; i < templateParams.Count; ++i)
+                for (var i = 0; i < templateParams.Count; ++i)
                 {
-                    var templateParam = templateParams[i];
                     var templateParamNumber = i + 1;#>
 
             var obs<#= templateParamNumber #> = objectToMonitor.WhenChanged(propertyExpression<#= templateParamNumber #>);

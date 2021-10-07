@@ -2,16 +2,15 @@
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
-namespace ReactiveMarbles.PropertyChanged.Tests.Moqs
-{
-    internal class B : BaseTestClass
-    {
-        private C _c;
+namespace ReactiveMarbles.PropertyChanged.Tests.Moqs;
 
-        public C C
-        {
-            get => _c;
-            set => RaiseAndSetIfChanged(ref _c, value);
-        }
+internal class B : BaseTestClass
+{
+    private C _c;
+
+    public C C
+    {
+        get => _c;
+        set => RaiseAndSetIfChanged(ref _c, value);
     }
 }

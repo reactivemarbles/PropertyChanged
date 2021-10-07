@@ -34,9 +34,9 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks.Legacy
 #else
             return Cache.GetOrAdd((memberInfo.DeclaringType, memberInfo.Name), _ =>
             {
-                var instance = Expression.Parameter(typeof(TFrom), "instance");
+                ParameterExpression instance = Expression.Parameter(typeof(TFrom), "instance");
 
-                var castInstance = Expression.Convert(instance, memberInfo.DeclaringType);
+                UnaryExpression castInstance = Expression.Convert(instance, memberInfo.DeclaringType);
 
                 Expression body;
 
@@ -52,9 +52,9 @@ namespace ReactiveMarbles.PropertyChanged.Benchmarks.Legacy
                         throw new ArgumentException($"Cannot handle member {memberInfo.Name}", nameof(memberInfo));
                 }
 
-                var parameters = new[] { instance };
+                ParameterExpression[] parameters = new[] { instance };
 
-                var lambdaExpression = Expression.Lambda<Func<TFrom, TReturn>>(body, parameters);
+                Expression<Func<TFrom, TReturn>> lambdaExpression = Expression.Lambda<Func<TFrom, TReturn>>(body, parameters);
 
                 return lambdaExpression.Compile();
             });

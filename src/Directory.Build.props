@@ -3,7 +3,6 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Platform>AnyCPU</Platform>
     <IsTestProject>$(MSBuildProjectName.Contains('Tests'))</IsTestProject>
-    <DebugType>embedded</DebugType>
     <Authors>Glenn Watson</Authors>
     <Copyright>Copyright (c) 2021 ReactiveUI Association Incorporated</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -14,7 +13,9 @@
     <PackageReleaseNotes>https://github.com/reactivemarbles/PropertyChanged/releases</PackageReleaseNotes>
     <RepositoryUrl>https://github.com/reactivemarbles/PropertyChanged</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IncludePackageReferencesDuringMarkupCompilation>true</IncludePackageReferencesDuringMarkupCompilation>
+    
     <!-- Publish the repository URL in the built .nupkg (in the NuSpec <Repository> element) -->
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <!-- Embed source files that are not tracked by the source control manager in the PDB -->
@@ -23,9 +24,10 @@
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
   </PropertyGroup>
 
-  <ItemGroup Condition="$(IsTestProject)">
-  </ItemGroup>
-
+  <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+  
   <ItemGroup Condition="'$(IsTestProject)' != 'true'">
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
   </ItemGroup>
@@ -39,11 +41,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Nerdbank.GitVersioning" Version="3.4.220" PrivateAssets="all" />
+    <PackageReference Include="Nerdbank.GitVersioning" Version="3.4.240" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="stylecop.analyzers" Version="1.2.0-beta.321" PrivateAssets="all" />
+    <PackageReference Include="stylecop.analyzers" Version="1.2.0-beta.354" PrivateAssets="all" />
     <PackageReference Include="Roslynator.Analyzers" Version="3.2.2" PrivateAssets="All" />
     <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="5.0.3" PrivateAssets="all" />
   </ItemGroup>

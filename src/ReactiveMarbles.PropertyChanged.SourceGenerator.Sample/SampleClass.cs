@@ -4,6 +4,7 @@
 
 using System;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Reactive.Linq;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample
@@ -13,7 +14,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample
     /// </summary>
     public partial class SampleClass
     {
-        private SampleClass.PrivateClass GetClass() => throw new NotImplementedException();
+        private PrivateClass GetClass() => throw new NotImplementedException();
     }
 
     /// <summary>
@@ -21,17 +22,17 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample
     /// </summary>
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Readability", "RCS1018:Add accessibility modifiers.", Justification = "Because")]
     [System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1400:Access modifier should be declared", Justification = "Because")]
-    public partial class SampleClass : INotifyPropertyChanged
+    public partial class SampleClass : INotifyPropertyChanged, INotifyPropertyChanging
     {
         private OtherNamespace.SampleClass _myClass;
         private string _myString;
+        private string _myString2;
+        private string _myString3;
 
-        internal SampleClass()
-        {
+        internal SampleClass() =>
 #pragma warning disable SX1101 // Do not prefix local calls with 'this.'
             this.WhenChanged(x => x.MyClass);
 #pragma warning restore SX1101 // Do not prefix local calls with 'this.'
-        }
 
         /// <summary>
         /// Dummy.
@@ -39,19 +40,52 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample
         public event PropertyChangedEventHandler PropertyChanged;
 
         /// <summary>
+        /// Dummy.
+        /// </summary>
+        public event PropertyChangingEventHandler PropertyChanging;
+
+        /// <summary>
         /// Gets or sets a string.
         /// </summary>
         internal string MyString
         {
-            get
-            {
-                return _myString;
-            }
+            get => _myString;
 
             set
             {
+                PropertyChanging?.Invoke(this, new(nameof(MyString)));
                 _myString = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(MyString)));
+                PropertyChanged?.Invoke(this, new(nameof(MyString)));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a string.
+        /// </summary>
+        internal string MyString2
+        {
+            get => _myString2;
+
+            set
+            {
+                PropertyChanging?.Invoke(this, new(nameof(MyString2)));
+                _myString2 = value;
+                PropertyChanged?.Invoke(this, new(nameof(MyString2)));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a string.
+        /// </summary>
+        internal string MyString3
+        {
+            get => _myString3;
+
+            set
+            {
+                PropertyChanging?.Invoke(this, new(nameof(MyString3)));
+                _myString3 = value;
+                PropertyChanged?.Invoke(this, new(nameof(MyString3)));
             }
         }
 
@@ -60,51 +94,16 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample
         /// </summary>
         internal OtherNamespace.SampleClass MyClass
         {
-            get
-            {
-                return _myClass;
-            }
+            get => _myClass;
 
             set
             {
                 _myClass = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(MyClass)));
+                PropertyChanged?.Invoke(this, new(nameof(MyClass)));
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "OK")]
-        internal System.IObservable<OtherNamespace.SampleClass> WhenChanged(System.Linq.Expressions.Expression<System.Func<Sample.SampleClass, OtherNamespace.SampleClass>> propertyExpression)
-        {
-            return System.Reactive.Linq.Observable.Return(this)
-                    .Where(x => x != null)
-                    .Select(x => GenerateObservable(x, "MyClass", y => y.MyClass))
-                    .Switch();
-        }
-
-        private static System.IObservable<T> GenerateObservable<TObj, T>(
-        TObj parent,
-        string memberName,
-        System.Func<TObj, T> getter)
-    where TObj : INotifyPropertyChanged
-        {
-            return Observable.Create<T>(
-                    observer =>
-                    {
-                        PropertyChangedEventHandler handler = (object sender, PropertyChangedEventArgs e) =>
-                        {
-                            if (e.PropertyName == memberName)
-                            {
-                                observer.OnNext(getter(parent));
-                            }
-                        };
-
-                        parent.PropertyChanged += handler;
-
-                        return System.Reactive.Disposables.Disposable.Create((parent, handler), x => x.parent.PropertyChanged -= x.handler);
-                    })
-                .StartWith(getter(parent));
-        }
-
+        [SuppressMessage("Design", "CA1812: Never used class", Justification = "Used by Rx")]
         private class PrivateClass
         {
         }
