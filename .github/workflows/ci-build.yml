@@ -32,6 +32,12 @@ jobs:
       with:
         dotnet-version: 5.0.x
 
+    - name: Install .NET 6
+      uses: actions/setup-dotnet@v1.8.2
+      with:
+        dotnet-version: 6.0.x
+        include-prerelease: true
+
     # - name: Update VS2019
     #   shell: powershell
     #   run: Start-Process -Wait -PassThru -FilePath "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" -ArgumentList "update --passive --norestart --installpath ""C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise"""
