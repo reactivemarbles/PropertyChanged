@@ -22,16 +22,6 @@ jobs:
         fetch-depth: 0
         lfs: true
 
-    - name: Install .NET Core
-      uses: actions/setup-dotnet@v2.1.0
-      with:
-        dotnet-version: 3.1.x
-
-    - name: Install .NET 5
-      uses: actions/setup-dotnet@v2.1.0
-      with:
-        dotnet-version: 5.0.x
-
     - name: Install .NET 6
       uses: actions/setup-dotnet@v2.1.0
       with:
@@ -49,9 +39,8 @@ jobs:
         dotnet workload install tvos
         dotnet workload install macos
         dotnet workload install maui
-        dotnet tool install -g Redth.Net.Maui.Check
-        maui-check --non-interactive --fix
-
+        dotnet workload install maccatalyst
+        
     - name: Add MSBuild to PATH
       uses: glennawatson/setup-msbuild@v1.0.3
       with:

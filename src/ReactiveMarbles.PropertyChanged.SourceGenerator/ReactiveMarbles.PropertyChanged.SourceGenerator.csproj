@@ -13,11 +13,9 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Nullable>enable</Nullable>
     <DebugType>full</DebugType>
-    <EnableNETAnalyzers>True</EnableNETAnalyzers>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.3" PrivateAssets="all" GeneratePathProperty="true" />
     <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="3.11.0" PrivateAssets="all" GeneratePathProperty="true" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.11.0" PrivateAssets="all" GeneratePathProperty="true" />
     <PackageReference Include="ReactiveMarbles.RoslynHelpers" Version="1.1.1" GeneratePathProperty="true" PrivateAssets="all" />
@@ -42,8 +40,7 @@
       <DependentUpon>Constants.When.tt</DependentUpon>
     </Compile>
   </ItemGroup>
-
-
+  
   <Target Name="ILRepack" AfterTargets="Build">
     <Exec Command="$(PKGILRepack)\tools\ILRepack &quot;$(TargetPath)&quot; &quot;$(PKGReactiveMarbles_RoslynHelpers)\lib\netstandard2.0\ReactiveMarbles.RoslynHelpers.dll&quot; /out:&quot;$(TargetPath)&quot; /lib:&quot;$(PKGMicrosoft_CodeAnalysis_CSharp_Workspaces)\lib\netstandard2.0&quot; /lib:&quot;$(PKGMicrosoft_CodeAnalysis_Analyzers)\analyzers\dotnet\cs&quot; /lib:&quot;$(PKGMicrosoft_CodeAnalysis_Common)\lib\netstandard2.0&quot; /union /internalize" />
   </Target>
