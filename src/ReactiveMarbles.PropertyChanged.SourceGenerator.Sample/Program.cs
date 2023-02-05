@@ -41,6 +41,6 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample
             Console.ReadLine();
         }
 
-        private static Expression<Func<SampleClass1, string?>> GetExpression() => x => x.MyString1;
+        private static Expression<Func<SampleClass1, string>> GetExpression() => x => x.MyString1;
     }
 }
