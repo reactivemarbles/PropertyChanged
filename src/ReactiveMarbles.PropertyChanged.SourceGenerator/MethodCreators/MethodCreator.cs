@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2019-2021 ReactiveUI Association Incorporated. All rights reserved.
+﻿// Copyright (c) 2019-2023 ReactiveUI Association Incorporated. All rights reserved.
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
@@ -36,7 +36,7 @@ internal static partial class MethodCreator
     {
         AttributeList(Attribute(Constants.ExcludeFromCodeCoverageAttributeTypeName)),
         AttributeList(Attribute(Constants.DebuggerNonUserCodeAttributeTypeName)),
-        AttributeList(Attribute(Constants.PreserveAttributeTypeName, new[] { AttributeArgument(NameEquals(IdentifierName("AllMembers")), LiteralExpression(SyntaxKind.TrueLiteralExpression)) })),
+        ////AttributeList(Attribute(Constants.PreserveAttributeTypeName, new[] { AttributeArgument(NameEquals(IdentifierName("AllMembers")), LiteralExpression(SyntaxKind.TrueLiteralExpression)) })),
         AttributeList(Attribute(Constants.ObfuscationAttributeTypeName, new[] { AttributeArgument(NameEquals(IdentifierName("Exclude")), LiteralExpression(SyntaxKind.TrueLiteralExpression)) })),
         AttributeList(Attribute(Constants.EditorBrowsableTypeName, new[] { AttributeArgument(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, Constants.EditorBrowsableStateTypeName, Constants.NeverEnumMemberName)) })),
     };
