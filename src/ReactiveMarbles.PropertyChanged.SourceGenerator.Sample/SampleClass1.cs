@@ -26,10 +26,10 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample
     [System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1400:Access modifier should be declared", Justification = "Because")]
     public partial class SampleClass1 : INotifyPropertyChanged, INotifyPropertyChanging
     {
-        ////private OtherNamespace.SampleClass2? _myClass = new SampleClass2();
-        private string? _myString = string.Empty;
-        private string? _myString2 = string.Empty;
-        private string? _myString3 = string.Empty;
+        ////private OtherNamespace.SampleClass2 _myClass = new SampleClass2();
+        private string _myString = string.Empty;
+        private string _myString2 = string.Empty;
+        private string _myString3 = string.Empty;
 
         internal SampleClass1()
         {
@@ -39,17 +39,17 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample
         /// <summary>
         /// Dummy.
         /// </summary>
-        public event PropertyChangedEventHandler? PropertyChanged;
+        public event PropertyChangedEventHandler PropertyChanged;
 
         /// <summary>
         /// Dummy.
         /// </summary>
-        public event PropertyChangingEventHandler? PropertyChanging;
+        public event PropertyChangingEventHandler PropertyChanging;
 
         /// <summary>
         /// Gets or sets a string.
         /// </summary>
-        internal string? MyString1
+        internal string MyString1
         {
             get => _myString;
 
@@ -64,7 +64,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample
         /// <summary>
         /// Gets or sets a string.
         /// </summary>
-        internal string? MyString2
+        internal string MyString2
         {
             get => _myString2;
 
@@ -79,7 +79,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample
         /// <summary>
         /// Gets or sets a string.
         /// </summary>
-        internal string? MyString3
+        internal string MyString3
         {
             get => _myString3;
 
@@ -95,7 +95,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample
         /////// <summary>
         /////// Gets or sets a class.
         /////// </summary>
-        ////internal OtherNamespace.SampleClass2? MyClass
+        ////internal OtherNamespace.SampleClass2 MyClass
         ////{
         ////    get => _myClass;
 

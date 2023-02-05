@@ -11,10 +11,10 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample
     /// </summary>
     public class SampleClass3 : INotifyPropertyChanged
     {
-        ////private SampleClass1? _myClass = new SampleClass1();
-        private string? _myString = string.Empty;
-        private string? _myString2 = string.Empty;
-        private string? _myString3 = string.Empty;
+        ////private SampleClass1 _myClass = new SampleClass1();
+        private string _myString = string.Empty;
+        private string _myString2 = string.Empty;
+        private string _myString3 = string.Empty;
 
         internal SampleClass3()
         {
@@ -24,12 +24,12 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample
         /// <summary>
         /// Dummy.
         /// </summary>
-        public event PropertyChangedEventHandler? PropertyChanged;
+        public event PropertyChangedEventHandler PropertyChanged;
 
         /// <summary>
         /// Gets or sets a string.
         /// </summary>
-        internal string? MyString1
+        internal string MyString1
         {
             get => _myString;
 
@@ -43,7 +43,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample
         /// <summary>
         /// Gets or sets a string.
         /// </summary>
-        internal string? MyString2
+        internal string MyString2
         {
             get => _myString2;
 
@@ -57,7 +57,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample
         /// <summary>
         /// Gets or sets a string.
         /// </summary>
-        internal string? MyString3
+        internal string MyString3
         {
             get => _myString3;
 
@@ -72,7 +72,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample
         /////// <summary>
         /////// Gets or sets a class.
         /////// </summary>
-        ////internal SampleClass1? MyClass
+        ////internal SampleClass1 MyClass
         ////{
         ////    get => _myClass;
 
