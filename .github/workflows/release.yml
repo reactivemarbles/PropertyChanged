@@ -28,7 +28,7 @@ jobs:
         dotnet-version: 6.0.x
         include-prerelease: true
 
-    - uses: nuget/setup-nuget@v1
+    - uses: nuget/setup-nuget@v2
       name: Setup NuGet
 
     - name: Install DotNet workloads
