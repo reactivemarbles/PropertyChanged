@@ -29,7 +29,7 @@ jobs:
           6.0.x
           7.0.x
 
-    - uses: nuget/setup-nuget@v1
+    - uses: nuget/setup-nuget@v2
       name: Setup NuGet
 
     - name: Install DotNet workloads
