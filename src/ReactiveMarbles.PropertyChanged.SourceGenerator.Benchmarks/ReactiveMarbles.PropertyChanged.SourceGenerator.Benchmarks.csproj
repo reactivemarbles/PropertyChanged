@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
@@ -6,13 +6,12 @@
 		<IsPackable>false</IsPackable>
 	</PropertyGroup>
 
-	<ItemGroup>
-		<PackageReference Include="BenchmarkDotNet" Version="0.13.4" />
-		<PackageReference Include="System.Reactive" Version="5.0.0" />
-		<PackageReference Include="Microsoft.CodeAnalysis" Version="3.11.0" allowedVersions="[3.11.0]" PrivateAssets="all" GeneratePathProperty="true" />
-		<PackageReference Include="Microsoft.CodeAnalysis.Common" Version="3.11.0" allowedVersions="[3.11.0]" PrivateAssets="all" GeneratePathProperty="true" />
-		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.11.0" allowedVersions="[3.11.0]" PrivateAssets="all" GeneratePathProperty="true" />
-	</ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.13.5" />
+    <PackageReference Include="System.Reactive" Version="6.0.1" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="3.11.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.11.0" />
+  </ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\ReactiveMarbles.PropertyChanged.SourceGenerator.Builders\ReactiveMarbles.PropertyChanged.SourceGenerator.Builders.csproj" />

@@ -20,7 +20,7 @@
     <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="3.11.0" allowedVersions="[3.11.0]" PrivateAssets="all" GeneratePathProperty="true" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.11.0" allowedVersions="[3.11.0]" PrivateAssets="all" GeneratePathProperty="true" />
     <PackageReference Include="ReactiveMarbles.RoslynHelpers" Version="1.1.17" GeneratePathProperty="true" PrivateAssets="all" />
-    <PackageReference Include="ILRepack" Version="2.0.18" GeneratePathProperty="true" PrivateAssets="all" />
+    <PackageReference Include="ILRepack" Version="2.0.34" GeneratePathProperty="true" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>

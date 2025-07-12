@@ -17,19 +17,19 @@ jobs:
       nbgv: ${{ steps.nbgv.outputs.SemVer2 }}
     steps:
     - name: Checkout
-      uses: actions/checkout@v3.3.0
+      uses: actions/checkout@v4.2.2
       with:
         fetch-depth: 0
         lfs: true
 
-    - name: Install .NET
-      uses: actions/setup-dotnet@v3.0.3
+    - name: Install .NET 6 and 7
+      uses: actions/setup-dotnet@v4.3.1
       with:
         dotnet-version: |
-            6.0.x
-            7.0.x
+          6.0.x
+          7.0.x
 
-    - uses: nuget/setup-nuget@v1
+    - uses: nuget/setup-nuget@v2
       name: Setup NuGet
 
     - name: Install DotNet workloads
