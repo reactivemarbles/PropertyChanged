@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2019-2023 ReactiveUI Association Incorporated. All rights reserved.
+﻿// Copyright (c) 2019-2025 ReactiveUI Association Incorporated. All rights reserved.
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
@@ -107,7 +107,7 @@ internal static partial class MethodCreator
                 classVisibility,
                 inputType,
                 outputType,
-                methodSymbol.TypeArguments.ToArray()));
+                [.. methodSymbol.TypeArguments]));
         }
     }
 
@@ -265,7 +265,7 @@ internal static partial class MethodCreator
         statements.Add(ThrowStatement(
             ObjectCreationExpression(
                 Constants.InvalidOperationExceptionTypeName,
-                new[] { Argument("\"No valid expression found.\"") }),
+                [Argument("\"No valid expression found.\"")]),
             isExtension ? 2 : 3));
 
         var body = Block(statements, isExtension ? 1 : 2);
@@ -309,7 +309,7 @@ internal static partial class MethodCreator
                 : Constants.HostObservableVariable;
             var observable = LocalDeclarationStatement(VariableDeclaration(
                 GenericName(Constants.IObservableTypeName, new[] { IdentifierName(outputTypeName) }),
-                new[] { VariableDeclarator(variableName, EqualsValueClause(observableChain)) }));
+                [VariableDeclarator(variableName, EqualsValueClause(observableChain))]));
             statements.Add(observable);
             i++;
         }

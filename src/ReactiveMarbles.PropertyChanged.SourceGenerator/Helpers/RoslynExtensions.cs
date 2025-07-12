@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2019-2023 ReactiveUI Association Incorporated. All rights reserved.
+﻿// Copyright (c) 2019-2025 ReactiveUI Association Incorporated. All rights reserved.
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
@@ -13,13 +13,13 @@ internal static class RoslynExtensions
 {
     public static IEnumerable<SyntaxKind> GetAccessibilityTokens(this Accessibility accessibility) => accessibility switch
     {
-        Accessibility.Public => new[] { SyntaxKind.PublicKeyword },
-        Accessibility.Internal => new[] { SyntaxKind.InternalKeyword },
-        Accessibility.Private => new[] { SyntaxKind.PrivateKeyword },
-        Accessibility.NotApplicable => Array.Empty<SyntaxKind>(),
-        Accessibility.ProtectedAndInternal => new[] { SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword },
-        Accessibility.Protected => new[] { SyntaxKind.ProtectedKeyword },
-        Accessibility.ProtectedOrInternal => new[] { SyntaxKind.ProtectedKeyword, SyntaxKind.InternalKeyword },
+        Accessibility.Public => [SyntaxKind.PublicKeyword],
+        Accessibility.Internal => [SyntaxKind.InternalKeyword],
+        Accessibility.Private => [SyntaxKind.PrivateKeyword],
+        Accessibility.NotApplicable => [],
+        Accessibility.ProtectedAndInternal => [SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword],
+        Accessibility.Protected => [SyntaxKind.ProtectedKeyword],
+        Accessibility.ProtectedOrInternal => [SyntaxKind.ProtectedKeyword, SyntaxKind.InternalKeyword],
         _ => Array.Empty<SyntaxKind>(),
     };
 

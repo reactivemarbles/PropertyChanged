@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2019-2023 ReactiveUI Association Incorporated. All rights reserved.
+﻿// Copyright (c) 2019-2025 ReactiveUI Association Incorporated. All rights reserved.
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
@@ -128,7 +128,7 @@ public class Generator : ISourceGenerator
     {
         var accessibility = isExtension ?
             new[] { SyntaxKind.InternalKeyword, SyntaxKind.StaticKeyword, SyntaxKind.PartialKeyword } :
-            classEntry.AccessibilityModifier.GetAccessibilityTokens().Concat(new[] { SyntaxKind.PartialKeyword }).ToArray();
+            [.. classEntry.AccessibilityModifier.GetAccessibilityTokens(), SyntaxKind.PartialKeyword];
 
         var className = classEntry.ClassName;
         var methods = classEntry.MethodData;
@@ -137,8 +137,8 @@ public class Generator : ISourceGenerator
 
         foreach (var ancestor in classEntry.Ancestors)
         {
-            accessibility = ancestor.AccessibilityModifier.GetAccessibilityTokens().Concat(new[] { SyntaxKind.PartialKeyword }).ToArray();
-            currentClass = ClassDeclaration(ancestor.ClassName, accessibility, new[] { currentClass }, 0);
+            accessibility = [.. ancestor.AccessibilityModifier.GetAccessibilityTokens(), SyntaxKind.PartialKeyword];
+            currentClass = ClassDeclaration(ancestor.ClassName, accessibility, [currentClass], 0);
         }
 
         return currentClass;

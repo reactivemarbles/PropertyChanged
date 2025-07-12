@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2019-2023 ReactiveUI Association Incorporated. All rights reserved.
+﻿// Copyright (c) 2019-2025 ReactiveUI Association Incorporated. All rights reserved.
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
@@ -32,34 +32,24 @@ internal static partial class MethodCreator
         return compilationData;
     }
 
-    private static List<AttributeListSyntax> GetMethodAttributes() => new()
-    {
+    private static List<AttributeListSyntax> GetMethodAttributes() =>
+    [
         AttributeList(Attribute(Constants.ExcludeFromCodeCoverageAttributeTypeName)),
         AttributeList(Attribute(Constants.DebuggerNonUserCodeAttributeTypeName)),
         ////AttributeList(Attribute(Constants.PreserveAttributeTypeName, new[] { AttributeArgument(NameEquals(IdentifierName("AllMembers")), LiteralExpression(SyntaxKind.TrueLiteralExpression)) })),
-        AttributeList(Attribute(Constants.ObfuscationAttributeTypeName, new[] { AttributeArgument(NameEquals(IdentifierName("Exclude")), LiteralExpression(SyntaxKind.TrueLiteralExpression)) })),
-        AttributeList(Attribute(Constants.EditorBrowsableTypeName, new[] { AttributeArgument(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, Constants.EditorBrowsableStateTypeName, Constants.NeverEnumMemberName)) })),
-    };
+        AttributeList(Attribute(Constants.ObfuscationAttributeTypeName, [AttributeArgument(NameEquals(IdentifierName("Exclude")), LiteralExpression(SyntaxKind.TrueLiteralExpression))])),
+        AttributeList(Attribute(Constants.EditorBrowsableTypeName, [AttributeArgument(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, Constants.EditorBrowsableStateTypeName, Constants.NeverEnumMemberName))])),
+    ];
 
     private static IEnumerable<ParameterSyntax> CallerMembersParameters() =>
-        new[]
-        {
-            Parameter(new[] { AttributeList(Attribute(Constants.CallerMemberAttributeTypeName)) }, "string", Constants.CallerMemberParameterName, EqualsValueClause(NullLiteral())),
-            Parameter(new[] { AttributeList(Attribute(Constants.CallerFilePathAttributeTypeName)) }, "string", Constants.CallerFilePathParameterName, EqualsValueClause(NullLiteral())),
-            Parameter(new[] { AttributeList(Attribute(Constants.CallerLineNumberAttributeTypeName)) }, "int", Constants.CallerLineNumberParameterName, EqualsValueClause(LiteralExpression(0))),
-        };
+        [
+            Parameter([AttributeList(Attribute(Constants.CallerMemberAttributeTypeName))], "string", Constants.CallerMemberParameterName, EqualsValueClause(NullLiteral())),
+            Parameter([AttributeList(Attribute(Constants.CallerFilePathAttributeTypeName))], "string", Constants.CallerFilePathParameterName, EqualsValueClause(NullLiteral())),
+            Parameter([AttributeList(Attribute(Constants.CallerLineNumberAttributeTypeName))], "int", Constants.CallerLineNumberParameterName, EqualsValueClause(LiteralExpression(0))),
+        ];
 
     private static GenericNameSyntax GetExpressionFunc(string inputType, string returnType) =>
         GenericName(
             Constants.ExpressionTypeName,
-            new[]
-            {
-                GenericName(
-                    Constants.FuncTypeName,
-                    new[]
-                    {
-                        IdentifierName(inputType),
-                        IdentifierName(returnType),
-                    }),
-            });
+            [GenericName(Constants.FuncTypeName, [IdentifierName(inputType), IdentifierName(returnType),]),]);
 }

@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2019-2023 ReactiveUI Association Incorporated. All rights reserved.
+﻿// Copyright (c) 2019-2025 ReactiveUI Association Incorporated. All rights reserved.
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
@@ -11,7 +11,7 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample
     /// </summary>
     public class SampleClass3 : INotifyPropertyChanged
     {
-        ////private SampleClass1 _myClass = new SampleClass1();
+        private SampleClass1 _myClass = new SampleClass1();
         private string _myString = string.Empty;
         private string _myString2 = string.Empty;
         private string _myString3 = string.Empty;
@@ -68,19 +68,18 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample
             }
         }
 
-        // TODO: Fix this.
-        /////// <summary>
-        /////// Gets or sets a class.
-        /////// </summary>
-        ////internal SampleClass1 MyClass
-        ////{
-        ////    get => _myClass;
+        /// <summary>
+        /// Gets or sets a class.TODO: Fix this.
+        /// </summary>
+        internal SampleClass1 MyClass
+        {
+            get => _myClass;
 
-        ////    set
-        ////    {
-        ////        _myClass = value;
-        ////        PropertyChanged?.Invoke(this, new(nameof(MyClass)));
-        ////    }
-        ////}
+            set
+            {
+                _myClass = value;
+                PropertyChanged?.Invoke(this, new(nameof(MyClass)));
+            }
+        }
     }
-}
+    }

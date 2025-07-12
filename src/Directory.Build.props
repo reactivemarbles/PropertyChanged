@@ -4,7 +4,7 @@
     <Platform>AnyCPU</Platform>
     <IsTestProject>$(MSBuildProjectName.Contains('Tests'))</IsTestProject>
     <Authors>Glenn Watson</Authors>
-    <Copyright>Copyright (c) 2021 ReactiveUI Association Incorporated</Copyright>
+    <Copyright>Copyright (c) 2025 ReactiveUI Association Incorporated</Copyright>
     <PackageIcon>logo.png</PackageIcon>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/reactivemarbles/PropertyChanged</PackageProjectUrl>

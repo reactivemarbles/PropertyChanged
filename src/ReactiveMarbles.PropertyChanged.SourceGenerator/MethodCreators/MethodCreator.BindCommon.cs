@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2019-2023 ReactiveUI Association Incorporated. All rights reserved.
+﻿// Copyright (c) 2019-2025 ReactiveUI Association Incorporated. All rights reserved.
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
@@ -81,8 +81,8 @@ internal static partial class MethodCreator
                 dictionary.Add(statementKey, ifStatements);
             }
 
-            whenChanged.Add(new(Constants.WhenChangedMethodName, new[] { new WhenStatementsDatum(hostExpressionArgument) }, !hostExpressionArgument.ContainsPrivateOrProtectedMember, hostClassAccessibility, hostExpressionArgument.InputType, hostExpressionArgument.OutputType, new[] { hostExpressionArgument.InputType, hostExpressionArgument.OutputType }));
-            whenChanged.Add(new(Constants.WhenChangedMethodName, new[] { new WhenStatementsDatum(targetExpressionArgument) }, !targetExpressionArgument.ContainsPrivateOrProtectedMember, targetClassAccessibility, targetExpressionArgument.InputType, targetExpressionArgument.OutputType, new[] { targetExpressionArgument.InputType, targetExpressionArgument.OutputType }));
+            whenChanged.Add(new(Constants.WhenChangedMethodName, [new WhenStatementsDatum(hostExpressionArgument)], !hostExpressionArgument.ContainsPrivateOrProtectedMember, hostClassAccessibility, hostExpressionArgument.InputType, hostExpressionArgument.OutputType, new[] { hostExpressionArgument.InputType, hostExpressionArgument.OutputType }));
+            whenChanged.Add(new(Constants.WhenChangedMethodName, [new WhenStatementsDatum(targetExpressionArgument)], !targetExpressionArgument.ContainsPrivateOrProtectedMember, targetClassAccessibility, targetExpressionArgument.InputType, targetExpressionArgument.OutputType, new[] { targetExpressionArgument.InputType, targetExpressionArgument.OutputType }));
 
             ifStatements.Add(
                 IfStatement(
@@ -130,7 +130,7 @@ internal static partial class MethodCreator
                 isExtension,
                 hasConverters,
                 methodAccessibility,
-                statements.Cast<StatementSyntax>().ToList());
+                [.. statements.Cast<StatementSyntax>()]);
 
             var classDatum = compilationData.GetClass(hostInputType, classAccessibility, isExtension, Constants.BindExtensionClass);
 

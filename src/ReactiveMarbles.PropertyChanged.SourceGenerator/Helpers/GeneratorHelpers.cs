@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2019-2023 ReactiveUI Association Incorporated. All rights reserved.
+﻿// Copyright (c) 2019-2025 ReactiveUI Association Incorporated. All rights reserved.
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
@@ -139,27 +139,25 @@ internal static class GeneratorHelpers
         while (expressionChain is not null)
         {
             var name = expressionChain.Name.ToString();
-            var inputType = model.GetTypeInfo(expressionChain.ChildNodes().ElementAt(0)).Type as INamedTypeSymbol;
-            var outputType = model.GetTypeInfo(expressionChain.ChildNodes().ElementAt(1)).Type as INamedTypeSymbol;
 
-            if (inputType is null)
+            if (model.GetTypeInfo(expressionChain.ChildNodes().ElementAt(0)).Type is not INamedTypeSymbol inputType)
             {
                 context.ReportDiagnostic(
                     Diagnostic.Create(
                         DiagnosticWarnings.LambdaParameterMustBeUsed,
                         lambdaExpression.Body.GetLocation()));
 
-                return new();
+                return [];
             }
 
-            if (outputType is null)
+            if (model.GetTypeInfo(expressionChain.ChildNodes().ElementAt(1)).Type is not INamedTypeSymbol outputType)
             {
                 context.ReportDiagnostic(
                     Diagnostic.Create(
                         DiagnosticWarnings.LambdaParameterMustBeUsed,
                         lambdaExpression.Body.GetLocation()));
 
-                return new();
+                return [];
             }
 
             members.Add(new(name, inputType, outputType));
@@ -175,7 +173,7 @@ internal static class GeneratorHelpers
                     DiagnosticWarnings.LambdaParameterMustBeUsed,
                     lambdaExpression.Body.GetLocation()));
 
-            return new();
+            return [];
         }
 
         if (expression is not IdentifierNameSyntax firstLinkInChain)
@@ -186,7 +184,7 @@ internal static class GeneratorHelpers
                     DiagnosticWarnings.OnlyPropertyAndFieldAccessAllowed,
                     expression.GetLocation()));
 
-            return new();
+            return [];
         }
 
         var lambdaParameterName =
@@ -204,6 +202,6 @@ internal static class GeneratorHelpers
                 DiagnosticWarnings.LambdaParameterMustBeUsed,
                 lambdaExpression.Body.GetLocation()));
 
-        return new();
+        return [];
     }
 }

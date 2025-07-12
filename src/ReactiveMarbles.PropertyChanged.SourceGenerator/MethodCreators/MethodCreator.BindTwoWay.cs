@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2019-2023 ReactiveUI Association Incorporated. All rights reserved.
+﻿// Copyright (c) 2019-2025 ReactiveUI Association Incorporated. All rights reserved.
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
@@ -29,11 +29,11 @@ internal static partial class MethodCreator
         var fromName = isExtension ? Constants.FromObjectVariable : Constants.ThisObjectVariable;
 
         var hostObservableChain = SourceHelpers.InvokeWhenChanged(Constants.WhenChangedMethodName, Constants.FromPropertyParameter, fromName);
-        statements.Add(LocalDeclarationStatement(VariableDeclaration(GenericName(Constants.IObservableTypeName, new[] { IdentifierName(hostOutputType) }), new[] { VariableDeclarator(Constants.HostObservableVariable, EqualsValueClause(hostObservableChain)) })));
+        statements.Add(LocalDeclarationStatement(VariableDeclaration(GenericName(Constants.IObservableTypeName, [IdentifierName(hostOutputType)]), [VariableDeclarator(Constants.HostObservableVariable, EqualsValueClause(hostObservableChain))])));
 
         var targetObservableChainInside = SourceHelpers.InvokeWhenChanged(Constants.WhenChangedMethodName, Constants.ToPropertyParameter, Constants.TargetParameter); ////GetObservableChain(fromName, targetExpressionChains, Constants.WhenChangedEventName, Constants.WhenChangedEventHandler, isExtension ? 2 : 3);
         var targetObservableChain = InvocationExpression(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, Constants.ObservableLinqTypeName, Constants.SkipMethodName), new[] { Argument(targetObservableChainInside), Argument(LiteralExpression(1)) });
-        statements.Add(LocalDeclarationStatement(VariableDeclaration(GenericName(Constants.IObservableTypeName, new[] { IdentifierName(targetOutputType) }), new[] { VariableDeclarator(Constants.TargetObservableVariable, EqualsValueClause(targetObservableChain)) })));
+        statements.Add(LocalDeclarationStatement(VariableDeclaration(GenericName(Constants.IObservableTypeName, [IdentifierName(targetOutputType)]), [VariableDeclarator(Constants.TargetObservableVariable, EqualsValueClause(targetObservableChain))])));
 
         if (hasConverters)
         {
@@ -82,7 +82,7 @@ internal static partial class MethodCreator
                             SyntaxKind.SimpleAssignmentExpression,
                             Constants.HostObservableVariable,
                             InvocationExpression(
-                                MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, Constants.HostObservableVariable, Constants.ObserveOnMethodName), new[] { Argument(Constants.SchedulerParameter) }))),
+                                MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, Constants.HostObservableVariable, Constants.ObserveOnMethodName), [Argument(Constants.SchedulerParameter)]))),
 
                     // generates: targetObs = targetObs.ObserveOn(scheduler);
                     ExpressionStatement(
@@ -90,7 +90,7 @@ internal static partial class MethodCreator
                             SyntaxKind.SimpleAssignmentExpression,
                             Constants.TargetObservableVariable,
                             InvocationExpression(
-                                MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, Constants.TargetObservableVariable, Constants.ObserveOnMethodName), new[] { Argument(Constants.SchedulerParameter) }))),
+                                MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, Constants.TargetObservableVariable, Constants.ObserveOnMethodName), [Argument(Constants.SchedulerParameter)]))),
                 },
                 1));
 
@@ -151,15 +151,15 @@ internal static partial class MethodCreator
 
         if (hasConverters)
         {
-            parameterList.Add(Parameter(GenericName(Constants.FuncTypeName, new[] { IdentifierName(hostInputType), IdentifierName(targetOutputType) }), Constants.HostToTargetConverterFuncParameter));
-            parameterList.Add(Parameter(GenericName(Constants.FuncTypeName, new[] { IdentifierName(targetInputType), IdentifierName(hostOutputType) }), Constants.TargetToHostConverterFuncParameter));
+            parameterList.Add(Parameter(GenericName(Constants.FuncTypeName, [IdentifierName(hostInputType), IdentifierName(targetOutputType)]), Constants.HostToTargetConverterFuncParameter));
+            parameterList.Add(Parameter(GenericName(Constants.FuncTypeName, [IdentifierName(targetInputType), IdentifierName(hostOutputType)]), Constants.TargetToHostConverterFuncParameter));
         }
 
         parameterList.Add(Parameter(Constants.ISchedulerTypeName, Constants.SchedulerParameter, EqualsValueClause(NullLiteral())));
 
         parameterList.AddRange(CallerMembersParameters());
 
-        statements.Add(ThrowStatement(ObjectCreationExpression(Constants.InvalidOperationExceptionTypeName, new[] { Argument("\"No valid expression found.\"") }), isExtension ? 2 : 3));
+        statements.Add(ThrowStatement(ObjectCreationExpression(Constants.InvalidOperationExceptionTypeName, [Argument("\"No valid expression found.\"")]), isExtension ? 2 : 3));
 
         var body = Block(statements, isExtension ? 1 : 2);
         return MethodDeclaration(GetMethodAttributes(), modifiers, Constants.SystemDisposableTypeName, Constants.BindTwoWayMethodName, parameterList, isExtension ? 1 : 2, body);
