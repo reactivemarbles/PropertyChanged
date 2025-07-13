@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Reflection;
 
 namespace ReactiveMarbles.PropertyChanged;
+
 #if !UIKIT
 internal sealed class MemberFuncCacheKeyComparer : IEqualityComparer<MemberInfo>
 {
