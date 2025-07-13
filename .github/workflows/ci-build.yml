@@ -12,7 +12,7 @@ env:
 
 jobs:
   build:
-    runs-on: windows-2022
+    runs-on: windows-latest
     outputs:
       nbgv: ${{ steps.nbgv.outputs.SemVer2 }}
     steps:
@@ -22,12 +22,12 @@ jobs:
         fetch-depth: 0
         lfs: true
 
-    - name: Install .NET 6 and 7
+    - name: Install .NET
       uses: actions/setup-dotnet@v4.3.1
       with:
         dotnet-version: |
-          6.0.x
-          7.0.x
+          8.0.x
+          9.0.x
 
     - uses: nuget/setup-nuget@v2
       name: Setup NuGet
@@ -55,6 +55,11 @@ jobs:
 
     - name: NuGet Restore
       run: nuget restore
+      working-directory: src
+
+    - name: Build DotNet
+      if: inputs.useUNO == false
+      run: dotnet build --no-restore --configuration ${{ env.configuration }}
       working-directory: src
       
     - name: Build
