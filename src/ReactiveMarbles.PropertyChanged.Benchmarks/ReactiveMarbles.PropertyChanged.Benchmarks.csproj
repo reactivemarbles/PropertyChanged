@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.15.2" />
+	  <PackageReference Include="BenchmarkDotNet" Version="[0.13.5,)" />
     <PackageReference Include="reactiveui" Version="20.*" />
   </ItemGroup>
 
