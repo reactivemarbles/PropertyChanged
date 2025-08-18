@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2019-2021 ReactiveUI Association Incorporated. All rights reserved.
+﻿// Copyright (c) 2019-2025 ReactiveUI Association Incorporated. All rights reserved.
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
@@ -9,17 +9,17 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample
     /// <summary>
     /// Second sample class.
     /// </summary>
-    public class SampleClass2 : INotifyPropertyChanged
+    public class SampleClass3 : INotifyPropertyChanged
     {
-        private OtherNamespace.SampleClass _myClass;
-        private string _myString;
-        private string _myString2;
-        private string _myString3;
+        private SampleClass1 _myClass = new SampleClass1();
+        private string _myString = string.Empty;
+        private string _myString2 = string.Empty;
+        private string _myString3 = string.Empty;
 
-        internal SampleClass2() =>
-#pragma warning disable SX1101 // Do not prefix local calls with 'this.'
-            this.WhenChanged(x => x.MyClass);
-#pragma warning restore SX1101 // Do not prefix local calls with 'this.'
+        internal SampleClass3()
+        {
+            ////this.WhenChanged(x => x.MyClass);
+        }
 
         /// <summary>
         /// Dummy.
@@ -29,14 +29,14 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample
         /// <summary>
         /// Gets or sets a string.
         /// </summary>
-        internal string MyString
+        internal string MyString1
         {
             get => _myString;
 
             set
             {
                 _myString = value;
-                PropertyChanged?.Invoke(this, new(nameof(MyString)));
+                PropertyChanged?.Invoke(this, new(nameof(MyString1)));
             }
         }
 
@@ -69,9 +69,9 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample
         }
 
         /// <summary>
-        /// Gets or sets a class.
+        /// Gets or sets a class.TODO: Fix this.
         /// </summary>
-        internal OtherNamespace.SampleClass MyClass
+        internal SampleClass1 MyClass
         {
             get => _myClass;
 
@@ -82,4 +82,4 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample
             }
         }
     }
-}
+    }

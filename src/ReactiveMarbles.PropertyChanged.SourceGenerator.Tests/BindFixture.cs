@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2019-2021 ReactiveUI Association Incorporated. All rights reserved.
+﻿// Copyright (c) 2019-2025 ReactiveUI Association Incorporated. All rights reserved.
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
@@ -16,7 +16,7 @@ using ReactiveMarbles.PropertyChanged.SourceGenerator.Builders;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Tests;
 
-internal class BindFixture
+internal class BindFixture : IDisposable
 {
     private readonly BindHostBuilder _hostTypeInfo;
     private readonly CompilationUtil _compilation;
@@ -24,6 +24,7 @@ internal class BindFixture
     private Type _hostType;
     private Type _viewModelPropertyType;
     private Type _valuePropertyType;
+    private bool _disposedValue;
 
     private BindFixture(BindHostBuilder hostTypeInfo, Action<string> testOutputHelper)
     {
@@ -86,6 +87,32 @@ internal class BindFixture
     public WhenChangedHostProxy NewViewModelPropertyInstance() => new(CreateInstance(_viewModelPropertyType));
 
     public object NewValuePropertyInstance() => CreateInstance(_valuePropertyType);
+
+    /// <summary>
+    /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+    /// </summary>
+    public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>
+    /// Releases unmanaged and - optionally - managed resources.
+    /// </summary>
+    /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!_disposedValue)
+        {
+            if (disposing)
+            {
+                _compilation.Dispose();
+            }
+
+            _disposedValue = true;
+        }
+    }
 
     private static object CreateInstance(Type type) => Activator.CreateInstance(type, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, null, null) ?? throw new InvalidOperationException("The value of the type cannot be null");
 

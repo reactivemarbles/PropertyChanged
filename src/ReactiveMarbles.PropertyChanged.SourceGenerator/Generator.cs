@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2019-2021 ReactiveUI Association Incorporated. All rights reserved.
+﻿// Copyright (c) 2019-2025 ReactiveUI Association Incorporated. All rights reserved.
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
@@ -38,9 +38,12 @@ public class Generator : ISourceGenerator
             var options = compilation.SyntaxTrees[0].Options as CSharpParseOptions;
             compilation = compilation.AddSyntaxTrees(
                 CSharpSyntaxTree.ParseText(Constants.WhenExtensionClassSource, options),
+                CSharpSyntaxTree.ParseText(Constants.PreserveAttribute, options),
                 CSharpSyntaxTree.ParseText(Constants.BindExtensionClassSource, options));
             context.AddSource("PropertyChanged.SourceGenerator.When.Stubs.g.cs", SourceText.From(Constants.WhenExtensionClassSource, Encoding.UTF8));
-            context.AddSource("PropertyChanged.SourceGenerator.PreserveAttribute.g.cs", SourceText.From(Constants.PreserveAttribute, Encoding.UTF8));
+
+            // TODO: Fix this.
+            ////context.AddSource("PropertyChanged.SourceGenerator.PreserveAttribute.g.cs", SourceText.From(Constants.PreserveAttribute, Encoding.UTF8));
             context.AddSource("PropertyChanged.SourceGenerator.Binding.Stubs.g.cs", SourceText.From(Constants.BindExtensionClassSource, Encoding.UTF8));
 
             if (context.SyntaxReceiver is not SyntaxReceiver syntaxReceiver)
@@ -125,7 +128,7 @@ public class Generator : ISourceGenerator
     {
         var accessibility = isExtension ?
             new[] { SyntaxKind.InternalKeyword, SyntaxKind.StaticKeyword, SyntaxKind.PartialKeyword } :
-            classEntry.AccessibilityModifier.GetAccessibilityTokens().Concat(new[] { SyntaxKind.PartialKeyword }).ToArray();
+            [.. classEntry.AccessibilityModifier.GetAccessibilityTokens(), SyntaxKind.PartialKeyword];
 
         var className = classEntry.ClassName;
         var methods = classEntry.MethodData;
@@ -134,8 +137,8 @@ public class Generator : ISourceGenerator
 
         foreach (var ancestor in classEntry.Ancestors)
         {
-            accessibility = ancestor.AccessibilityModifier.GetAccessibilityTokens().Concat(new[] { SyntaxKind.PartialKeyword }).ToArray();
-            currentClass = ClassDeclaration(ancestor.ClassName, accessibility, new[] { currentClass }, 0);
+            accessibility = [.. ancestor.AccessibilityModifier.GetAccessibilityTokens(), SyntaxKind.PartialKeyword];
+            currentClass = ClassDeclaration(ancestor.ClassName, accessibility, [currentClass], 0);
         }
 
         return currentClass;

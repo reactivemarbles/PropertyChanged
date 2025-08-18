@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2019-2021 ReactiveUI Association Incorporated. All rights reserved.
+﻿// Copyright (c) 2019-2025 ReactiveUI Association Incorporated. All rights reserved.
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
@@ -6,13 +6,15 @@ using System;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Reactive.Linq;
+using ReactiveMarbles.PropertyChanged;
+using ReactiveMarbles.PropertyChanged.SourceGenerator.Sample.OtherNamespace;
 
 namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample
 {
     /// <summary>
     /// Dummy.
     /// </summary>
-    public partial class SampleClass
+    public partial class SampleClass1
     {
         private PrivateClass GetClass() => throw new NotImplementedException();
     }
@@ -22,17 +24,17 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample
     /// </summary>
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Readability", "RCS1018:Add accessibility modifiers.", Justification = "Because")]
     [System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1400:Access modifier should be declared", Justification = "Because")]
-    public partial class SampleClass : INotifyPropertyChanged, INotifyPropertyChanging
+    public partial class SampleClass1 : INotifyPropertyChanged, INotifyPropertyChanging
     {
-        private OtherNamespace.SampleClass _myClass;
-        private string _myString;
-        private string _myString2;
-        private string _myString3;
+        ////private OtherNamespace.SampleClass2 _myClass = new SampleClass2();
+        private string _myString = string.Empty;
+        private string _myString2 = string.Empty;
+        private string _myString3 = string.Empty;
 
-        internal SampleClass() =>
-#pragma warning disable SX1101 // Do not prefix local calls with 'this.'
-            this.WhenChanged(x => x.MyClass);
-#pragma warning restore SX1101 // Do not prefix local calls with 'this.'
+        internal SampleClass1()
+        {
+            ////this.WhenChanged(x => x.MyClass);
+        }
 
         /// <summary>
         /// Dummy.
@@ -47,15 +49,15 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample
         /// <summary>
         /// Gets or sets a string.
         /// </summary>
-        internal string MyString
+        internal string MyString1
         {
             get => _myString;
 
             set
             {
-                PropertyChanging?.Invoke(this, new(nameof(MyString)));
+                PropertyChanging?.Invoke(this, new(nameof(MyString1)));
                 _myString = value;
-                PropertyChanged?.Invoke(this, new(nameof(MyString)));
+                PropertyChanged?.Invoke(this, new(nameof(MyString1)));
             }
         }
 
@@ -89,19 +91,20 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample
             }
         }
 
-        /// <summary>
-        /// Gets or sets a class.
-        /// </summary>
-        internal OtherNamespace.SampleClass MyClass
-        {
-            get => _myClass;
+        // TODO: Fix this.
+        /////// <summary>
+        /////// Gets or sets a class.
+        /////// </summary>
+        ////internal OtherNamespace.SampleClass2 MyClass
+        ////{
+        ////    get => _myClass;
 
-            set
-            {
-                _myClass = value;
-                PropertyChanged?.Invoke(this, new(nameof(MyClass)));
-            }
-        }
+        ////    set
+        ////    {
+        ////        _myClass = value;
+        ////        PropertyChanged?.Invoke(this, new(nameof(MyClass)));
+        ////    }
+        ////}
 
         [SuppressMessage("Design", "CA1812: Never used class", Justification = "Used by Rx")]
         private class PrivateClass

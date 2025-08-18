@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2019-2021 ReactiveUI Association Incorporated. All rights reserved.
+﻿// Copyright (c) 2019-2025 ReactiveUI Association Incorporated. All rights reserved.
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
@@ -13,8 +13,8 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.MethodCreators.Transie
 
 internal sealed class CompilationDatum
 {
-    private readonly Dictionary<string, NamespaceDatum> _extensionNamespaces = new();
-    private readonly Dictionary<string, NamespaceDatum> _partialsNamespaces = new();
+    private readonly Dictionary<string, NamespaceDatum> _extensionNamespaces = [];
+    private readonly Dictionary<string, NamespaceDatum> _partialsNamespaces = [];
 
     public NamespaceDatum GetNamespace(string namespaceName, bool isExtension)
     {
@@ -35,7 +35,7 @@ internal sealed class CompilationDatum
     {
         var namespaceName = isExtension ? string.Empty : symbol.ContainingNamespace.ToNamespaceName();
         var className = isExtension ? extensionClass : symbol.Name;
-        var ancestors = isExtension ? Array.Empty<ClassDatum>() : (IReadOnlyList<ClassDatum>)symbol.GetAncestorsClassDatum();
+        var ancestors = isExtension ? [] : (IReadOnlyList<ClassDatum>)symbol.GetAncestorsClassDatum();
         var fileDatum = GetNamespace(namespaceName, isExtension);
 
         var dictionary = fileDatum.ClassDictionary;
