@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2019-2021 ReactiveUI Association Incorporated. All rights reserved.
+﻿// Copyright (c) 2019-2025 ReactiveUI Association Incorporated. All rights reserved.
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
@@ -69,11 +69,11 @@ public class WhenChangedGeneratorTestsNoDiagnostics
         var observable = host.GetWhenChangedObservable(_ => TestContext.WriteLine(fixture.Sources));
         object value = null;
         observable.Subscribe(x => value = x);
-        receiver.Value.Should().Equals(value);
+        receiver.Value.Should().Be(value);
         receiver.Value = fixture.NewValuePropertyInstance();
-        receiver.Value.Should().Equals(value);
+        receiver.Value.Should().Be(value);
         receiver.Value = null;
-        receiver.Value.Should().Equals(value);
+        receiver.Value.Should().Be(value);
     }
 
     /// <summary>

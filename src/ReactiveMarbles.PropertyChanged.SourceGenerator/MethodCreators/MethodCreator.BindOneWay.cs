@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2019-2021 ReactiveUI Association Incorporated. All rights reserved.
+﻿// Copyright (c) 2019-2025 ReactiveUI Association Incorporated. All rights reserved.
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
@@ -29,7 +29,7 @@ internal static partial class MethodCreator
         // generates: var hostObs = fromObject.WhenChanged(fromProperty);
         var observableChain = SourceHelpers.InvokeWhenChanged(Constants.WhenChangedMethodName, Constants.FromPropertyParameter, fromName);
 
-        statements.Add(LocalDeclarationStatement(VariableDeclaration(GenericName(Constants.IObservableTypeName, new[] { IdentifierName(hostOutputType) }), new[] { VariableDeclarator(Constants.HostObservableVariable, EqualsValueClause(observableChain)) })));
+        statements.Add(LocalDeclarationStatement(VariableDeclaration(GenericName(Constants.IObservableTypeName, [IdentifierName(hostOutputType)]), new[] { VariableDeclarator(Constants.HostObservableVariable, EqualsValueClause(observableChain)) })));
 
         if (hasConverters)
         {
@@ -40,10 +40,7 @@ internal static partial class MethodCreator
                     Constants.HostObservableVariable,
                     InvocationExpression(
                         MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, Constants.HostObservableVariable, Constants.SelectMethod),
-                        new[]
-                        {
-                            Argument(Constants.HostToTargetConverterFuncParameter)
-                        }))));
+                        [Argument(Constants.HostToTargetConverterFuncParameter)]))));
         }
 
         // generates: scheduler = scheduler ?? ImmediateScheduler.Instance;
@@ -78,7 +75,7 @@ internal static partial class MethodCreator
                                     SyntaxKind.SimpleMemberAccessExpression,
                                     Constants.HostObservableVariable,
                                     Constants.ObserveOnMethodName),
-                                new[] { Argument(Constants.SchedulerParameter) }))),
+                                [Argument(Constants.SchedulerParameter)]))),
                 },
                 isExtension ? 3 : 4));
 
@@ -118,7 +115,7 @@ internal static partial class MethodCreator
         if (isExtension)
         {
             modifiers.Add(SyntaxKind.StaticKeyword);
-            parameterList.Add(Parameter(hostInputType, Constants.FromObjectVariable, new[] { SyntaxKind.ThisKeyword }));
+            parameterList.Add(Parameter(hostInputType, Constants.FromObjectVariable, [SyntaxKind.ThisKeyword]));
         }
 
         parameterList.Add(Parameter(targetInputType, Constants.TargetParameter));
@@ -132,7 +129,7 @@ internal static partial class MethodCreator
                 Parameter(
                     GenericName(
                         Constants.FuncTypeName,
-                        new[] { IdentifierName(hostInputType), IdentifierName(targetOutputType) }),
+                        [IdentifierName(hostInputType), IdentifierName(targetOutputType)]),
                     Constants.HostToTargetConverterFuncParameter));
         }
 
@@ -140,7 +137,7 @@ internal static partial class MethodCreator
 
         parameterList.AddRange(CallerMembersParameters());
 
-        statements.Add(ThrowStatement(ObjectCreationExpression(Constants.InvalidOperationExceptionTypeName, new[] { Argument("\"No valid expression found.\"") }), isExtension ? 2 : 3));
+        statements.Add(ThrowStatement(ObjectCreationExpression(Constants.InvalidOperationExceptionTypeName, [Argument("\"No valid expression found.\"")]), isExtension ? 2 : 3));
 
         var body = Block(statements, isExtension ? 1 : 2);
 
