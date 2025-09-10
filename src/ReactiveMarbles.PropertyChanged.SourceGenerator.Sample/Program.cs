@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2019-2021 ReactiveUI Association Incorporated. All rights reserved.
+﻿// Copyright (c) 2019-2025 ReactiveUI Association Incorporated. All rights reserved.
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
@@ -12,35 +12,34 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample
     {
         public static void Main(string[] args)
         {
-            var myClass = new SampleClass();
-            var myClass2 = new OtherNamespace.SampleClass();
-            var myClass3 = new SampleClass2();
+            var myClass1 = new SampleClass1();
+            var myClass2 = new OtherNamespace.SampleClass2();
+            var myClass3 = new SampleClass3();
 
-            myClass.WhenChanged(x => x.MyString).Where(x => x == "Hello World").Subscribe(Console.WriteLine);
-            myClass.WhenChanged(x => x.MyString2).Where(x => x == "Hello World").Subscribe(Console.WriteLine);
-            myClass.WhenChanged(x => x.MyString3).Where(x => x == "Hello World").Subscribe(Console.WriteLine);
-            myClass2.WhenChanging(x => x.MyString).Subscribe(Console.WriteLine);
-            myClass2.WhenChanging(x => x.MyString2).Subscribe(Console.WriteLine);
-            myClass2.WhenChanging(x => x.MyString3).Subscribe(Console.WriteLine);
-            myClass2.WhenChanging(x => x.MyString).Subscribe(Console.WriteLine);
+            myClass1.WhenChanged(x => x.MyString1).Where(x => x?.Length > 0).Subscribe(s => Console.WriteLine(s));
+            myClass1.WhenChanged(x => x.MyString2).Where(x => x?.Length > 0).Subscribe(s => Console.WriteLine(s));
+            myClass1.WhenChanged(x => x.MyString3).Where(x => x?.Length > 0).Subscribe(s => Console.WriteLine(s));
 
-            myClass.BindTwoWay(myClass3, x => x.MyString, x => x.MyString);
-            myClass.BindTwoWay(myClass3, x => x.MyString, x => x.MyString);
-            myClass.BindTwoWay(myClass3, x => x.MyString2, x => x.MyString2);
-            myClass.BindTwoWay(myClass3, x => x.MyString3, x => x.MyString3);
+            myClass2.WhenChanging(x => x.MyString1).Subscribe(s => Console.WriteLine(s));
+            myClass2.WhenChanging(x => x.MyString2).Subscribe(s => Console.WriteLine(s));
+            myClass2.WhenChanging(x => x.MyString3).Subscribe(s => Console.WriteLine(s));
 
-            myClass2.BindOneWay(myClass2, x => x.MyString, x => x.MyString);
-            myClass2.BindOneWay(myClass2, x => x.MyString2, x => x.MyString2);
-            myClass2.BindOneWay(myClass2, x => x.MyString3, x => x.MyString3);
+            myClass1.BindTwoWay(myClass3, x => x.MyString1, x => x.MyString1);
+            myClass1.BindTwoWay(myClass3, x => x.MyString2, x => x.MyString2);
+            myClass1.BindTwoWay(myClass3, x => x.MyString3, x => x.MyString3);
+
+            myClass1.BindOneWay(myClass2, x => x.MyString1, x => x.MyString1);
+            myClass1.BindOneWay(myClass2, x => x.MyString2, x => x.MyString2);
+            myClass1.BindOneWay(myClass2, x => x.MyString3, x => x.MyString3);
 
             Observable
-                .Interval(TimeSpan.FromSeconds(1))
+                .Timer(TimeSpan.Zero, TimeSpan.FromSeconds(1))
                 .Take(5)
-                .Subscribe(x => myClass.MyString = x.ToString());
+                .Subscribe(x => myClass1.MyString1 = x.ToString());
 
             Console.ReadLine();
         }
 
-        private static Expression<Func<SampleClass, string>> GetExpression() => x => x.MyString;
+        private static Expression<Func<SampleClass1, string>> GetExpression() => x => x.MyString1;
     }
 }

@@ -4,7 +4,7 @@
     <Platform>AnyCPU</Platform>
     <IsTestProject>$(MSBuildProjectName.Contains('Tests'))</IsTestProject>
     <Authors>Glenn Watson</Authors>
-    <Copyright>Copyright (c) 2021 ReactiveUI Association Incorporated</Copyright>
+    <Copyright>Copyright (c) 2025 ReactiveUI Association Incorporated</Copyright>
     <PackageIcon>logo.png</PackageIcon>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/reactivemarbles/PropertyChanged</PackageProjectUrl>
@@ -42,6 +42,7 @@
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)..\LICENSE" Pack="true" PackagePath="LICENSE" />
     <None Include="$(MSBuildThisFileDirectory)..\images\logo.png" Pack="true" PackagePath="\"/>
+    <None Include="$(MSBuildThisFileDirectory)..\README.md" Pack="true" PackagePath="\"/>
   </ItemGroup>
 
   <ItemGroup>
@@ -49,7 +50,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="stylecop.analyzers" Version="1.2.0-beta.435" PrivateAssets="all" />
+    <PackageReference Include="stylecop.analyzers" Version="1.2.0-beta.556" PrivateAssets="all" />
     <PackageReference Include="Roslynator.Analyzers" Version="4.14.0" PrivateAssets="All" />
     <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="6.0.0" PrivateAssets="all" />
   </ItemGroup>
