@@ -100,7 +100,7 @@ internal static partial class MethodCreator
                             new[]
                             {
                                 Argument(InvocationExpression(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, Constants.ToPropertyParameter, Constants.ToStringMethod))),
-                                Argument(LiteralExpression(hostExpressionArgument.LambdaBodyString))
+                                Argument(LiteralExpression(targetExpressionArgument.LambdaBodyString))
                             })),
                     Block(statements, isExtension ? 2 : 3)));
         }

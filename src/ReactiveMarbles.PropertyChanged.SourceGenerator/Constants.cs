@@ -86,6 +86,7 @@ internal sealed class PreserveAttribute : global::System.Attribute
     internal const string SwitchMethodName = "Switch";
     internal const string SkipMethodName = "Skip";
     internal const string CombineLatestMethodName = "CombineLatest";
+    internal const string DistinctUntilChangedMethodName = "DistinctUntilChanged";
 
     // events
     internal const string WhenChangedEventName = "PropertyChanged";

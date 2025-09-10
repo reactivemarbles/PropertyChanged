@@ -24,10 +24,9 @@ namespace ReactiveMarbles.PropertyChanged.SourceGenerator.Sample
             myClass2.WhenChanging(x => x.MyString2).Subscribe(s => Console.WriteLine(s));
             myClass2.WhenChanging(x => x.MyString3).Subscribe(s => Console.WriteLine(s));
 
-            // TODO: This is not working yet.
-            ////myClass1.BindTwoWay(myClass3, x => x.MyString1, x => x.MyString1);
-            ////myClass1.BindTwoWay(myClass3, x => x.MyString2, x => x.MyString2);
-            ////myClass1.BindTwoWay(myClass3, x => x.MyString3, x => x.MyString3);
+            myClass1.BindTwoWay(myClass3, x => x.MyString1, x => x.MyString1);
+            myClass1.BindTwoWay(myClass3, x => x.MyString2, x => x.MyString2);
+            myClass1.BindTwoWay(myClass3, x => x.MyString3, x => x.MyString3);
 
             myClass1.BindOneWay(myClass2, x => x.MyString1, x => x.MyString1);
             myClass1.BindOneWay(myClass2, x => x.MyString2, x => x.MyString2);

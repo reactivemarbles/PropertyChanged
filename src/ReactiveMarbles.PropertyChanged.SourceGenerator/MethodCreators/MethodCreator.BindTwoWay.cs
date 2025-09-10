@@ -29,10 +29,22 @@ internal static partial class MethodCreator
         var fromName = isExtension ? Constants.FromObjectVariable : Constants.ThisObjectVariable;
 
         var hostObservableChain = SourceHelpers.InvokeWhenChanged(Constants.WhenChangedMethodName, Constants.FromPropertyParameter, fromName);
+
+        // hostObs = Observable.DistinctUntilChanged(fromObject.WhenChanged(...));
+        hostObservableChain = InvocationExpression(
+            MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, Constants.ObservableLinqTypeName, Constants.DistinctUntilChangedMethodName),
+            new[] { Argument(hostObservableChain) });
         statements.Add(LocalDeclarationStatement(VariableDeclaration(GenericName(Constants.IObservableTypeName, [IdentifierName(hostOutputType)]), [VariableDeclarator(Constants.HostObservableVariable, EqualsValueClause(hostObservableChain))])));
 
-        var targetObservableChainInside = SourceHelpers.InvokeWhenChanged(Constants.WhenChangedMethodName, Constants.ToPropertyParameter, Constants.TargetParameter); ////GetObservableChain(fromName, targetExpressionChains, Constants.WhenChangedEventName, Constants.WhenChangedEventHandler, isExtension ? 2 : 3);
-        var targetObservableChain = InvocationExpression(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, Constants.ObservableLinqTypeName, Constants.SkipMethodName), new[] { Argument(targetObservableChainInside), Argument(LiteralExpression(1)) });
+        var targetObservableChainInside = SourceHelpers.InvokeWhenChanged(Constants.WhenChangedMethodName, Constants.ToPropertyParameter, Constants.TargetParameter);
+
+        // Observable.DistinctUntilChanged(Observable.Skip(target.WhenChanged(...), 1))
+        var targetSkip = InvocationExpression(
+            MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, Constants.ObservableLinqTypeName, Constants.SkipMethodName),
+            new[] { Argument(targetObservableChainInside), Argument(LiteralExpression(1)) });
+        var targetObservableChain = InvocationExpression(
+            MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, Constants.ObservableLinqTypeName, Constants.DistinctUntilChangedMethodName),
+            new[] { Argument(targetSkip) });
         statements.Add(LocalDeclarationStatement(VariableDeclaration(GenericName(Constants.IObservableTypeName, [IdentifierName(targetOutputType)]), [VariableDeclarator(Constants.TargetObservableVariable, EqualsValueClause(targetObservableChain))])));
 
         if (hasConverters)
